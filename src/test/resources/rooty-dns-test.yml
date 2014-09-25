@@ -1,0 +1,9 @@
+queueName: {{ROOTY_QUEUE_NAME}}  # where we read from. matching write location defined in cloudstead-config-test.yml
+secret: {{ROOTY_SECRET}}
+handlers:
+  rooty.toots.djbdns.DnsHandler:
+    params:
+      dataFile: {{DATA_FILE}}
+      serviceDir: /tmp
+      svc: {{SVC}}
+      etcHosts: {{ETC_HOSTS}}

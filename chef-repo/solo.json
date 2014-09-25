@@ -1,0 +1,21 @@
+{
+    "run_list": [
+        // the very basics
+        "recipe[base]",
+
+        // proxies to cloudstead webapp
+        "recipe[apache]",
+
+        // persistence for cloudstead
+        "recipe[postgresql]",
+
+        // for cloudos-dns and cloudstead
+        "recipe[java]",
+
+        // the cloudstead webapp
+        "recipe[cloudstead]",
+
+        // DNS
+        "recipe[cloudos-dns]"
+    ]
+}

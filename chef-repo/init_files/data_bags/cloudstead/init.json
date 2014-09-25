@@ -1,0 +1,31 @@
+{
+    "id": "init",
+
+    "server_tarball": "http://host/path/to/cloudstead-server.tar.gz",
+    "cloudos_server_tarball": "http://host/path/to/cloudos-server.tar.gz",
+    "aws_access_key": "put-access-key-here",
+    "aws_secret_key": "put-secret-key-here",
+    "s3_bucket": "put-bucket-name-here",
+    "aws_iam_group": "put-IAM-group-here",
+    "data_key": "put-data-key-here",
+    "cloud_storage_user": "any-unique-name-here",
+    "wildcard_cert_name": "ssl-https-wildcard",
+
+    "do_client_id": "put-digitalocean-client-id-here",
+    "do_api_key": "put-digitalocean-api-key-here",
+
+    "sendgrid": {
+        "user": "sendgrid-api-user",
+        "password": "sendgrid-api-key"
+    },
+
+    "authy": {
+        "user": "authy-api-key",
+        "base_uri": "authy-url"
+    },
+
+    "cloudos_dns": {
+        "user": "cloudos-dns-admin-user",
+        "password": "cloudos-dns-admin-password"
+    }
+}

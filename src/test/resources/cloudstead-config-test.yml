@@ -1,0 +1,83 @@
+# Things in {{CURLIES}} will be read from the process environment when the server starts up.
+
+serverName: cloudstead-api-test
+
+publicUriBase: https://127.0.0.1
+
+bcryptRounds: 2 # tests go much faster with very few bcrypt rounds
+springContextPath: classpath:/spring.xml
+
+staticAssets:
+  baseUri: /
+  assetRoot: static/
+  mustacheCacheEnabled: false
+  mustacheResourceRoot: static/
+  utilPaths:
+    INDEX_PATH: /index.html
+    INDEX_ALIASES: /:/index.php
+    LOCALIZE: /localize
+
+http:
+  port: 0 # pick a random port for tests
+  baseUri: /api
+
+jersey:
+  resourcePackages:
+  - cloudos.cloudstead.resources
+  - org.cobbzilla.wizard.server
+  - org.cobbzilla.wizard.filters
+  - org.cobbzilla.wizard.exceptionmappers
+  responseFilters: [ org.cobbzilla.wizard.filters.ScrubbableScrubber ]
+
+database:
+  driver: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5432/cloudstead-test
+  user: {{DB_USER}}
+  password: {{DB_PASS}}
+
+  hibernate:
+    entityPackages: [ cloudos.cloudstead.model ]
+    dialect: org.hibernate.dialect.PostgreSQLDialect
+    showSql: true
+    hbm2ddlAuto: create
+    validationMode: ddl
+
+cloudConfig:
+  # the CloudOs java server to unroll and install on new instances
+  cloudOsServerTarball: {{CLOUDOS_SERVER_TARBALL}}
+
+  # where configs are stored using cloudos-lib library
+  AWSAccessKeyId: {{AWS_ACCESS_KEY_ID}}
+  AWSSecretKey: {{AWS_SECRET_ACCESS_KEY}}
+  bucket: {{CLOUDOS_S3_BUCKET}}       # the bucket that all hosted cloudstead storage shares
+  group: {{AWS_IAM_GROUP}}            # the group that grants per-user permissions to a subdir of the bucket
+  dataKey: {{CLOUD_STORAGE_DATA_KEY}} # stored data is encrypted using this secret
+
+  # allows many servers (dev, staging, individual devs, etc) to share a single bucket
+  # must be set
+  cloudUser: {{CLOUD_STORAGE_USER}}
+
+  # we spin up new hosted cloudstead instances in digitalocean
+  doClientId: {{DO_CLIENT_ID}}
+  doApiKey: {{DO_API_KEY}}
+
+  # all cloudOs hosts will live within this domain
+  domain: {{CLOUDOS_PARENT_DOMAIN}}
+
+  # for now we use a fixed cert (in fact one that is hardcoded to www.cloudstead.io)
+  # in the near future we'll use a wildcard cert
+  # in the not so distant future, we'll generate a new cert for each cloudos instance
+  sslPem: {{SSL_PEM}}
+  sslKey: {{SSL_KEY}}
+
+  # this is where the chef stuff lives, we use the deploy.sh script to provision the new instance
+  cloudOsChefDir: {{CLOUDOS_CHEF_DIR}}
+
+sendGridConfig:
+  user: {{SENDGRID_API_USER}}
+  password: {{SENDGRID_API_KEY}}
+
+cloudOsDns:
+  user: {{CLOUDOS_DNS_USER}}
+  password: {{CLOUDOS_DNS_PASSWORD}}
+  baseUri: {{CLOUDOS_DNS_BASE_URI}}
