@@ -10,12 +10,11 @@ All rights reserved.
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.cobbzilla</groupId>
-        <artifactId>cobbzilla-parent</artifactId>
+        <groupId>cloudstead</groupId>
+        <artifactId>cloudstead-inc</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>cloudos</groupId>
     <artifactId>cloudstead-server</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
