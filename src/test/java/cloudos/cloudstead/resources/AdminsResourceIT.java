@@ -1,13 +1,12 @@
 package cloudos.cloudstead.resources;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import cloudos.cloudstead.model.Admin;
+import cloudos.cloudstead.model.support.AdminRequest;
+import cloudos.cloudstead.model.support.AdminResponse;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.wizard.util.RestResponse;
 import org.cobbzilla.wizardtest.RandomUtil;
 import org.junit.Test;
-import cloudos.cloudstead.model.Admin;
-import cloudos.cloudstead.model.support.AdminRequest;
-import cloudos.cloudstead.model.support.AdminResponse;
 
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
@@ -54,11 +53,7 @@ public class AdminsResourceIT extends ApiResourceITBase {
         apiDocs.startRecording(DOC_TARGET, "register a new admin account, then try to register another account with the same info");
 
         final String email = RandomUtil.randomEmail();
-
-        final AdminRequest request = new AdminRequest();
-        request.setEmail(email);
-        request.setMobilePhone(RandomStringUtils.randomNumeric(10));
-        request.setPassword(RandomStringUtils.randomAlphanumeric(10));
+        final AdminRequest request = newAdminRequest(email);
 
         apiDocs.addNote("register first admin, should succeed");
         response = doPost(AdminsResource.ENDPOINT, toJson(request));
@@ -77,11 +72,7 @@ public class AdminsResourceIT extends ApiResourceITBase {
         apiDocs.startRecording(DOC_TARGET, "register a new admin account, update it, then delete it");
 
         String email = RandomUtil.randomEmail();
-
-        final AdminRequest request = new AdminRequest();
-        request.setEmail(email);
-        request.setMobilePhone(RandomStringUtils.randomNumeric(10));
-        request.setPassword(RandomStringUtils.randomAlphanumeric(10));
+        final AdminRequest request = newAdminRequest(email);
 
         apiDocs.addNote("register admin");
         response = doPost(AdminsResource.ENDPOINT, toJson(request));

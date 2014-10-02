@@ -346,7 +346,7 @@ public class CloudOsLauncher implements Runnable {
                     .setRun_as("cloudos")
                     .setServer_tarball(cloudConfig.getCloudOsServerTarball())
                     .setRecovery_email(admin.getEmail())
-                    .setAdmin_initial_pass(admin.getPassword().getHashedPassword())
+                    .setAdmin_initial_pass(admin.getHashedPassword().getHashedPassword()) // todo: allow cloudstead-specific password
                     .setAuthy(configuration.getAuthy())
                     .setDns(configuration.getCloudOsDns().getBaseUri(), hostname, dnsApiKey)
                     .setVendor(new VendorDatabag()

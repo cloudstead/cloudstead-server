@@ -42,6 +42,10 @@ database:
     hbm2ddlAuto: create
     validationMode: ddl
 
+adminAuthy:
+  user: {{ADMIN_AUTHY_KEY}}
+  baseUri: {{AUTHY_URI}}
+
 cloudConfig:
   # the CloudOs java server to unroll and install on new instances
   cloudOsServerTarball: {{CLOUDOS_SERVER_TARBALL}}
@@ -76,6 +80,10 @@ cloudConfig:
 sendGridConfig:
   user: {{SENDGRID_API_USER}}
   password: {{SENDGRID_API_KEY}}
+
+authy:
+  user: {{AUTHY_KEY}}
+  baseUri: {{AUTHY_URI}}
 
 cloudOsDns:
   user: {{CLOUDOS_DNS_USER}}

@@ -24,6 +24,11 @@
         "base_uri": "authy-url"
     },
 
+    "adminAuthy": {
+        "user": "admin-authy-api-key",
+        "base_uri": "authy-url"
+    },
+
     "cloudos_dns": {
         "user": "cloudos-dns-admin-user",
         "password": "cloudos-dns-admin-password"

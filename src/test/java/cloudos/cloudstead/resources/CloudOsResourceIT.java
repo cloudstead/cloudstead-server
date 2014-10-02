@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.wizardtest.RandomUtil.randomEmail;
@@ -90,6 +91,9 @@ public class CloudOsResourceIT extends ApiResourceITBase {
             if (cloudOs != null && cloudOs.isRunning()) {
                 try {
                     doDelete(CloudOsResource.ENDPOINT + "/" + cloudOs.getName());
+                    while (doGet(CloudOsResource.ENDPOINT+"/"+cloudOs.getName()+"/status").status != 404) {
+                        Thread.sleep(1000);
+                    }
                 } catch (Exception e) {
                     final CsInstance instance = cloudOs.getInstance();
                     final String ip = instance != null ? instance.getPublicIp() : "unknown-ip";
@@ -131,9 +135,11 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
         while (!status.isCompleted()) {
             apiDocs.addNote("check status of cloudOs launch");
+            Thread.sleep(SECONDS.toMillis(10));
             response = doGet(CloudOsResource.ENDPOINT+"/"+name+"/status");
+            assertEquals(200, response.status);
             status = fromJson(response.json, CloudOsStatus.class);
-            Thread.sleep(30000);
+            if (status.isCompleted()) break;
         }
 
         assertEquals(name.toLowerCase(), status.getCloudOs().getName().toLowerCase());

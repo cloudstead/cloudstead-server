@@ -44,6 +44,10 @@ database:
     hbm2ddlAuto: validate
     validationMode: ddl
 
+adminAuthy:
+  user: {{ADMIN_AUTHY_KEY}}
+  baseUri: {{AUTHY_URI}}
+
 cloudConfig:
   # the CloudOs java server to unroll and install on new instances
   cloudOsServerTarball: {{CLOUDOS_SERVER_TARBALL}}

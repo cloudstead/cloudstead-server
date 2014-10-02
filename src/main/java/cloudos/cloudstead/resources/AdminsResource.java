@@ -1,16 +1,17 @@
 package cloudos.cloudstead.resources;
 
-import lombok.extern.slf4j.Slf4j;
-import org.cobbzilla.wizard.model.HashedPassword;
-import org.cobbzilla.wizard.resources.ResourceUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import cloudos.cloudstead.dao.AdminDAO;
 import cloudos.cloudstead.dao.SessionDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.model.support.LoginRequest;
+import cloudos.cloudstead.server.CloudsteadConfiguration;
+import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.wizard.model.HashedPassword;
+import org.cobbzilla.wizard.resources.ResourceUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -29,6 +30,7 @@ public class AdminsResource {
 
     @Autowired private AdminDAO adminDAO;
     @Autowired private SessionDAO sessionDAO;
+    @Autowired private CloudsteadConfiguration configuration;
 
     @GET
     @Path("/{uuid}")
@@ -51,6 +53,11 @@ public class AdminsResource {
 
         Admin admin = populate(request, new Admin());
 
+        if (request.isTwoFactor()) {
+            request.setAuthIdInt(configuration.getTwoFactorAuthService()
+                    .addUser(request.getEmail(), request.getMobilePhone(), request.getMobilePhoneCountryCodeString()));
+        }
+
         admin = adminDAO.create(admin);
 
         final AdminResponse adminResponse = new AdminResponse(admin, sessionDAO.create(admin));
@@ -59,8 +66,12 @@ public class AdminsResource {
 
     private Admin populate(AdminRequest request, Admin admin) {
         admin.setEmail(request.getEmail());
+        admin.setFirstName(request.getFirstName());
+        admin.setLastName(request.getLastName());
         admin.setMobilePhone(request.getMobilePhone());
-        admin.setPassword(new HashedPassword(request.getPassword()));
+        admin.setMobilePhoneCountryCode(request.getMobilePhoneCountryCode());
+        admin.setHashedPassword(new HashedPassword(request.getPassword()));
+        admin.setTosVersion(request.isTos() ? 1 : null); // todo: get TOS version from TOS service/dao. for now default to version 1
         return admin;
     }
 
@@ -68,7 +79,7 @@ public class AdminsResource {
     public Response login(@Valid LoginRequest request) {
 
         final Admin admin = adminDAO.findByEmail(request.getEmail());
-        if (admin == null || !admin.getPassword().isCorrectPassword(request.getPassword())) {
+        if (admin == null || !admin.getHashedPassword().isCorrectPassword(request.getPassword())) {
             return ResourceUtil.notFound();
         }
 

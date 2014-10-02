@@ -2,6 +2,7 @@ package cloudos.cloudstead.server;
 
 import cloudos.cloudstead.resources.ServiceKeyRequestsResource;
 import cloudos.dns.DnsClient;
+import cloudos.service.TwoFactorAuthService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,20 +15,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration @Slf4j
-public class CloudsteadConfiguration extends RestServerConfiguration
-        implements HasDatabaseConfiguration /*, HasMqConfiguration, HasDocStoreConfiguration*/ {
+public class CloudsteadConfiguration extends RestServerConfiguration implements HasDatabaseConfiguration {
 
     @Setter private DatabaseConfiguration database;
     @Bean public DatabaseConfiguration getDatabase() { return database; }
 
+    @Getter @Setter private ApiConnectionInfo adminAuthy;
+    @Getter(lazy=true) private final TwoFactorAuthService twoFactorAuthService = initTwoFactorAuthService();
+    private TwoFactorAuthService initTwoFactorAuthService() { return new TwoFactorAuthService(adminAuthy); }
+
     @Setter private CloudConfiguration cloudConfig;
     @Bean public CloudConfiguration getCloudConfig() { return cloudConfig; }
 
-    @Bean public DnsClient getDnsClient () { return new DnsClient(cloudOsDns); }
+    @Setter private DnsClient dnsClient;
+    public DnsClient getDnsClient () {
+        if (dnsClient == null) dnsClient = new DnsClient(cloudOsDns);
+        return dnsClient;
+    }
 
     @Setter private ApiConnectionInfo sendGridConfig;
-    @Getter(lazy=true) private final SendGrid sendGrid = initSendGrid();
-    private SendGrid initSendGrid() { return new SendGrid(sendGridConfig); }
+    @Setter private SendGrid sendGrid;
+    public SendGrid getSendGrid() {
+        if (sendGrid == null) sendGrid = new SendGrid(sendGridConfig);
+        return sendGrid;
+    }
 
     @Getter @Setter private ApiConnectionInfo authy;
 
