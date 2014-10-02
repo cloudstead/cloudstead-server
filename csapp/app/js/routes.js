@@ -22,7 +22,8 @@ App.RegistrationRoute = Ember.Route.extend({
 		return {
 			email: '',
 			password: '',
-			password2: ''
+			password2: '',
+            tos: ''
 		};
 	}
 });
@@ -70,19 +71,3 @@ App.LogoutRoute = Ember.Route.extend({
 		window.location.replace('/index.html');
 	}
 });
-
-//App.SettingsRoute = Ember.Route.extend({
-//model: function () {
-//  return {
-//	  "current_password": "",
-//	  "new_password": "",
-//	  "new_password2": ""
-//  }
-//}
-//});
-
-//App.AppRoute = Ember.Route.extend({
-//model: function(params) {
-//  return App.app_model(params.app_name);
-//}
-//});

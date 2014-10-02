@@ -3,16 +3,17 @@
 App.RegistrationController = Ember.ObjectController.extend({
 	actions: {
 		doNewAccount: function () {
-			var validate = this.validateSignup(this.get('email'), this.get('password'), this.get('password2'));
+			var validate = this.validateSignup(this.get('email'), this.get('password'), this.get('password2'), this.get('tos'));
 		
-			if ( (validate.username) || (validate.password) || (validate.password2)){
+			if ( (validate.username) || (validate.password) || (validate.password2) || (validate.tos)){
 				this.set('requestMessages',
 						App.RequestMessagesObject.create({
 							json: {"status": 'error', "api_token" : null, 
 								"errors": 
 									{"username": validate.username,
 									"password": validate.password,
-									"password2": validate.password2}}
+									"password2": validate.password2,
+                                    "tos": validate.tos}}
 					  })
 					);
 				return false;
@@ -21,7 +22,8 @@ App.RegistrationController = Ember.ObjectController.extend({
 			// instead of doing validation imperatively, let's do declarative validation, like how the backend API works...
 			var result = Api.register_admin({
 				email: this.get('email'),
-				password: this.get('password')
+				password: this.get('password'),
+                tos: this.get('tos')
 			});
 
 			if ( (result.status == 'success') && (result.api_token)) {
@@ -38,7 +40,7 @@ App.RegistrationController = Ember.ObjectController.extend({
 			}
 		}
 	},
-	validateSignup: function(username, password, password2){
+	validateSignup: function(username, password, password2, tos){
 		
 		var response = {"username": null, "password":null, "password2":null};
 		var error_msg = locate(Em.I18n.translations, 'errors');
@@ -46,24 +48,28 @@ App.RegistrationController = Ember.ObjectController.extend({
 		
 		if ((username.trim() == '') || (!username)){
 			response.username = error_msg.field_required;
-		}else if(!pattern.test(username)){
+		} else if(!pattern.test(username)){
 			response.username = error_msg.email_invalid;
 		}
 
 		if ((password.trim() == '') || (!password)){
 			response.password = error_msg.field_required;
-		}else if(password.length < 8) {
+		} else if(password.length < 8) {
 			response.password = error_msg.password_short;
 		}
 
 		if ((password2.trim() == '') || (!password2)){
 			response.password2 = error_msg.field_required;
 		}
-
-		if (password != password2) {
+        if (password != password2) {
 			response.password2 = error_msg.password_mismatch;
 		}
-		return response;
+
+        if ((tos.trim() == '') || (!tos)){
+            response.tos = error_msg.field_required;
+        }
+
+        return response;
 	}
 });
 
@@ -204,47 +210,3 @@ App.IndexController = Ember.ObjectController.extend({
 //  active_account: Api.json_safe_parse(sessionStorage.getItem('active_account')),
 //  username: get_username()
 });
-
-//App.LoginController = Ember.ObjectController.extend({
-//active_account: Api.json_safe_parse(sessionStorage.getItem('active_account')),
-//username: get_username(),
-//password: '',
-//actions: {
-//  doLogin: function () {
-//	  var creds = {
-//		  'name': this.get('username'),
-//		  'password': this.get('password')
-//	  };
-//	  var api_token = Api.login_account(creds);
-////	  alert('doLogin received API token: '+api_token);
-//	  if (api_token) {
-//		  window.location.replace('/index.html');
-//	  } else {
-//		  // populate error
-//	  }
-//  },
-//
-//  clearStorage: function () {
-//	  sessionStorage.clear();
-//	  localStorage.clear();
-//  }
-//}
-//});
-
-//App.SettingsController = Ember.ObjectController.extend({
-//actions: {
-//  changePassword: function () {
-//	  var newPassword = this.get('new_password');
-//	  var confirmPassword = this.get('new_password2');
-//	  if (newPassword.length == 0) {
-//		  msg_alert('password_mismatch');
-//		  return;
-//	  }
-//	  if (Api.change_password(this.get('current_password'), newPassword)) {
-//		  this.transitionTo('settings')
-//	  } else {
-//		  console.log('error changing password');
-//	  }
-//  }
-//}
-//});

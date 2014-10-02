@@ -5,5 +5,5 @@ App.ApplicationView = Ember.View.extend({
 });
 
 App.NavbarView = Ember.View.extend({
-	authStatus: sessionStorage.getItem('api_token'),
+	authStatus: sessionStorage.getItem('api_token')
 	});

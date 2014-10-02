@@ -20,7 +20,8 @@ Api = {
 				  "api_token": null,
 				  "errors": {"username":null,
 							 "password":null,
-							 "password2":null}};
+							 "password2":null,
+                             "tos":null}};
 
         sessionStorage.removeItem('api_token');
         Ember.$.ajax({

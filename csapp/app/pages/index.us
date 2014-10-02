@@ -250,6 +250,18 @@
 					{{/if}}
 				</div>
 				<div class="field-container">
+					<label for="tos">{{t forms.admin.tos}}</label>
+					{{#if requestMessages.error.tos}}
+						{{input type="tos" value=tos class="error"}}
+					{{else}}
+						{{input type="checkbox" value=tos}}
+					{{/if}}
+
+					{{#if requestMessages.error.password2}}
+						<span class="message error">{{requestMessages.error.password2}}</span>
+					{{/if}}
+				</div>
+				<div class="field-container">
 					<p><button type="submit" class="expand" {{action 'doNewAccount'}}>{{t forms.admin.signup_button}}</button></p>
 				</div>
 			</fieldset>
