@@ -41,6 +41,8 @@ data_bags/cloudstead/init.json \
 data_bags/cloudstead/ports.json \
 data_bags/cloudos-dns/init.json \
 data_bags/cloudos-dns/ports.json \
+data_bags/cloudos-appstore/init.json \
+data_bags/cloudos-appstore/ports.json \
 certs/cloudstead/ssl-https.key \
 certs/cloudstead/ssl-https.pem \
 certs/cloudstead/ssl-https-wildcard.key \
