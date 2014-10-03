@@ -15,7 +15,7 @@
         // the cloudstead webapp
         "recipe[cloudstead]",
 
-        // DNS
-        "recipe[cloudos-dns]"
+        // DNS and appstore
+        "recipe[cloudos-dns]", "recipe[cloudos-appstore]"
     ]
 }
