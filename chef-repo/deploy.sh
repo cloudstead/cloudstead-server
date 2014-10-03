@@ -17,7 +17,8 @@ function die {
 
 BASE=$(cd $(dirname $0) && pwd)
 cd ${BASE}
-CLOUDOS_BASE=$(cd ${BASE}/../.. && pwd)
+INC_BASE=$(cd ${BASE}/../.. && pwd)
+CLOUDOS_BASE=$(cd ${INC_BASE}/cloudos && pwd)
 
 DEPLOYER=${BASE}/deploy_lib.sh
 if [ ! -x ${DEPLOYER} ] ; then
@@ -49,7 +50,7 @@ certs/cloudstead/ssl-https-wildcard.pem \
 COOKBOOK_SOURCES=" \
 ${CLOUDOS_BASE}/cloudos-lib/chef-repo/cookbooks \
 $(find ${CLOUDOS_BASE}/cloudos-apps/apps -type d -name cookbooks) \
-$(find ${BASE}/cloudstead-apps/apps -type d -name cookbooks) \
+$(find ${INC_BASE}/cloudstead-apps/apps -type d -name cookbooks) \
 "
 
 ${DEPLOYER} ${host} ${INIT_FILES} "${REQUIRED}" "${COOKBOOK_SOURCES}"
