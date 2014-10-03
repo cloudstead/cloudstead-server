@@ -31,7 +31,7 @@ jersey:
 
 database:
   driver: org.postgresql.Driver
-  url: jdbc:postgresql://localhost:5432/cloudstead-test
+  url: jdbc:postgresql://localhost:5432/cloudstead_test
   user: {{DB_USER}}
   password: {{DB_PASS}}
 
