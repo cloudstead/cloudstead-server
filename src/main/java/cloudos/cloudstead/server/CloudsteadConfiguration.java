@@ -2,10 +2,13 @@ package cloudos.cloudstead.server;
 
 import cloudos.cloudstead.resources.ServiceKeyRequestsResource;
 import cloudos.dns.DnsClient;
+import cloudos.server.HasTwoFactorAuthConfiguration;
 import cloudos.service.TwoFactorAuthService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.mail.sender.SmtpMailConfig;
+import org.cobbzilla.mail.service.TemplatedMailSenderConfiguration;
 import org.cobbzilla.sendgrid.SendGrid;
 import org.cobbzilla.util.http.ApiConnectionInfo;
 import org.cobbzilla.wizard.server.config.DatabaseConfiguration;
@@ -15,14 +18,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration @Slf4j
-public class CloudsteadConfiguration extends RestServerConfiguration implements HasDatabaseConfiguration {
+public class CloudsteadConfiguration extends RestServerConfiguration
+        implements HasDatabaseConfiguration, HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration {
 
     @Setter private DatabaseConfiguration database;
     @Bean public DatabaseConfiguration getDatabase() { return database; }
 
+    @Getter @Setter private SmtpMailConfig smtpMailConfig;
+    @Getter @Setter private String emailTemplateRoot;
+
     @Getter @Setter private ApiConnectionInfo adminAuthy;
-    @Getter(lazy=true) private final TwoFactorAuthService twoFactorAuthService = initTwoFactorAuthService();
-    private TwoFactorAuthService initTwoFactorAuthService() { return new TwoFactorAuthService(adminAuthy); }
+
+    private TwoFactorAuthService twoFactorAuthService = null;
+    @Override public TwoFactorAuthService getTwoFactorAuthService () {
+        if (twoFactorAuthService == null) twoFactorAuthService = new TwoFactorAuthService(authy);
+        return twoFactorAuthService;
+    }
 
     @Setter private CloudConfiguration cloudConfig;
     @Bean public CloudConfiguration getCloudConfig() { return cloudConfig; }

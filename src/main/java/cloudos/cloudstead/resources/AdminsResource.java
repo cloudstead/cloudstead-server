@@ -1,13 +1,16 @@
 package cloudos.cloudstead.resources;
 
 import cloudos.cloudstead.dao.AdminDAO;
-import cloudos.cloudstead.dao.SessionDAO;
 import cloudos.cloudstead.model.Admin;
+import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.cloudstead.model.support.AdminResponse;
-import cloudos.cloudstead.model.support.LoginRequest;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
+import cloudos.model.auth.LoginRequest;
+import cloudos.resources.AccountsResourceBase;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.mail.TemplatedMail;
+import org.cobbzilla.mail.service.TemplatedMailService;
 import org.cobbzilla.wizard.model.HashedPassword;
 import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +27,20 @@ import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
 @Produces(MediaType.APPLICATION_JSON)
 @Path(AdminsResource.ENDPOINT)
 @Service @Slf4j
-public class AdminsResource {
+public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthResponse> {
 
     public static final String ENDPOINT = "/admins";
 
     @Autowired private AdminDAO adminDAO;
-    @Autowired private SessionDAO sessionDAO;
+    @Autowired private TemplatedMailService mailService;
     @Autowired private CloudsteadConfiguration configuration;
+
+    @Override protected void afterSuccessfulLogin(LoginRequest login, Admin admin) throws Exception {}
+
+    @Override
+    protected CloudsteadAuthResponse buildAuthResponse(String sessionId, Admin account) {
+        return new CloudsteadAuthResponse(sessionId, account);
+    }
 
     @GET
     @Path("/{uuid}")
@@ -38,7 +48,7 @@ public class AdminsResource {
                           @PathParam("uuid") String uuid) {
 
         Admin caller = sessionDAO.find(apiKey);
-        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
+        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.notFound();
 
         final Admin admin = adminDAO.findByUuid(uuid);
         if (admin == null) return ResourceUtil.notFound();
@@ -48,20 +58,49 @@ public class AdminsResource {
         return Response.ok(admin).build();
     }
 
-    @POST
-    public Response create(@Valid AdminRequest request) {
+    @PUT
+    @Path("/{name}")
+    public Response create(@PathParam("name") String name, @Valid AdminRequest request) {
+
+        // sanity check
+        if (!name.equalsIgnoreCase(request.getEmail())) return ResourceUtil.invalid();
 
         Admin admin = populate(request, new Admin());
-
-        if (request.isTwoFactor()) {
-            request.setAuthIdInt(configuration.getTwoFactorAuthService()
-                    .addUser(request.getEmail(), request.getMobilePhone(), request.getMobilePhoneCountryCodeString()));
-        }
+        admin.setTwoFactor(true); // everyone gets two-factor turned on by default
+        admin.setAuthIdInt(set2factor(request));
 
         admin = adminDAO.create(admin);
 
         final AdminResponse adminResponse = new AdminResponse(admin, sessionDAO.create(admin));
+
+        sendInvitation(admin);
+
         return Response.ok(adminResponse).build();
+    }
+
+    public void sendInvitation(Admin admin) {
+        // todo: use the event bus for this?
+        // Send welcome email with password and link to login and change it
+        final TemplatedMail mail = new TemplatedMail()
+                .setTemplateName(TemplatedMailService.T_WELCOME)
+                .setLocale("en_US") // todo: set this at first-time-setup
+                .setToEmail(admin.getEmail())
+                .setToName(admin.getFullName())
+                .setParameter(TemplatedMailService.PARAM_ACCOUNT, admin);
+        try {
+            mailService.getMailSender().deliverMessage(mail);
+        } catch (Exception e) {
+            log.error("addAccount: error sending welcome email: "+e, e);
+        }
+    }
+
+    private int set2factor(AdminRequest request) {
+        return configuration.getTwoFactorAuthService()
+                .addUser(request.getEmail(), request.getMobilePhone(), request.getMobilePhoneCountryCodeString());
+    }
+
+    private void remove2factor(Admin admin) {
+        configuration.getTwoFactorAuthService().deleteUser(admin.getAuthIdInt());
     }
 
     private Admin populate(AdminRequest request, Admin admin) {
@@ -73,18 +112,6 @@ public class AdminsResource {
         admin.setHashedPassword(new HashedPassword(request.getPassword()));
         admin.setTosVersion(request.isTos() ? 1 : null); // todo: get TOS version from TOS service/dao. for now default to version 1
         return admin;
-    }
-
-    @PUT
-    public Response login(@Valid LoginRequest request) {
-
-        final Admin admin = adminDAO.findByEmail(request.getEmail());
-        if (admin == null || !admin.getHashedPassword().isCorrectPassword(request.getPassword())) {
-            return ResourceUtil.notFound();
-        }
-
-        final AdminResponse adminResponse = new AdminResponse(admin, sessionDAO.create(admin));
-        return Response.ok(adminResponse).build();
     }
 
     @POST
@@ -101,7 +128,25 @@ public class AdminsResource {
         Admin admin = adminDAO.findByUuid(uuid);
         if (admin == null) return ResourceUtil.notFound();
 
+        Integer authId = null;
+        if (!request.isTwoFactor() && admin.isTwoFactor()) {
+            // they are turning off two-factor auth
+            remove2factor(admin);
+            admin.setAuthId(null);
+
+        } else if (request.isTwoFactor() && !admin.isTwoFactor()) {
+            // they are turning on two-factor auth
+            authId = set2factor(request);
+
+        } else if (!request.getMobilePhone().equals(admin.getMobilePhone())) {
+            // they changed their phone number, remove old auth id and add a new one
+            remove2factor(admin);
+            authId = set2factor(request);
+        }
+
         admin = populate(request, admin);
+        if (authId != null) admin.setAuthIdInt(authId); // if the 2-factor token changed, update it now.
+
         admin = adminDAO.update(admin);
         sessionDAO.update(apiKey, admin);
 
@@ -113,9 +158,11 @@ public class AdminsResource {
     public Response delete(@HeaderParam(H_API_KEY) String apiKey,
                            @PathParam("uuid") String uuid) {
 
-        Admin caller = sessionDAO.find(apiKey);
+        // you can only delete yourself (currently)
+        final Admin caller = sessionDAO.find(apiKey);
         if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
 
+        remove2factor(caller);
         adminDAO.delete(uuid);
         sessionDAO.invalidate(apiKey);
 

@@ -1,15 +1,30 @@
 package cloudos.cloudstead.dao;
 
+import cloudos.cloudstead.model.Admin;
+import cloudos.dao.AccountBaseDAO;
+import cloudos.model.auth.AuthenticationException;
+import cloudos.model.auth.LoginRequest;
 import org.cobbzilla.util.collection.MapBuilder;
-import org.cobbzilla.wizard.dao.AbstractUniqueCRUDDAO;
 import org.cobbzilla.wizard.validation.UniqueValidatorDaoHelper;
 import org.springframework.stereotype.Repository;
-import cloudos.cloudstead.model.Admin;
 
 import java.util.Map;
 
 @Repository
-public class AdminDAO extends AbstractUniqueCRUDDAO<Admin> {
+public class AdminDAO extends AccountBaseDAO<Admin> {
+
+    @Override public Admin authenticate(LoginRequest loginRequest) throws AuthenticationException {
+
+        final String accountName = loginRequest.getName();
+        final String password = loginRequest.getPassword();
+
+        final Admin admin = findByName(accountName);
+        if (admin == null || !admin.getHashedPassword().isCorrectPassword(password)) {
+            throw new AuthenticationException(AuthenticationException.Problem.NOT_FOUND);
+        }
+
+        return admin;
+    }
 
     @Override
     protected Map<String, UniqueValidatorDaoHelper.Finder<Admin>> getUniqueHelpers() {

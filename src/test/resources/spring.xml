@@ -11,9 +11,7 @@
     <!-- DB-related beans (dataSource, sessionFactory, hibernateTemplate, etc) -->
     <context:component-scan base-package="org.cobbzilla.wizard.spring.config.rdbms"/>
 
-    <!-- Templated mail sender -->
-    <context:component-scan base-package="org.cobbzilla.mail.service"/>
-
+    <!-- jersey resources, DAOs -->
     <context:component-scan base-package="cloudos.model.auth"/>
     <context:component-scan base-package="cloudos.dao"/>
     <context:component-scan base-package="cloudos.cloudstead.model"/>
@@ -22,5 +20,8 @@
     <context:component-scan base-package="cloudos.cloudstead.service"/>
 
     <bean id="uniqueValidator" class="org.cobbzilla.wizard.validation.UniqueValidator"/>
+
+    <!-- Mock templated mail sender -->
+    <bean class="org.cobbzilla.mail.sender.mock.MockTemplatedMailService"/>
 
 </beans>
