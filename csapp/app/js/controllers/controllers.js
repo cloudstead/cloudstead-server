@@ -1,29 +1,49 @@
-
+String.prototype.trim = String.prototype.trim || function trim() { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
 
 App.RegistrationController = Ember.ObjectController.extend({
+    tos: false,
 	actions: {
 		doNewAccount: function () {
-			var validate = this.validateSignup(this.get('email'), this.get('password'), this.get('password2'), this.get('tos'));
-		
-			if ( (validate.username) || (validate.password) || (validate.password2) || (validate.tos)){
+			var validate = this.validateSignup(this.get('firstName'),
+                                               this.get('lastName'),
+                                               this.get('email'),
+                                               this.get('mobilePhoneCountryCode'),
+                                               this.get('mobilePhone'),
+                                               this.get('password'),
+                                               this.get('password2'),
+                                               this.get('tos'));
+
+			if ( validate.firstName || validate.lastName || validate.email ||
+                validate.mobilePhoneCountryCode || validate.mobilePhone ||
+                validate.password || validate.password2 || validate.tos) {
 				this.set('requestMessages',
 						App.RequestMessagesObject.create({
-							json: {"status": 'error', "api_token" : null, 
-								"errors": 
-									{"username": validate.username,
-									"password": validate.password,
-									"password2": validate.password2,
-                                    "tos": validate.tos}}
+							json: {"status": 'error', "api_token" : null,
+								"errors": {
+                                        "firstName": validate.firstName,
+                                        "lastName": validate.lastName,
+                                        "email": validate.email,
+                                        "mobilePhoneCountryCode": validate.mobilePhoneCountryCode,
+                                        "mobilePhone": validate.mobilePhone,
+								    	"password": validate.password,
+									    "password2": validate.password2,
+                                        "tos": validate.tos
+                                }}
 					  })
 					);
 				return false;
 			}
+
 			// todo: ensure minimum password length. perhaps some generic validation framework can be applied?
 			// instead of doing validation imperatively, let's do declarative validation, like how the backend API works...
 			var result = Api.register_admin({
+				firstName: this.get('firstName'),
+				lastName: this.get('lastName'),
 				email: this.get('email'),
+                mobilePhoneCountryCode: this.get('mobilePhoneCountryCode'),
+                mobilePhone: this.get('mobilePhone'),
 				password: this.get('password'),
-                tos: this.get('tos')
+                tos: !!this.get('tos')
 			});
 
 			if ( (result.status == 'success') && (result.api_token)) {
@@ -40,32 +60,51 @@ App.RegistrationController = Ember.ObjectController.extend({
 			}
 		}
 	},
-	validateSignup: function(username, password, password2, tos){
-		
-		var response = {"username": null, "password":null, "password2":null};
+	validateSignup: function(firstName, lastName, email, mobilePhoneCountryCode, mobilePhone, password, password2, tos){
+
+		var response = {
+            "firstName": null, "lastName": null, "email": null,
+            "mobilePhoneCountryCode": null, "mobilePhone": null,
+            "password":null, "password2":null, "tos": null
+        };
 		var error_msg = locate(Em.I18n.translations, 'errors');
 		var pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-		
-		if ((username.trim() == '') || (!username)){
-			response.username = error_msg.field_required;
-		} else if(!pattern.test(username)){
-			response.username = error_msg.email_invalid;
+
+		if (!firstName || (firstName.trim() == '')){
+			response.firstName = error_msg.field_required;
+		}
+		if (!lastName || (lastName.trim() == '')){
+			response.lastName = error_msg.field_required;
 		}
 
-		if ((password.trim() == '') || (!password)){
+        if (!email || (email.trim() == '')){
+            response.email = error_msg.field_required;
+        } else if(!pattern.test(email)){
+            response.email = error_msg.email_invalid;
+        }
+
+        if (!mobilePhoneCountryCode || (mobilePhoneCountryCode.trim() == '')) {
+            response.mobilePhoneCountryCode = error_msg.field_required;
+        }
+
+        if (!mobilePhone || (mobilePhone.trim() == '')) {
+            response.mobilePhone = error_msg.field_required;
+        }
+
+        if (!password || (password.trim() == '')){
 			response.password = error_msg.field_required;
 		} else if(password.length < 8) {
 			response.password = error_msg.password_short;
 		}
 
-		if ((password2.trim() == '') || (!password2)){
+		if (!password2 || (password2.trim() == '')){
 			response.password2 = error_msg.field_required;
 		}
         if (password != password2) {
 			response.password2 = error_msg.password_mismatch;
 		}
 
-        if ((tos.trim() == '') || (!tos)){
+        if (!tos || ((''+tos).trim() == '')) {
             response.tos = error_msg.field_required;
         }
 
@@ -79,14 +118,14 @@ App.LoginController = Ember.ObjectController.extend({
 		doLogin: function () {
 
 			// data check
-			var validate = this.validateLogin(this.get('email'),this.get('password'));
+			var validate = this.validateLogin(this.get('username'),this.get('password'));
 
-			if ( (validate.username) || (validate.password)){
+			if ( (validate.email) || (validate.password)){
 				  this.set('requestMessages',
 						App.RequestMessagesObject.create({
-							json: {"status": 'error', "api_token" : null, 
-								"errors": 
-									{"username": validate.username,
+							json: {"status": 'error', "api_token" : null,
+								"errors":
+									{"name": validate.name,
 									"password": validate.password}}
 						})
 					);
@@ -94,7 +133,7 @@ App.LoginController = Ember.ObjectController.extend({
 			}
 
 			var result = Api.login_admin({
-				email: this.get('email'),
+				name: this.get('name'),
 				password: this.get('password')
 			});
 
@@ -112,16 +151,16 @@ App.LoginController = Ember.ObjectController.extend({
 			}
 		}
 	},
-	validateLogin: function(username, password){
+	validateLogin: function(name, password){
 
-		var response = {"username": null, "password":null};
+		var response = {"name": null, "password":null};
 		var error_msg = locate(Em.I18n.translations, 'errors');
 		var pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 		if ((username.trim() == '') || (!username)){
-			response.username = error_msg.field_required;
+			response.name = error_msg.field_required;
 		}else if(!pattern.test(username)){
-			response.username = error_msg.email_invalid;
+			response.name = error_msg.email_invalid;
 		}
 
 		if ((password.trim() == '') || (!password)){
@@ -140,8 +179,8 @@ App.AdminHomeController = Ember.ObjectController.extend({
 			if (validate.cloudOsName) {
 				this.set('requestMessages',
 						App.RequestMessagesObject.create({
-							json: {"status": 'error', "api_token" : null, 
-								"errors": 
+							json: {"status": 'error', "api_token" : null,
+								"errors":
 									{"cloudOsName": validate.cloudOsName}}
 						})
 					);
@@ -159,7 +198,7 @@ App.AdminHomeController = Ember.ObjectController.extend({
 		}
 	},
 	validateName: function(cloudOsName){
-		
+
 		var response = {"cloudOsName":null};
 		var error_msg = locate(Em.I18n.translations, 'errors');
 		var reserved = ["www", "wwws", "http", "https",
@@ -186,7 +225,7 @@ App.CloudOsStatusController = Ember.ObjectController.extend({
 		doRelaunchCloudOs: function () {
 			var cloudOsRequest = { name: this.get('name') };
 			var status = Api.new_cloud_os(cloudOsRequest);
-			
+
 			if (status) {
 				this.transitionToRoute('cloudOsStatus', cloudOsRequest.name);
 			} else {

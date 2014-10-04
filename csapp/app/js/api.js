@@ -18,10 +18,15 @@ Api = {
 
     	var result = {"status": null,
 				  "api_token": null,
-				  "errors": {"username":null,
-							 "password":null,
-							 "password2":null,
-                             "tos":null}};
+				  "errors": {
+                      "firstName":null,
+                      "lastName":null,
+                      "email":null,
+                      "mobilePhoneCountryCode":null,
+                      "mobilePhone":null,
+                      "password":null,
+                      "password2":null,
+                      "tos":null}};
 
         sessionStorage.removeItem('api_token');
         Ember.$.ajax({
@@ -52,7 +57,7 @@ Api = {
 
     	var result = {"status": null,
     				  "api_token": null,
-    				  "errors": {"username":null,
+    				  "errors": {"name":null,
     							 "password":null}};
 
         sessionStorage.removeItem('api_token');

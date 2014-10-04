@@ -25,6 +25,6 @@ public class Admin extends AccountBase {
         return super.setEmail(email);
     }
 
-    @Getter @Setter private Integer tosVersion;
+    @JsonIgnore @Getter @Setter private Integer tosVersion;
 
 }
