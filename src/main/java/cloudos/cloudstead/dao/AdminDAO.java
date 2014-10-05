@@ -28,14 +28,19 @@ public class AdminDAO extends AccountBaseDAO<Admin> {
 
     @Override
     protected Map<String, UniqueValidatorDaoHelper.Finder<Admin>> getUniqueHelpers() {
-        return MapBuilder.build(new Object[][]{
+
+        final Map<String, UniqueValidatorDaoHelper.Finder<Admin>> helpers = super.getUniqueHelpers();
+
+        helpers.putAll(MapBuilder.<String, UniqueValidatorDaoHelper.Finder<Admin>>build(new Object[][]{
                 {"email", new UniqueValidatorDaoHelper.Finder<Admin>() {
                     @Override public Admin find(Object query) { return findByEmail(query.toString()); }
                 }},
                 {"mobilePhone", new UniqueValidatorDaoHelper.Finder<Admin>() {
                     @Override public Admin find(Object query) { return findByMobilePhone(query.toString()); }
                 }},
-        });
+        }));
+
+        return helpers;
     }
 
     public Admin findByEmail(String email) { return findByUniqueField("email", email); }
