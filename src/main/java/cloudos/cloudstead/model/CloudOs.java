@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.cobbzilla.util.json.JsonUtil;
-import org.cobbzilla.wizard.model.IdentifiableBase;
+import org.cobbzilla.wizard.model.UniquelyNamedEntity;
 import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.IsUnique;
 import org.cobbzilla.wizard.validation.NotReservedWord;
@@ -21,7 +21,7 @@ import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 @Entity
 @IsUnique(unique="name", daoBean="cloudOsDAO", message="{err.name.notUnique}")
 @ToString(of={"adminUuid", "name", "running", "instanceJson"})
-public class CloudOs extends IdentifiableBase {
+public class CloudOs extends UniquelyNamedEntity {
 
     @Getter @Setter private String adminUuid;
 
@@ -33,7 +33,7 @@ public class CloudOs extends IdentifiableBase {
     @Column(updatable=false, unique=true, length=30)
     private String name;
     public String getName () { return name == null ? null : name.toLowerCase(); }
-    public void setName (String n) { name = (n == null) ? null : n.toLowerCase(); }
+    public CloudOs setName (String n) { name = (n == null) ? null : n.toLowerCase(); return this; }
 
     @Getter @Setter private boolean running = false;
 
