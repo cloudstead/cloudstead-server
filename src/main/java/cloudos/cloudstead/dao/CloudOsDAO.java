@@ -10,14 +10,12 @@ import java.util.List;
 @Repository
 public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
 
-    @Override
-    public Object preCreate(@Valid CloudOs entity) {
+    @Override public Object preCreate(@Valid CloudOs entity) {
         entity.setName(entity.getName().toLowerCase());
         return super.preCreate(entity);
     }
 
-    @Override
-    public Object preUpdate(@Valid CloudOs entity) {
+    @Override public Object preUpdate(@Valid CloudOs entity) {
         entity.setName(entity.getName().toLowerCase());
         return super.preUpdate(entity);
     }

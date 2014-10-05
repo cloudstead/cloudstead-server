@@ -7,9 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.cobbzilla.util.json.JsonUtil;
 import org.cobbzilla.wizard.model.UniquelyNamedEntity;
-import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.IsUnique;
-import org.cobbzilla.wizard.validation.NotReservedWord;
+import org.cobbzilla.wizard.validation.SimpleViolationException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,14 +25,14 @@ public class CloudOs extends UniquelyNamedEntity {
     @Getter @Setter private String adminUuid;
 
     // Name has a lot of restrictions: must have a value; min 3/max 30 alphanumeric chars; cannot be reserved word
-    @HasValue(message = "error.cloudosRequest.name.required")
     @Size(max=30, message="error.cloudosRequest.name.tooLong")
     @Pattern(regexp = "[A-Za-z0-9]{3,}", message = "error.cloudosRequest.name.invalid")
-    @NotReservedWord(reserved=ReservedCloudOsNames.class, message="error.cloudosRequest.name.reserved")
     @Column(updatable=false, unique=true, length=30)
-    private String name;
     public String getName () { return name == null ? null : name.toLowerCase(); }
-    public CloudOs setName (String n) { name = (n == null) ? null : n.toLowerCase(); return this; }
+    public CloudOs setName (String n) {
+        if (ReservedCloudOsNames.isReserved(n)) throw new SimpleViolationException("err.name.reserved");
+        name = (n == null) ? null : n.toLowerCase(); return this;
+    }
 
     @Getter @Setter private boolean running = false;
 

@@ -15,4 +15,10 @@ public class ReservedCloudOsNames implements ReservedWords {
 
     @Override public String[] getReservedWords() { return RESERVED_NAMES; }
 
+    public static boolean isReserved (String s) {
+        for (String w : RESERVED_NAMES) {
+            if (w.equalsIgnoreCase(s)) return true;
+        }
+        return false;
+    }
 }

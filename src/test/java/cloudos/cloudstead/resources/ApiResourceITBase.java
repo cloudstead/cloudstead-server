@@ -7,6 +7,7 @@ import cloudos.cloudstead.server.CloudsteadServer;
 import cloudos.dns.mock.MockDnsClient;
 import cloudos.model.auth.AuthResponse;
 import cloudos.model.auth.LoginRequest;
+import lombok.Getter;
 import org.cobbzilla.mail.sender.mock.MockTemplatedMailSender;
 import org.cobbzilla.mail.sender.mock.MockTemplatedMailService;
 import org.cobbzilla.sendgrid.mock.MockSendGrid;
@@ -17,7 +18,6 @@ import org.cobbzilla.wizard.server.config.factory.StreamConfigurationSource;
 import org.cobbzilla.wizard.util.RestResponse;
 import org.cobbzilla.wizardtest.resources.ApiDocsResourceIT;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -31,15 +31,7 @@ import static org.junit.Assert.assertEquals;
 public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration, CloudsteadServer> {
 
     public static final String TEST_ENV_FILE = ".cloudstead-test.env";
-    private static final Map<String, String> environment;
-    static {
-        try {
-            environment = CommandShell.loadShellExports(TEST_ENV_FILE);
-        } catch (IOException e) {
-            throw new IllegalStateException("Error reading env file: "+TEST_ENV_FILE+": "+e, e);
-        }
-    }
-    protected Map<String, String> getServerEnvironment() { return environment; }
+    @Getter private final Map<String, String> serverEnvironment = CommandShell.loadShellExportsOrDie(TEST_ENV_FILE);
 
     @Override protected List<ConfigurationSource> getConfigurations() {
         return StreamConfigurationSource.fromResources(getClass(), "cloudstead-config-test.yml");

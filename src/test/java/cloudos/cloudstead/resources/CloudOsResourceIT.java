@@ -69,22 +69,19 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
     private RootyMain rooty = null;
 
-    @Override
-    protected Map<String, String> getServerEnvironment() {
+    @Override public Map<String, String> getServerEnvironment() {
         final Map<String, String> env = super.getServerEnvironment();
         env.put("ROOTY_QUEUE_NAME", queueName);
         env.put("ROOTY_SECRET", rootySecret);
         return env;
     }
 
-    @Before
-    public void setup () throws Exception {
+    @Before public void setup () throws Exception {
         rooty = new RootyMain();
         rooty.run(rootyConfiguration);
     }
 
-    @After
-    public void teardown () throws Exception {
+    @After public void teardown () throws Exception {
         if (rooty != null) rooty.shutdown();
         final CloudOs cloudOs = status.getCloudOs();
         if (status != null) {
