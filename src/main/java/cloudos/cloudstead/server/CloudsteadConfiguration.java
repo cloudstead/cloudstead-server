@@ -68,8 +68,6 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     }
 
     public String getResetPasswordUrl(String key) {
-        return new StringBuilder()
-                .append(getPublicUriBase()).append(getHttp().getBaseUri())
-                .append("/reset_password.html?key=").append(key).toString();
+        return new StringBuilder().append(getPublicUriBase()).append("/reset_password.html?key=").append(key).toString();
     }
 }

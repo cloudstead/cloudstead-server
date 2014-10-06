@@ -67,7 +67,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         // sanity check
         if (!name.equalsIgnoreCase(request.getEmail())) return ResourceUtil.invalid();
 
-        Admin admin = populate(request, new Admin());
+        Admin admin = new Admin().populate(request);
         admin.setHashedPassword(new HashedPassword(request.getPassword()));
         admin.setTwoFactor(true); // everyone gets two-factor turned on by default
         admin.setAuthIdInt(set2factor(request));
@@ -109,16 +109,6 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         configuration.getTwoFactorAuthService().deleteUser(admin.getAuthIdInt());
     }
 
-    private Admin populate(AdminRequest request, Admin admin) {
-        admin.setEmail(request.getEmail());
-        admin.setFirstName(request.getFirstName());
-        admin.setLastName(request.getLastName());
-        admin.setMobilePhone(request.getMobilePhone());
-        admin.setMobilePhoneCountryCode(request.getMobilePhoneCountryCode());
-        admin.setTosVersion(request.isTos() ? 1 : null); // todo: get TOS version from TOS service/dao. for now default to version 1
-        return admin;
-    }
-
     @POST
     @Path("/{uuid}")
     public Response update(@HeaderParam(H_API_KEY) String apiKey,
@@ -149,7 +139,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
             authId = set2factor(request);
         }
 
-        admin = populate(request, admin);
+        admin.populate(request);
         if (authId != null) admin.setAuthIdInt(authId); // if the 2-factor token changed, update it now.
 
         admin = adminDAO.update(admin);
@@ -175,9 +165,8 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         if (!admin.getHashedPassword().isCorrectPassword(request.getOldPassword())) {
             return ResourceUtil.invalid("err.password.invalid");
         }
-        admin.getHashedPassword().setPassword(request.getNewPassword());
 
-        admin = adminDAO.update(admin);
+        adminDAO.setPassword(admin, request.getNewPassword());
         sessionDAO.update(apiKey, admin);
 
         return Response.ok(admin).build();

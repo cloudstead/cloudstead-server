@@ -1,5 +1,6 @@
 package cloudos.cloudstead.model;
 
+import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.model.AccountBase;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -22,5 +23,11 @@ public class Admin extends AccountBase {
     }
 
     @JsonIgnore @Getter @Setter private Integer tosVersion;
+
+    public Admin populate(AdminRequest request) {
+        super.populate(request);
+        setTosVersion(request.isTos() ? 1 : null); // todo: get TOS version from TOS service/dao. for now default to version 1
+        return this;
+    }
 
 }
