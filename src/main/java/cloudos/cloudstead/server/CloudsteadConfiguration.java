@@ -1,6 +1,6 @@
 package cloudos.cloudstead.server;
 
-import cloudos.cloudstead.resources.ActivationsResource;
+import cloudos.cloudstead.resources.AuthResource;
 import cloudos.cloudstead.resources.ApiConstants;
 import cloudos.dns.DnsClient;
 import cloudos.server.HasTwoFactorAuthConfiguration;
@@ -62,8 +62,9 @@ public class CloudsteadConfiguration extends RestServerConfiguration
 
     public String getEmailVerificationUrl(String key) {
         return new StringBuilder()
-                .append(getPublicUriBase()).append(getHttp().getBaseUri()).append(ApiConstants.ACTIVATIONS_ENDPOINT)
-                .append("?").append(ActivationsResource.PARAM_KEY).append("=").append(key).toString();
+                .append(getPublicUriBase()).append(getHttp().getBaseUri())
+                .append(ApiConstants.AUTH_ENDPOINT).append(AuthResource.EP_ACTIVATE)
+                .append("/").append(key).toString();
     }
 
     public String getResetPasswordUrl(String key) {

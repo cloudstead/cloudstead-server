@@ -3,7 +3,7 @@ package cloudos.cloudstead.resources;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.dao.AccountBaseDAO;
-import cloudos.resources.AccountActivationsResource;
+import cloudos.resources.AccountAuthResource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +18,9 @@ import javax.ws.rs.core.MediaType;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Path(ApiConstants.ACTIVATIONS_ENDPOINT)
+@Path(ApiConstants.AUTH_ENDPOINT)
 @Service @Slf4j
-public class ActivationsResource extends AccountActivationsResource<Admin> {
+public class AuthResource extends AccountAuthResource<Admin> {
 
     @Autowired @Getter(value=AccessLevel.PROTECTED) protected AccountBaseDAO<Admin> accountBaseDAO;
     @Autowired @Getter(value=AccessLevel.PROTECTED) protected TemplatedMailService templatedMailService;

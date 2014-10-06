@@ -5,6 +5,7 @@ import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.model.auth.AuthResponse;
+import cloudos.model.auth.ChangePasswordRequest;
 import cloudos.model.auth.LoginRequest;
 import cloudos.model.auth.ResetPasswordRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -232,6 +233,32 @@ public class AdminsResourceTest extends ApiResourceITBase {
     }
 
     @Test
+    public void testChangePassword () throws Exception {
+
+        apiDocs.startRecording(DOC_TARGET, "exercise the change-password workflow");
+
+        final String email = randomEmail();
+        final String password = randomAlphanumeric(10);
+        final AdminResponse admin = fromJson(registerAdmin(newAdminRequest(email, password)).json, AdminResponse.class);
+
+        apiDocs.addNote("login with current password, should work");
+        fullLogin(email, password, null);
+
+        apiDocs.addNote("change password");
+        final String newPassword = password + "_changed";
+        final ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest()
+                .setUuid(admin.getUuid())
+                .setOldPassword(password)
+                .setNewPassword(newPassword);
+        post(AdminsResource.getChangePasswordPath(admin.getUuid()), toJson(changePasswordRequest));
+
+        expectFailedLogin(email, password);
+
+        apiDocs.addNote("login with new password, should work");
+        fullLogin(email, newPassword, null);
+    }
+
+    @Test
     public void testForgotPassword () throws Exception {
 
         apiDocs.startRecording(DOC_TARGET, "exercise the forgot-password workflow");
@@ -243,10 +270,10 @@ public class AdminsResourceTest extends ApiResourceITBase {
         final MockTemplatedMailSender sender = getTemplatedMailSender();
         sender.reset();
         apiDocs.addNote("hit forgot password link");
-        post(ApiConstants.ACTIVATIONS_ENDPOINT + ActivationsResource.EP_FORGOT_PASSWORD, email);
+        post(ApiConstants.AUTH_ENDPOINT + AuthResource.EP_FORGOT_PASSWORD, email);
 
         assertEquals(1, sender.getMessages().size());
-        final String url = sender.getFirstMessage().getParameters().get(ActivationsResource.PARAM_RESETPASSWORD_URL).toString();
+        final String url = sender.getFirstMessage().getParameters().get(AuthResource.PARAM_RESETPASSWORD_URL).toString();
         assertNotNull(url);
         final Matcher matcher = Pattern.compile("^http://[^\\?]+\\?key=(\\w+)").matcher(url);
         assertTrue(matcher.find());
@@ -255,19 +282,23 @@ public class AdminsResourceTest extends ApiResourceITBase {
         apiDocs.addNote("hit reset password link");
         final String newPassword = password+"_changed";
         final ResetPasswordRequest request = new ResetPasswordRequest().setToken(token).setPassword(newPassword);
-        post(ApiConstants.ACTIVATIONS_ENDPOINT + ActivationsResource.EP_RESET_PASSWORD, toJson(request));
+        post(ApiConstants.AUTH_ENDPOINT + AuthResource.EP_RESET_PASSWORD, toJson(request));
 
-        apiDocs.addNote("login with old password - should fail");
+        expectFailedLogin(email, password);
+
+        apiDocs.addNote("login with new password - should succeed but should still require 2-factor auth");
+        fullLogin(email, newPassword, null);
+        log.info("Success!");
+    }
+
+    protected void expectFailedLogin(String email, String password) throws Exception {
         try {
+            apiDocs.addNote("login with old password - should fail");
             fullLogin(email, password, null);
             fail("expected login with old password to fail");
         } catch (AssertionError ignored) {
             // expected
             log.info("OK, expected this: "+ignored);
         }
-
-        apiDocs.addNote("login with new password - should succeed but should still require 2-factor auth");
-        fullLogin(email, newPassword, null);
-        log.info("Success!");
     }
 }

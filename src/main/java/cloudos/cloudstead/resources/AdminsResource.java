@@ -6,6 +6,7 @@ import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
+import cloudos.model.auth.ChangePasswordRequest;
 import cloudos.model.auth.LoginRequest;
 import cloudos.resources.AccountsResourceBase;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static cloudos.cloudstead.resources.ApiConstants.ADMINS_ENDPOINT;
 import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
 
 @Consumes(MediaType.APPLICATION_JSON)
@@ -28,6 +30,9 @@ import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
 @Path(ApiConstants.ADMINS_ENDPOINT)
 @Service @Slf4j
 public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthResponse> {
+
+    public static final String EP_CHANGE_PASSWORD = "/{uuid}/change_password";
+    public static String getChangePasswordPath (String uuid) { return ADMINS_ENDPOINT + EP_CHANGE_PASSWORD.replace("{uuid}", uuid); }
 
     @Autowired private AdminDAO adminDAO;
     @Autowired private TemplatedMailService mailService;
@@ -63,6 +68,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         if (!name.equalsIgnoreCase(request.getEmail())) return ResourceUtil.invalid();
 
         Admin admin = populate(request, new Admin());
+        admin.setHashedPassword(new HashedPassword(request.getPassword()));
         admin.setTwoFactor(true); // everyone gets two-factor turned on by default
         admin.setAuthIdInt(set2factor(request));
         admin.initEmailVerificationCode();
@@ -109,7 +115,6 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         admin.setLastName(request.getLastName());
         admin.setMobilePhone(request.getMobilePhone());
         admin.setMobilePhoneCountryCode(request.getMobilePhoneCountryCode());
-        admin.setHashedPassword(new HashedPassword(request.getPassword()));
         admin.setTosVersion(request.isTos() ? 1 : null); // todo: get TOS version from TOS service/dao. for now default to version 1
         return admin;
     }
@@ -146,6 +151,31 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         admin = populate(request, admin);
         if (authId != null) admin.setAuthIdInt(authId); // if the 2-factor token changed, update it now.
+
+        admin = adminDAO.update(admin);
+        sessionDAO.update(apiKey, admin);
+
+        return Response.ok(admin).build();
+    }
+
+    @POST
+    @Path(EP_CHANGE_PASSWORD)
+    public Response changePassword(@HeaderParam(H_API_KEY) String apiKey,
+                                   @PathParam("uuid") String uuid,
+                                   @Valid ChangePasswordRequest request) {
+
+        if (!uuid.equals(request.getUuid())) return ResourceUtil.invalid();
+
+        final Admin caller = sessionDAO.find(apiKey);
+        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
+
+        Admin admin = adminDAO.findByUuid(uuid);
+        if (admin == null) return ResourceUtil.notFound();
+
+        if (!admin.getHashedPassword().isCorrectPassword(request.getOldPassword())) {
+            return ResourceUtil.invalid("err.password.invalid");
+        }
+        admin.getHashedPassword().setPassword(request.getNewPassword());
 
         admin = adminDAO.update(admin);
         sessionDAO.update(apiKey, admin);
