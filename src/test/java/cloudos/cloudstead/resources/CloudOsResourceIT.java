@@ -8,8 +8,6 @@ import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cslib.compute.instance.CsInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.cobbzilla.mail.TemplatedMail;
-import org.cobbzilla.mail.sender.mock.MockTemplatedMailSender;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.io.StreamUtil;
@@ -27,7 +25,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.wizardtest.RandomUtil.randomEmail;
@@ -134,7 +131,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
         while (!status.isCompleted()) {
             apiDocs.addNote("check status of cloudOs launch");
-            Thread.sleep(SECONDS.toMillis(10));
+            Thread.sleep(SECONDS.toMillis(30));
             response = doGet(ApiConstants.CLOUDOS_ENDPOINT +"/"+name+"/status");
             assertEquals(200, response.status);
             status = fromJson(response.json, CloudOsStatus.class);
