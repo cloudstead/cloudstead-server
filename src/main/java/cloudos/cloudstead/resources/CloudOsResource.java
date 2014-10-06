@@ -1,5 +1,6 @@
 package cloudos.cloudstead.resources;
 
+import cloudos.cloudstead.dao.AdminDAO;
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.dao.CloudOsEventDAO;
 import cloudos.cloudstead.dao.SessionDAO;
@@ -28,6 +29,7 @@ public class CloudOsResource {
 
     @Autowired private CloudOsDAO cloudOsDAO;
     @Autowired private SessionDAO sessionDAO;
+    @Autowired private AdminDAO adminDAO;
     @Autowired private CloudOsLaunchManager launchManager;
     @Autowired private CloudOsEventDAO eventDAO;
     @Autowired private CloudsteadConfiguration configuration;
@@ -69,6 +71,7 @@ public class CloudOsResource {
         if (!name.equalsIgnoreCase(request.getName())) return ResourceUtil.invalid();
 
         // must be activated
+        admin = adminDAO.findByUuid(admin.getUuid());
         if (!admin.isEmailVerified()) return ResourceUtil.invalid("setup.error.unverifiedEmail");
 
         // this should return quickly with a status of pending

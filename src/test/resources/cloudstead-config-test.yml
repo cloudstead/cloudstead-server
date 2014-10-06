@@ -103,6 +103,6 @@ authy:
   baseUri: {{AUTHY_URI}}
 
 cloudOsDns:
-  user: {{CLOUDOS_DNS_USER}}
-  password: {{CLOUDOS_DNS_PASSWORD}}
-  baseUri: {{CLOUDOS_DNS_BASE_URI}}
+  user: dummy
+  password: dummy
+  baseUri: http://107.170.204.49/api/mock

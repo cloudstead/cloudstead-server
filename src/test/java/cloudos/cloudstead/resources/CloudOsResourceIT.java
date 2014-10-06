@@ -118,9 +118,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
         String name = "test"+RandomStringUtils.randomAlphanumeric(10).toLowerCase();
 
-        // todo: put a "real" email in here, and then verify that the email sent at the end of the chef-solo run is received
-        String recoveryEmail = randomEmail();
-
         final CloudOsRequest cloudOsRequest = new CloudOsRequest(name);
 
         apiDocs.addNote("create a new cloudOs instance");
