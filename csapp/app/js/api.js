@@ -31,7 +31,7 @@ Api = {
         sessionStorage.removeItem('api_token');
         Ember.$.ajax({
             'type': 'PUT',
-            'url':'/api/admins/' + encodeURIComponent(req.email),
+            'url':'/api/admins/' + encodeURIComponent(reg.email),
             'contentType': 'application/json',
             'data': JSON.stringify(reg),
             'async': false,
