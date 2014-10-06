@@ -1,13 +1,14 @@
 package cloudos.cloudstead.server;
 
-import cloudos.cloudstead.resources.AuthResource;
 import cloudos.cloudstead.resources.ApiConstants;
+import cloudos.cloudstead.resources.AuthResource;
 import cloudos.dns.DnsClient;
 import cloudos.server.HasTwoFactorAuthConfiguration;
 import cloudos.service.TwoFactorAuthService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.mail.SimpleEmailMessage;
 import org.cobbzilla.mail.sender.SmtpMailConfig;
 import org.cobbzilla.mail.service.TemplatedMailSenderConfiguration;
 import org.cobbzilla.sendgrid.SendGrid;
@@ -18,6 +19,9 @@ import org.cobbzilla.wizard.server.config.RestServerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration @Slf4j
 public class CloudsteadConfiguration extends RestServerConfiguration
         implements HasDatabaseConfiguration, HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration {
@@ -26,6 +30,7 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     @Bean public DatabaseConfiguration getDatabase() { return database; }
 
     @Getter @Setter private String emailTemplateRoot;
+    @Getter @Setter private Map<String, SimpleEmailMessage> emailSenderNames = new HashMap<>();
     @Getter @Setter private SmtpMailConfig smtpMailConfig;
 
     @Getter @Setter private ApiConnectionInfo adminAuthy;

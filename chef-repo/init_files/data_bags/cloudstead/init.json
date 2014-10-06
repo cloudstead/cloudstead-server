@@ -14,6 +14,11 @@
     "do_client_id": "put-digitalocean-client-id-here",
     "do_api_key": "put-digitalocean-api-key-here",
 
+    "mail_senders": {
+        "welcome":        { "name": "no-reply", "email": "no-reply@example.com" },
+        "reset_password": { "name": "no-reply", "email": "no-reply@example.com" }
+    },
+
     "sendgrid": {
         "user": "sendgrid-api-user",
         "password": "sendgrid-api-key"

@@ -79,6 +79,14 @@ cloudConfig:
 
 emailTemplateRoot: {{EMAIL_TEMPLATE_ROOT}}
 
+emailSenderNames:
+  welcome:
+    fromName:  admin
+    fromEmail: admin@example.com
+  reset_password:
+    fromName: admin
+    fromEmail: admin@example.com
+
 smtpMailConfig:
   host: smtp.sendgrid.net
   port: 587

@@ -10,6 +10,7 @@ import cloudos.model.auth.ChangePasswordRequest;
 import cloudos.model.auth.LoginRequest;
 import cloudos.resources.AccountsResourceBase;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.mail.SimpleEmailMessage;
 import org.cobbzilla.mail.TemplatedMail;
 import org.cobbzilla.mail.service.TemplatedMailService;
 import org.cobbzilla.wizard.model.HashedPassword;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.Response;
 
 import static cloudos.cloudstead.resources.ApiConstants.ADMINS_ENDPOINT;
 import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
+import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -86,9 +88,12 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         // todo: use the event bus for this?
 
         // Send welcome email with verification code
+        SimpleEmailMessage welcomeSender = configuration.getEmailSenderNames().get(T_WELCOME);
         final TemplatedMail mail = new TemplatedMail()
-                .setTemplateName(TemplatedMailService.T_WELCOME)
+                .setTemplateName(T_WELCOME)
                 .setLocale("en_US") // todo: set this at first-time-setup
+                .setFromName(welcomeSender.getFromName())
+                .setFromEmail(welcomeSender.getFromEmail())
                 .setToEmail(admin.getEmail())
                 .setToName(admin.getFullName())
                 .setParameter(TemplatedMailService.PARAM_ACCOUNT, admin)

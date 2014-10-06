@@ -3,10 +3,11 @@ package cloudos.cloudstead.resources;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.dao.AccountBaseDAO;
-import cloudos.resources.AccountAuthResource;
+import cloudos.resources.AuthResourceBase;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.mail.SimpleEmailMessage;
 import org.cobbzilla.mail.service.TemplatedMailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Path(ApiConstants.AUTH_ENDPOINT)
 @Service @Slf4j
-public class AuthResource extends AccountAuthResource<Admin> {
+public class AuthResource extends AuthResourceBase<Admin> {
 
     @Autowired @Getter(value=AccessLevel.PROTECTED) protected AccountBaseDAO<Admin> accountBaseDAO;
     @Autowired @Getter(value=AccessLevel.PROTECTED) protected TemplatedMailService templatedMailService;
@@ -28,5 +29,10 @@ public class AuthResource extends AccountAuthResource<Admin> {
     @Autowired private CloudsteadConfiguration configuration;
 
     @Override protected String getResetPasswordUrl(String token) { return configuration.getResetPasswordUrl(token); }
+
+    @Override protected String getFromName(String templateName) { return mailSender(templateName).getFromName(); }
+    @Override protected String getFromEmail(String templateName) { return mailSender(templateName).getFromEmail(); }
+
+    private SimpleEmailMessage mailSender(String templateName) { return configuration.getEmailSenderNames().get(templateName); }
 
 }
