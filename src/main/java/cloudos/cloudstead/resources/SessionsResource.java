@@ -14,11 +14,9 @@ import javax.ws.rs.core.MediaType;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Path(SessionsResource.ENDPOINT)
+@Path(ApiConstants.SESSIONS_ENDPOINT)
 @Service
 public class SessionsResource extends AbstractSessionsResource<Admin> {
-
-    public static final String ENDPOINT = "/sessions";
 
     @Autowired @Getter private SessionDAO sessionDAO;
 

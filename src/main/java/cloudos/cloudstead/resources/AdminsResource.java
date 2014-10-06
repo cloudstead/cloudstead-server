@@ -25,11 +25,9 @@ import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Path(AdminsResource.ENDPOINT)
+@Path(ApiConstants.ADMINS_ENDPOINT)
 @Service @Slf4j
 public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthResponse> {
-
-    public static final String ENDPOINT = "/admins";
 
     @Autowired private AdminDAO adminDAO;
     @Autowired private TemplatedMailService mailService;
@@ -37,8 +35,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
     @Override protected void afterSuccessfulLogin(LoginRequest login, Admin admin) throws Exception {}
 
-    @Override
-    protected CloudsteadAuthResponse buildAuthResponse(String sessionId, Admin account) {
+    @Override protected CloudsteadAuthResponse buildAuthResponse(String sessionId, Admin account) {
         return new CloudsteadAuthResponse(sessionId, account);
     }
 
@@ -47,7 +44,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
     public Response find (@HeaderParam(H_API_KEY) String apiKey,
                           @PathParam("uuid") String uuid) {
 
-        Admin caller = sessionDAO.find(apiKey);
+        final Admin caller = sessionDAO.find(apiKey);
         if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.notFound();
 
         final Admin admin = adminDAO.findByUuid(uuid);
@@ -68,6 +65,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         Admin admin = populate(request, new Admin());
         admin.setTwoFactor(true); // everyone gets two-factor turned on by default
         admin.setAuthIdInt(set2factor(request));
+        admin.initEmailVerificationCode();
 
         admin = adminDAO.create(admin);
 
@@ -80,17 +78,19 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
     public void sendInvitation(Admin admin) {
         // todo: use the event bus for this?
-        // Send welcome email with password and link to login and change it
+
+        // Send welcome email with verification code
         final TemplatedMail mail = new TemplatedMail()
                 .setTemplateName(TemplatedMailService.T_WELCOME)
                 .setLocale("en_US") // todo: set this at first-time-setup
                 .setToEmail(admin.getEmail())
                 .setToName(admin.getFullName())
-                .setParameter(TemplatedMailService.PARAM_ACCOUNT, admin);
+                .setParameter(TemplatedMailService.PARAM_ACCOUNT, admin)
+                .setParameter("activationUrl", configuration.getEmailVerificationUrl(admin.getEmailVerificationCode()));
         try {
             mailService.getMailSender().deliverMessage(mail);
         } catch (Exception e) {
-            log.error("addAccount: error sending welcome email: "+e, e);
+            log.error("sendInvitation: error sending welcome email: "+e, e);
         }
     }
 
@@ -122,7 +122,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         if (!uuid.equals(request.getUuid())) return ResourceUtil.invalid();
 
-        Admin caller = sessionDAO.find(apiKey);
+        final Admin caller = sessionDAO.find(apiKey);
         if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
 
         Admin admin = adminDAO.findByUuid(uuid);

@@ -16,11 +16,9 @@ import javax.ws.rs.core.Response;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Path(ServiceKeyRequestsResource.ENDPOINT)
+@Path(ApiConstants.SERVICEKEYS_ENDPOINT)
 @Service @Slf4j
 public class ServiceKeyRequestsResource {
-
-    public static final String ENDPOINT = "/service_request";
 
     @Autowired private ServiceKeyDAO serviceKeyDAO;
 

@@ -2,12 +2,14 @@ package cloudos.cloudstead.resources;
 
 import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
+import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.server.CloudsteadServer;
 import cloudos.dns.mock.MockDnsClient;
 import cloudos.model.auth.AuthResponse;
 import cloudos.model.auth.LoginRequest;
 import lombok.Getter;
+import org.cobbzilla.mail.TemplatedMail;
 import org.cobbzilla.mail.sender.mock.MockTemplatedMailSender;
 import org.cobbzilla.mail.sender.mock.MockTemplatedMailService;
 import org.cobbzilla.sendgrid.mock.MockSendGrid;
@@ -23,6 +25,7 @@ import java.util.Map;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
+import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.util.string.StringUtil.urlEncode;
@@ -42,6 +45,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
         configuration.setDnsClient(new MockDnsClient());
         configuration.setSendGrid(new MockSendGrid());
+        configuration.setPublicUriBase("http://127.0.0.1:"+server.getConfiguration().getHttp().getPort());
     }
 
     @Override protected Class<? extends CloudsteadServer> getRestServerClass() { return CloudsteadServer.class; }
@@ -56,7 +60,6 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
     protected RestResponse registerAdmin(String email) throws Exception {
         RestResponse response;
         final AdminRequest request = newAdminRequest(email);
-
         response = registerAdmin(request);
         assertEquals(HttpStatusCodes.OK, response.status);
         return response;
@@ -64,7 +67,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
 
     protected RestResponse registerAdmin(AdminRequest request) throws Exception {
         apiDocs.addNote("register an admin");
-        return doPut(AdminsResource.ENDPOINT + "/" + urlEncode(request.getAccountName()), toJson(request));
+        return doPut(ApiConstants.ADMINS_ENDPOINT + "/" + urlEncode(request.getAccountName()), toJson(request));
     }
 
     protected AdminRequest newAdminRequest(String email) {
@@ -85,8 +88,8 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
     }
 
     public RestResponse login(LoginRequest loginRequest) throws Exception {
-        apiDocs.appendNote("login: " + loginRequest);
-        final RestResponse response = doPost(AdminsResource.ENDPOINT, toJson(loginRequest));
+        apiDocs.addNote("login: " + loginRequest);
+        final RestResponse response = doPost(ApiConstants.ADMINS_ENDPOINT, toJson(loginRequest));
         if (response.status == 200) {
             final AuthResponse authResponse = fromJson(response.json, CloudsteadAuthResponse.class);
             if (authResponse.hasSessionId()) pushToken(authResponse.getSessionId());
@@ -94,4 +97,21 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         return response;
     }
 
+    protected AdminResponse registerAndActivateAdmin(String email) throws Exception {
+        final MockTemplatedMailSender sender = getTemplatedMailSender();
+        sender.reset();
+
+        RestResponse response = registerAdmin(email);
+        final AdminResponse adminResponse = fromJson(response.json, AdminResponse.class);
+
+        assertEquals(1, sender.messageCount());
+        final TemplatedMail welcome = sender.getFirstMessage();
+        assertEquals(T_WELCOME, welcome.getTemplateName());
+
+        apiDocs.addNote("hit activation URL found in welcome email");
+        response = doGet(welcome.getParameters().get("activationUrl").toString());
+        assertEquals(200, response.status);
+
+        return adminResponse;
+    }
 }

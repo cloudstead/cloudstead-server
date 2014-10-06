@@ -1,9 +1,5 @@
 package cloudos.cloudstead.resources;
 
-import lombok.extern.slf4j.Slf4j;
-import org.cobbzilla.wizard.resources.ResourceUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.dao.CloudOsEventDAO;
 import cloudos.cloudstead.dao.SessionDAO;
@@ -14,6 +10,10 @@ import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
+import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.wizard.resources.ResourceUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -22,11 +22,9 @@ import java.util.List;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Path(CloudOsResource.ENDPOINT)
+@Path(ApiConstants.CLOUDOS_ENDPOINT)
 @Service @Slf4j
 public class CloudOsResource {
-
-    public static final String ENDPOINT = "/cloudos";
 
     @Autowired private CloudOsDAO cloudOsDAO;
     @Autowired private SessionDAO sessionDAO;
@@ -69,6 +67,9 @@ public class CloudOsResource {
 
         // sanity check
         if (!name.equalsIgnoreCase(request.getName())) return ResourceUtil.invalid();
+
+        // must be activated
+        if (!admin.isEmailVerified()) return ResourceUtil.invalid("setup.error.unverifiedEmail");
 
         // this should return quickly with a status of pending
         CloudOsStatus status = launchManager.launch(admin, request);

@@ -8,6 +8,8 @@ import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cslib.compute.instance.CsInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.cobbzilla.mail.TemplatedMail;
+import org.cobbzilla.mail.sender.mock.MockTemplatedMailSender;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.io.StreamUtil;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.wizardtest.RandomUtil.randomEmail;
@@ -87,8 +90,8 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         if (status != null) {
             if (cloudOs != null && cloudOs.isRunning()) {
                 try {
-                    doDelete(CloudOsResource.ENDPOINT + "/" + cloudOs.getName());
-                    while (doGet(CloudOsResource.ENDPOINT+"/"+cloudOs.getName()+"/status").status != 404) {
+                    doDelete(ApiConstants.CLOUDOS_ENDPOINT + "/" + cloudOs.getName());
+                    while (doGet(ApiConstants.CLOUDOS_ENDPOINT +"/"+cloudOs.getName()+"/status").status != 404) {
                         Thread.sleep(1000);
                     }
                 } catch (Exception e) {
@@ -108,12 +111,11 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         apiDocs.startRecording(DOC_TARGET, "create a cloudOs instance");
 
         final String email = randomEmail();
-        response = registerAdmin(email);
-        final AdminResponse adminResponse = fromJson(response.json, AdminResponse.class);
+        final AdminResponse adminResponse = registerAndActivateAdmin(email);
         setToken(adminResponse.getSession());
 
         apiDocs.addNote("get list of cloudos instances - should be empty");
-        response = doGet(CloudOsResource.ENDPOINT);
+        response = doGet(ApiConstants.CLOUDOS_ENDPOINT);
         assertEquals(HttpStatusCodes.OK, response.status);
         assertEquals(0, fromJson(response.json, CloudOs[].class).length);
 
@@ -125,7 +127,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         final CloudOsRequest cloudOsRequest = new CloudOsRequest(name);
 
         apiDocs.addNote("create a new cloudOs instance");
-        response = doPut(CloudOsResource.ENDPOINT+"/"+name, toJson(cloudOsRequest));
+        response = doPut(ApiConstants.CLOUDOS_ENDPOINT +"/"+name, toJson(cloudOsRequest));
         assertEquals(HttpStatusCodes.OK, response.status);
 
         status = fromJson(response.json, CloudOsStatus.class);
@@ -133,7 +135,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         while (!status.isCompleted()) {
             apiDocs.addNote("check status of cloudOs launch");
             Thread.sleep(SECONDS.toMillis(10));
-            response = doGet(CloudOsResource.ENDPOINT+"/"+name+"/status");
+            response = doGet(ApiConstants.CLOUDOS_ENDPOINT +"/"+name+"/status");
             assertEquals(200, response.status);
             status = fromJson(response.json, CloudOsStatus.class);
             if (status.isCompleted()) break;

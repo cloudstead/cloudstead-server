@@ -79,6 +79,15 @@ cloudConfig:
   # this is where the chef stuff lives, we use the deploy.sh script to provision the new instance
   cloudOsChefDir: {{CLOUDOS_CHEF_DIR}}
 
+emailTemplateRoot: {{EMAIL_TEMPLATE_ROOT}}
+
+smtpMailConfig:
+  host: smtp.sendgrid.net
+  port: 587
+  user: {{SENDGRID_API_USER}}
+  password: {{SENDGRID_API_KEY}}
+  tlsEnabled: true
+
 sendGridConfig:
   user: {{SENDGRID_API_USER}}
   password: {{SENDGRID_API_KEY}}

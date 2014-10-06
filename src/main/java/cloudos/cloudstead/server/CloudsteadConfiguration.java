@@ -1,6 +1,7 @@
 package cloudos.cloudstead.server;
 
-import cloudos.cloudstead.resources.ServiceKeyRequestsResource;
+import cloudos.cloudstead.resources.ActivationsResource;
+import cloudos.cloudstead.resources.ApiConstants;
 import cloudos.dns.DnsClient;
 import cloudos.server.HasTwoFactorAuthConfiguration;
 import cloudos.service.TwoFactorAuthService;
@@ -24,8 +25,8 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     @Setter private DatabaseConfiguration database;
     @Bean public DatabaseConfiguration getDatabase() { return database; }
 
-    @Getter @Setter private SmtpMailConfig smtpMailConfig;
     @Getter @Setter private String emailTemplateRoot;
+    @Getter @Setter private SmtpMailConfig smtpMailConfig;
 
     @Getter @Setter private ApiConnectionInfo adminAuthy;
 
@@ -56,6 +57,18 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     @Getter @Setter private ApiConnectionInfo cloudOsDns;
 
     public String getServiceRequestEndpoint () {
-        return getPublicUriBase() + getHttp().getBaseUri() + ServiceKeyRequestsResource.ENDPOINT;
+        return getPublicUriBase() + getHttp().getBaseUri() + ApiConstants.SERVICEKEYS_ENDPOINT;
+    }
+
+    public String getEmailVerificationUrl(String key) {
+        return new StringBuilder()
+                .append(getPublicUriBase()).append(getHttp().getBaseUri()).append(ApiConstants.ACTIVATIONS_ENDPOINT)
+                .append("?").append(ActivationsResource.PARAM_KEY).append("=").append(key).toString();
+    }
+
+    public String getResetPasswordUrl(String key) {
+        return new StringBuilder()
+                .append(getPublicUriBase()).append(getHttp().getBaseUri())
+                .append("/reset_password.html?key=").append(key).toString();
     }
 }

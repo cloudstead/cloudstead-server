@@ -4,10 +4,8 @@ import cloudos.model.AccountBase;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-import org.cobbzilla.wizard.model.HashedPassword;
 import org.cobbzilla.wizard.validation.IsUnique;
 
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 
 @Entity
@@ -16,8 +14,6 @@ import javax.persistence.Entity;
         @IsUnique(unique="mobilePhone", daoBean="adminDAO", message="{err.mobilePhone.notUnique}")
 })
 public class Admin extends AccountBase {
-
-    @Getter @Setter @Embedded @JsonIgnore private HashedPassword hashedPassword;
 
     @Override
     public AccountBase setEmail(String email) {
