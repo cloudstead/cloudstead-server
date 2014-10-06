@@ -15,6 +15,7 @@ import org.cobbzilla.mail.sender.mock.MockTemplatedMailService;
 import org.cobbzilla.sendgrid.mock.MockSendGrid;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.system.CommandShell;
+import org.cobbzilla.wizard.server.RestServer;
 import org.cobbzilla.wizard.server.config.factory.ConfigurationSource;
 import org.cobbzilla.wizard.server.config.factory.StreamConfigurationSource;
 import org.cobbzilla.wizard.util.RestResponse;
@@ -40,12 +41,12 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         return StreamConfigurationSource.fromResources(getClass(), "cloudstead-config-test.yml");
     }
 
-    @Override public void beforeServerStart() throws Exception {
+    @Override public void beforeStart(RestServer server) {
         // register mocks for DNS
         final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
         configuration.setDnsClient(new MockDnsClient());
         configuration.setSendGrid(new MockSendGrid());
-        configuration.setPublicUriBase("http://127.0.0.1:"+server.getConfiguration().getHttp().getPort());
+        super.beforeStart(server);
     }
 
     @Override protected Class<? extends CloudsteadServer> getRestServerClass() { return CloudsteadServer.class; }

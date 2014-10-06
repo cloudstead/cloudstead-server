@@ -18,7 +18,7 @@ staticAssets:
     LOCALIZE: /localize
 
 http:
-  port: {{CLOUDSTEAD_SERVER_PORT}}
+  port: 0
   baseUri: /api
 
 jersey:
