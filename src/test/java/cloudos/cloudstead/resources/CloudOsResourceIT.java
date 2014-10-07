@@ -104,7 +104,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         }
 
         assertEquals(name.toLowerCase(), status.getCloudOs().getName().toLowerCase());
-        assertEquals(name.toLowerCase(), status.getCloudOs().getInstance().getHost().toLowerCase());
         assertFalse(status.isError());
         assertTrue(status.isSuccess());
         assertTrue(status.getHistory().size() > 0);
