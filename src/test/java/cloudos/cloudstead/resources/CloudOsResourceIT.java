@@ -3,22 +3,15 @@ package cloudos.cloudstead.resources;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.model.support.CloudOsRequest;
-import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cslib.compute.instance.CsInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
-import org.cobbzilla.util.io.FileUtil;
-import org.cobbzilla.util.io.StreamUtil;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.util.RestResponse;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
-import rooty.RootyConfiguration;
-import rooty.RootyMain;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +30,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
     private final String queueName = "test_cloudosresourceit_"+RandomStringUtils.randomAlphanumeric(10);
     private final String rootySecret = RandomStringUtils.randomAlphanumeric(30);
-    private final File dataFile = tempFile();
     private final File hostsFile = tempFile();
     private CloudOsStatus status = null;
 
@@ -51,24 +43,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
     private final File svc = CommandShell.tempScript("true");
 
-    private final RootyConfiguration rootyConfiguration = getRootyConfiguration();
-    private RootyConfiguration getRootyConfiguration() {
-        try {
-            final String yaml = StreamUtil.loadResourceAsString("rooty-dns-test.yml")
-                    .replace("{{ROOTY_QUEUE_NAME}}", queueName)
-                    .replace("{{ROOTY_SECRET}}", rootySecret)
-                    .replace("{{DATA_FILE}}", dataFile.getAbsolutePath())
-                    .replace("{{SVC}}", svc.getAbsolutePath())
-                    .replace("{{ETC_HOSTS}}", hostsFile.getAbsolutePath());
-            return new Yaml().loadAs(yaml, RootyConfiguration.class);
-
-        } catch (IOException e) {
-            throw new IllegalStateException("Error reading from rooty-dns-test.yml: "+e, e);
-        }
-    }
-
-    private RootyMain rooty = null;
-
     @Override public Map<String, String> getServerEnvironment() {
         final Map<String, String> env = super.getServerEnvironment();
         env.put("ROOTY_QUEUE_NAME", queueName);
@@ -76,13 +50,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         return env;
     }
 
-    @Before public void setup () throws Exception {
-        rooty = new RootyMain();
-        rooty.run(rootyConfiguration);
-    }
-
     @After public void teardown () throws Exception {
-        if (rooty != null) rooty.shutdown();
         final CloudOs cloudOs = status.getCloudOs();
         if (status != null) {
             if (cloudOs != null && cloudOs.isRunning()) {
@@ -141,9 +109,5 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         assertTrue(status.isSuccess());
         assertTrue(status.getHistory().size() > 0);
         assertTrue(status.getCloudOs().isRunning());
-
-        // ensure DNS got written to
-        final CloudsteadConfiguration configuration = (CloudsteadConfiguration) server.getConfiguration();
-        assertTrue(FileUtil.toString(dataFile).contains(name + "." + configuration.getCloudConfig().getDomain()));
     }
 }
