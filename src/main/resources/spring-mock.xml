@@ -12,8 +12,7 @@
     <context:component-scan base-package="org.cobbzilla.wizard.spring.config.rdbms"/>
 
     <!-- Templated mail sender -->
-    <!--<context:component-scan base-package="org.cobbzilla.mail.service"/>-->
-    <bean class="org.cobbzilla.mail.sender.mock.MockTemplatedMailService"/>
+    <context:component-scan base-package="org.cobbzilla.mail.service"/>
 
     <context:component-scan base-package="cloudos.model.auth"/>
     <context:component-scan base-package="cloudos.dao"/>
