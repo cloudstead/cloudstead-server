@@ -6,7 +6,7 @@ serverName: cloudstead-api
 publicUriBase: {{PUBLIC_BASE_URI}}
 
 bcryptRounds: 8
-springContextPath: classpath:/spring.xml
+springContextPath: classpath:/{{SPRING_XML_PATH}}
 
 staticAssets:
   baseUri: /

@@ -5,7 +5,7 @@ serverName: cloudstead-api-test
 publicUriBase: https://127.0.0.1
 
 bcryptRounds: 2 # tests go much faster with very few bcrypt rounds
-springContextPath: classpath:/spring.xml
+springContextPath: classpath:/{{SPRING_XML_PATH}}
 
 staticAssets:
   baseUri: /

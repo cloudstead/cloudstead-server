@@ -8,7 +8,6 @@ import cloudos.cslib.compute.instance.CsInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
-import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.util.RestResponse;
 import org.junit.After;
 import org.junit.Test;
@@ -40,8 +39,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
             throw new IllegalStateException("error creating temp file: "+e, e);
         }
     }
-
-    private final File svc = CommandShell.tempScript("true");
 
     @Override public Map<String, String> getServerEnvironment() {
         final Map<String, String> env = super.getServerEnvironment();
