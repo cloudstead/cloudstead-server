@@ -46,7 +46,7 @@ database:
 
 adminAuthy:
   user: {{ADMIN_AUTHY_KEY}}
-  baseUri: {{AUTHY_URI}}
+  baseUri: {{ADMIN_AUTHY_URI}}
 
 cloudConfig:
   # the CloudOs java server to unroll and install on new instances

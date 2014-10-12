@@ -29,7 +29,7 @@
         "base_uri": "authy-url"
     },
 
-    "adminAuthy": {
+    "authy_admin": {
         "user": "admin-authy-api-key",
         "base_uri": "authy-url"
     },
