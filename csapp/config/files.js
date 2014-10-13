@@ -22,6 +22,9 @@ module.exports = function(lineman) {
     },
     img: {
     	root: "images"
-    }
+    },
+    webfonts: {
+        root: "fonts"
+      }
   };
 };

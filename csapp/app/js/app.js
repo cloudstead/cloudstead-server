@@ -24,6 +24,47 @@ function locate(obj, path) {
     return obj;
 }
 
+function setCookie(cname, cvalue, exdays){
+	var d = new Date();
+	d.setTime(d.getTime() + (exdays*24*60*60*1000));
+	var expires="expires="+d.toUTCString();
+	document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function getCookie(cname) {
+	var name = cname + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0; i<ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1);
+		if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+	}
+	return "";
+}
+
+function checkCookie(cname) {
+	var cookie = getCookie(cname);
+	if (cookie != "") {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function generateDeviceId()
+{
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for( var i=0; i < 20; i++ ){
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}
+
+function getDeviceName(){
+	return navigator.userAgent;
+}
+
 Ember.Handlebars.helper('t-subst', function(view, options) {
     var opts = options.hash;
     var message = locate(Em.I18n.translations, opts.messageKey);
@@ -43,3 +84,11 @@ App.RequestMessagesObject = Ember.Object.extend({
 		self.set("error", this.get('json')["errors"]);
 	}.on('init')
 });
+
+App.ModalDialogComponent = Ember.Component.extend({
+	  actions: {
+	    close: function() {
+	      return this.sendAction();
+	    }
+	  }
+	});

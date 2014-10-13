@@ -36,13 +36,8 @@ Api = {
             'data': JSON.stringify(reg),
             'async': false,
             'success': function (admin, status, jqXHR) {
-//                alert('received status='+status+', data='+accountAccount);
                 if (admin && admin.uuid) {
-                    sessionStorage.setItem('api_token', admin.session);
-                    sessionStorage.setItem('active_admin', JSON.stringify(admin));
-                    
-                    result.status = status;
-                    result.api_token = sessionStorage.getItem('api_token');
+                	result.status = status;
                 }
             },
             'error': function (jqXHR, status, error) {
@@ -62,18 +57,25 @@ Api = {
 
         sessionStorage.removeItem('api_token');
         Ember.$.ajax({
-            'type': 'PUT',
+            'type': 'POST',
             'url':'/api/admins',
             'contentType': 'application/json',
             'data': JSON.stringify(login),
             'async': false,
             'success': function (admin, status, jqXHR) {
-                if (admin && admin.uuid) {
-                    sessionStorage.setItem('api_token', admin.session);
-                    sessionStorage.setItem('active_admin', JSON.stringify(admin));
+            	
+                if (admin.account && admin.account.uuid) {
+                	
+                    sessionStorage.setItem('api_token', admin.sessionId);
+                    sessionStorage.setItem('active_admin', JSON.stringify(admin.account));
 
                     result.status = status;
                     result.api_token = sessionStorage.getItem('api_token');
+                }
+                
+                if (admin.sessionId == '2-factor'){
+                	result.status = 'success';
+                	result["twofactor"] = true;
                 }
             },
             'error': function (jqXHR, status, error) {
@@ -84,7 +86,32 @@ Api = {
         });
         return result;
     },
+    send_second_factor: function(data){
 
+    	var result = {"status": null,
+					"api_token": null,
+					"errors": {"verifyCode":null}};
+
+         Ember.$.ajax({
+             'type': 'POST',
+             'url':'/api/admins/',
+             'contentType': 'application/json',
+             'async': false,
+             'data': JSON.stringify(data),
+             'beforeSend': add_api_auth,
+             'success': function (data, status, jqXHR) {
+            	 sessionStorage.setItem('api_token', data.sessionId);
+            	 sessionStorage.setItem('active_admin', JSON.stringify(data.account));
+            	
+                 result.status = status;
+                 result.api_token = sessionStorage.getItem('api_token');
+             },
+             'error': function (jqXHR, status, error) {
+                 console.log('login error: status='+status+', error='+error);
+             }
+         });
+         return result;
+    },
     list_cloudos_instances: function () {
         instances = [];
         Ember.$.ajax({
@@ -102,7 +129,41 @@ Api = {
         });
         return instances;
     },
-
+    get_admin_profile: function (uuid) {
+        var result;
+        Ember.$.ajax({
+            'type': 'GET',
+            'url':'/api/admins/' + uuid,
+            'contentType': 'application/json',
+            'async': false,
+            'beforeSend': add_api_auth,
+            'success': function (data, status, jqXHR) {
+                result = data;
+            },
+            'error': function (jqXHR, status, error) {
+                console.log('login error: status='+status+', error='+error);
+            }
+        });
+        return result;
+    },
+    update_admin_profile: function (data) {
+        var result;
+        Ember.$.ajax({
+            'type': 'POST',
+            'url':'/api/admins/' + data.uuid,
+            'contentType': 'application/json',
+            'async': false,
+            'data': JSON.stringify(data),
+            'beforeSend': add_api_auth,
+            'success': function (data, status, jqXHR) {
+                result = data;
+            },
+            'error': function (jqXHR, status, error) {
+                console.log('login error: status='+status+', error='+error);
+            }
+        });
+        return result;
+    },
     new_cloud_os: function (cloudOsRequest) {
         var result = null;
         Ember.$.ajax({
@@ -136,6 +197,23 @@ Api = {
             },
             'error': function (jqXHR, status, error) {
                 console.log('cloud_os_launch_result error: result='+result+', error='+error);
+            }
+        });
+        return result;
+    },
+    delete_cloudos_instance: function (name) {
+        var result = null;
+        Ember.$.ajax({
+            'type': 'DELETE',
+            'url':'/api/cloudos/' + name,
+            'contentType': 'application/json',
+            'async': false,
+            'beforeSend': add_api_auth,
+            'success': function (data, status, jqXHR) {
+                result = data;
+            },
+            'error': function (jqXHR, status, error) {
+                console.log('delete_cloudos_instance error: result='+result+', error='+error);
             }
         });
         return result;

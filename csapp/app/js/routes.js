@@ -1,6 +1,21 @@
 
 
 App.ApplicationRoute = Ember.Route.extend({
+	actions:{
+		openModal: function(modalName, model){
+			this.controllerFor(modalName).set('model',model);
+			return this.render(modalName, {
+				into: 'application',
+				outlet: 'modal'
+			});
+		},
+		closeModal: function(){
+			return this.disconnectOutlet({
+				outlet: 'modal',
+				parentView: 'application'
+			});
+		}
+	}
 });
 
 App.IndexRoute = App.ApplicationRoute;
@@ -13,6 +28,7 @@ App.Router.map(function() {
 	this.resource('cloudOsStatus', { path: '/cloudos/:cloudos_name' } );
 	this.resource('about');
 	this.resource('contact');
+	this.resource('adminDetails');
 //	this.resource('settings');
 //	this.resource('app', { path: '/app/:app_name' });
 });
@@ -50,6 +66,13 @@ App.AdminHomeRoute = Ember.Route.extend({
 			window.location.replace('/index.html');
 		}
 		controller.set("content", model);
+	}
+});
+
+App.AdminDetailsRoute = Ember.Route.extend({
+	model: function () {
+		var adminData = JSON.parse(sessionStorage.active_admin);
+		return Api.get_admin_profile(adminData.uuid);
 	}
 });
 
