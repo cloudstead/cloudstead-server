@@ -65,6 +65,22 @@ function getDeviceName(){
 	return navigator.userAgent;
 }
 
+function swapStatusMessage(originalMessage){
+	try {
+		var n = originalMessage.indexOf(".");
+	}catch(e){
+		return originalMessage;
+	}
+	
+	var filteredStatus = originalMessage.substring(n+1, originalMessage.length - 1);
+	var locStatus = locate(Em.I18n.translations, 'setup');
+	try{
+		return locStatus[filteredStatus];
+	}catch(e){
+		return originalMessage;
+	}
+}
+
 Ember.Handlebars.helper('t-subst', function(view, options) {
     var opts = options.hash;
     var message = locate(Em.I18n.translations, opts.messageKey);

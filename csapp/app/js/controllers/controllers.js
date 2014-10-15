@@ -247,6 +247,7 @@ App.AdminHomeController = Ember.ObjectController.extend({
 	}.property(),
 	actions: {
 		doNewCloudOs: function () {
+
 			var cloudOsRequest = this.get('cloudOsRequest');
 			var validate = this.validateName(cloudOsRequest.name);
 			if (validate.cloudOsName) {
@@ -373,7 +374,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 				if (result.history){
 					last_status = result.history[result.history.length-1];
 					$('#progressMeter').css('width', (result.history.length * 10) + '%');
-					self.set('statusMessage', last_status["messageKey"]);
+					self.set('statusMessage', swapStatusMessage(last_status["messageKey"]));
 					
 					if (result.history.length >= 10){
 						self.set('isInProgress', false);
@@ -394,7 +395,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 		var status = this.getStatusData();
 		if (status.history){
 			var last_status = status.history[status.history.length - 1];
-			return last_status["messageKey"];
+			return swapStatusMessage(last_status["messageKey"]);
 		}else{
 			return null;
 		}
