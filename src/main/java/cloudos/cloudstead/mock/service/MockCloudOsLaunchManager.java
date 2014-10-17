@@ -19,8 +19,10 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
         executor.execute(destroyer);
     }
 
-    protected static void sleep() {
-        try { Thread.sleep(TimeUnit.SECONDS.toMillis(4)); } catch (InterruptedException e) {
+    protected static void sleep() { sleep(1); }
+
+    protected static void sleep(int seconds) {
+        try { Thread.sleep(TimeUnit.SECONDS.toMillis(seconds)); } catch (InterruptedException e) {
             throw new IllegalStateException("Interrupted while setting up: "+e, e);
         }
     }
@@ -43,16 +45,16 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
                 status.setCloudOs(cloudOs);
             }
 
-            sleep(); status.update("{setup.creatingCloudAdminAccount}");
-            sleep(); status.update("{setup.savingCloudAdminAccount}");
-            sleep(); status.update("{setup.startingMasterInstance}");
-            sleep(); status.update("{setup.updatingCloudOsToMarkAsRunning}");
-            sleep(); status.update("{setup.creatingDnsRecord}");
-            sleep(); status.update("{setup.generatingSendgridCredentials}");
-            sleep(); status.update("{setup.buildingInitializationFile}");
-            sleep(); status.update("{setup.cheffing}");
-            sleep(); status.completed();
-            sleep(); status.success("{setup.success}");
+            status.update("{setup.creatingCloudAdminAccount}");
+            sleep(10); status.update("{setup.savingCloudAdminAccount}");
+            sleep(15); status.update("{setup.startingMasterInstance}");
+            sleep(20); status.update("{setup.updatingCloudOsToMarkAsRunning}");
+            sleep(10); status.update("{setup.creatingDnsRecord}");
+            sleep(15); status.update("{setup.generatingSendgridCredentials}");
+            sleep(15); status.update("{setup.buildingInitializationFile}");
+            sleep(10); status.update("{setup.cheffing}");
+            sleep(60); status.completed();
+            status.success("{setup.success}");
         }
     }
 
