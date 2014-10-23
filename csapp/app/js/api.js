@@ -7,6 +7,13 @@ function add_api_auth (xhr) {
     xhr.setRequestHeader(Api.API_TOKEN, token);
 }
 
+ErrorResponseMessages = {
+    "{err.email.notUnique}": {
+        errorType: "email",
+        message: "This email has already been taken."
+    }
+};
+
 Api = {
     'API_TOKEN': 'x-cloudstead-api-key',
 
@@ -43,6 +50,14 @@ Api = {
             'error': function (jqXHR, status, error) {
                 result.status = status;
                 result.errors.username = error;
+
+                if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON[0] !== undefined){
+                	var errorMessage = jqXHR.responseJSON[0].message;
+	                if(ErrorResponseMessages[errorMessage] !== undefined){
+	                    result.errors[ErrorResponseMessages[errorMessage].errorType] =
+	                    	ErrorResponseMessages[errorMessage].message;
+	                }
+                }
             }
         });
         return result;
@@ -63,16 +78,16 @@ Api = {
             'data': JSON.stringify(login),
             'async': false,
             'success': function (admin, status, jqXHR) {
-            	
+
                 if (admin.account && admin.account.uuid) {
-                	
+
                     sessionStorage.setItem('api_token', admin.sessionId);
                     sessionStorage.setItem('active_admin', JSON.stringify(admin.account));
 
                     result.status = status;
                     result.api_token = sessionStorage.getItem('api_token');
                 }
-                
+
                 if (admin.sessionId == '2-factor'){
                 	result.status = 'success';
                 	result["twofactor"] = true;
@@ -102,7 +117,7 @@ Api = {
              'success': function (data, status, jqXHR) {
             	 sessionStorage.setItem('api_token', data.sessionId);
             	 sessionStorage.setItem('active_admin', JSON.stringify(data.account));
-            	
+
                  result.status = status;
                  result.api_token = sessionStorage.getItem('api_token');
              },
