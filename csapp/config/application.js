@@ -14,10 +14,6 @@
 module.exports = function(lineman) {
 	//Override application configuration here. Common examples follow in the comments.
 	return {
-
-		removeTasks:{
-			common: ["jshint","handlebars"],
-		},
 		appendTasks:{
 			dist: ["copy:local","copy:build"],
 		},
@@ -29,7 +25,7 @@ module.exports = function(lineman) {
 							src: '**/*',
 							dest: 'dist/js/local',
 							}
-				]	
+				]
 			},
 			build: {
 				files:[
@@ -38,7 +34,7 @@ module.exports = function(lineman) {
 							src: '**/*',
 							dest: '../target/classes/static',
 							}
-				]	
+				]
 			}
 		}
 
