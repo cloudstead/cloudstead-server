@@ -49,7 +49,7 @@ App.LoginRoute = Ember.Route.extend({
 		return {
 			email: '',
 			password: ''
-		}
+		};
 	}
 });
 
@@ -59,7 +59,7 @@ App.AdminHomeRoute = Ember.Route.extend({
 			cloudOsRequest: {
 				name: ''
 			}
-		}
+		};
 	},
 	setupController: function(controller, model) {
 		if (!sessionStorage.getItem('api_token')) {

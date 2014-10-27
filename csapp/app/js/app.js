@@ -1,27 +1,29 @@
 String.prototype.trim = String.prototype.trim || function trim() { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
 
 App = Ember.Application.create({
-    LOG_TRANSITIONS: true // for debugging, disable in prod
+		LOG_TRANSITIONS: true // for debugging, disable in prod
 });
 
 function locate(obj, path) {
-    if (!path) return null;
-    if (path[0] == '{' && path[path.length-1] == '}') {
-        // strip leading/trailing curlies, if present
-        path = path.substring(1, path.length-1);
-    }
-    path = path.split('.');
-    var arrayPattern = /(.+)\[(\d+)\]/;
-    for (var i = 0; i < path.length; i++) {
-        var match = arrayPattern.exec(path[i]);
-        if (match) {
-            obj = obj[match[1]][parseInt(match[2])];
-        } else {
-            obj = obj[path[i]];
-        }
-    }
+	if (!path) {
+		return null;
+	}
+	if (path[0] === '{' && path[path.length-1] === '}') {
+			// strip leading/trailing curlies, if present
+			path = path.substring(1, path.length-1);
+	}
+	path = path.split('.');
+	var arrayPattern = /(.+)\[(\d+)\]/;
+	for (var i = 0; i < path.length; i++) {
+			var match = arrayPattern.exec(path[i]);
+			if (match) {
+					obj = obj[match[1]][parseInt(match[2], 0)];
+			} else {
+					obj = obj[path[i]];
+			}
+	}
 
-    return obj;
+	return obj;
 }
 
 function setCookie(cname, cvalue, exdays){
@@ -36,15 +38,19 @@ function getCookie(cname) {
 	var ca = document.cookie.split(';');
 	for(var i=0; i<ca.length; i++) {
 		var c = ca[i];
-		while (c.charAt(0)==' ') c = c.substring(1);
-		if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+		while (c.charAt(0)===' ') {
+			c = c.substring(1);
+		}
+		if (c.indexOf(name) !== -1) {
+			return c.substring(name.length, c.length);
+		}
 	}
 	return "";
 }
 
 function checkCookie(cname) {
 	var cookie = getCookie(cname);
-	if (cookie != "") {
+	if (cookie !== "") {
 		return true;
 	} else {
 		return false;
@@ -66,12 +72,13 @@ function getDeviceName(){
 }
 
 function swapStatusMessage(originalMessage){
+	var n = null;
 	try {
-		var n = originalMessage.indexOf(".");
+		n = originalMessage.indexOf(".");
 	}catch(e){
 		return originalMessage;
 	}
-	
+
 	var filteredStatus = originalMessage.substring(n+1, originalMessage.length - 1);
 	var locStatus = locate(Em.I18n.translations, 'setup');
 	try{
@@ -82,11 +89,13 @@ function swapStatusMessage(originalMessage){
 }
 
 Ember.Handlebars.helper('t-subst', function(view, options) {
-    var opts = options.hash;
-    var message = locate(Em.I18n.translations, opts.messageKey);
-    if (!message) return '??undefined translation: '+opts.messageKey;
-    var value = this.get(opts.value);
-    return value ? message.replace("{1}", value) : opts.defaultValue;
+		var opts = options.hash;
+		var message = locate(Em.I18n.translations, opts.messageKey);
+		if (!message) {
+			return '??undefined translation: '+opts.messageKey;
+		}
+		var value = this.get(opts.value);
+		return value ? message.replace("{1}", value) : opts.defaultValue;
 });
 
 //function get_username () {
@@ -102,9 +111,9 @@ App.RequestMessagesObject = Ember.Object.extend({
 });
 
 App.ModalDialogComponent = Ember.Component.extend({
-	  actions: {
-	    close: function() {
-	      return this.sendAction();
-	    }
-	  }
+		actions: {
+			close: function() {
+				return this.sendAction();
+			}
+		}
 	});
