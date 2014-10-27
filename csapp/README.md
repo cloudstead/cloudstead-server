@@ -2,9 +2,9 @@
 
 Lineman and all dependencies are installed via npm, so first install [node.js](http://nodejs.org); next, install lineman:
 
-$ npm install -g lineman
+$ npm install -g lineman@0.33.4
 
-Above is for the first time install, future build process should run following commands from csapp folder :
+Above is for the first time install. There are some issues with the latest lineman version(0.34.2) so you should install the specified version. Future build process should run following commands from csapp folder :
 
 ```
 $ npm install
