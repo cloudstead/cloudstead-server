@@ -11,6 +11,10 @@ ErrorResponseMessages = {
 	"{err.email.notUnique}": {
 		errorType: "email",
 		message: "This email has already been taken."
+	},
+	"{err.mobilePhone.notUnique}": {
+		errorType: "mobilePhone",
+		message: "This phone number has already been registered."
 	}
 };
 
@@ -52,12 +56,16 @@ Api = {
 				result.status = status;
 				result.errors.username = error;
 
-				if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON[0] !== undefined){
-					var errorMessage = jqXHR.responseJSON[0].message;
-					if(ErrorResponseMessages[errorMessage] !== undefined){
-						result.errors[ErrorResponseMessages[errorMessage].errorType] =
-							ErrorResponseMessages[errorMessage].message;
-					}
+				errors = jqXHR.responseJSON;
+
+				if (errors !== undefined){
+					errors.forEach(function(error){
+						var errorMessage = error.message;
+						if(ErrorResponseMessages[errorMessage] !== undefined){
+							result.errors[ErrorResponseMessages[errorMessage].errorType] =
+								ErrorResponseMessages[errorMessage].message;
+						}
+					});
 				}
 			}
 		});
