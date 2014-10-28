@@ -1,5 +1,9 @@
 package cloudos.cloudstead.service.cloudos;
 
+import cloudos.appstore.ApiConstants;
+import cloudos.appstore.client.AppStoreApiClient;
+import cloudos.appstore.model.AppStoreCloudAccount;
+import cloudos.appstore.model.support.ApiToken;
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
@@ -10,7 +14,10 @@ import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
 import cloudos.cslib.compute.instance.CsInstanceRequest;
 import cloudos.cslib.compute.mock.MockCsInstance;
-import cloudos.databag.*;
+import cloudos.databag.BaseDatabag;
+import cloudos.databag.CloudOsDatabag;
+import cloudos.databag.EmailDatabag;
+import cloudos.databag.PortsDatabag;
 import cloudos.dns.DnsClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.*;
@@ -27,13 +34,15 @@ import org.cobbzilla.sendgrid.SendGridUser;
 import org.cobbzilla.util.dns.DnsRecord;
 import org.cobbzilla.util.dns.DnsRecordMatch;
 import org.cobbzilla.util.dns.DnsType;
+import org.cobbzilla.util.http.ApiConnectionInfo;
 import org.cobbzilla.util.reflect.ReflectionUtil;
 import org.cobbzilla.util.security.ShaUtil;
 import org.cobbzilla.util.system.CommandResult;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.util.system.ConnectionInfo;
-import rooty.toots.vendor.VendorDatabagSetting;
+import org.cobbzilla.wizard.util.RestResponse;
 import rooty.toots.vendor.VendorDatabag;
+import rooty.toots.vendor.VendorDatabagSetting;
 
 import java.io.File;
 import java.io.IOException;
@@ -284,8 +293,10 @@ public class CloudOsLauncher implements Runnable {
 
         // update with instance masterIp and mark as running
         status.update("{setup.updatingCloudOsToMarkAsRunning}");
+        final String ucid = UUID.randomUUID().toString();
         try {
             cloudOs.setRunning(true);
+            cloudOs.setUcid(ucid);
             cloudOs.setInstanceJson(toJson(instance));
             cloudOs = cloudOsDAO.update(cloudOs);
 
@@ -303,6 +314,9 @@ public class CloudOsLauncher implements Runnable {
             status.error("{setup.error.creatingDnsRecord.serverError}", "Error updating DNS entry");
             return;
         }
+
+        // notify app store of new cloud
+        if (!addAppStoreAccount(getFqdn())) return;
 
         // generate sendgrid credentials
         status.update("{setup.generatingSendgridCredentials}");
@@ -339,6 +353,7 @@ public class CloudOsLauncher implements Runnable {
                     .setSsl_cert_name(CLOUDOS_CERT_NAME);
 
             final CloudOsDatabag cloudOsDatabag = new CloudOsDatabag()
+                    .setUcid(ucid)
                     .setAws_access_key(cloudOs.getS3accessKey())
                     .setAws_secret_key(cloudOs.getS3secretKey())
                     .setAws_iam_user(iamUser)
@@ -420,6 +435,41 @@ public class CloudOsLauncher implements Runnable {
 
         log.info("launch completed OK: "+hostname+"."+cloudConfig.getDomain());
         status.completed();
+    }
+
+    private boolean addAppStoreAccount(String hostname) {
+
+        status.update("{setup.createAppStoreAccount}");
+        final AppStoreApiClient appStoreClient = configuration.getAppStoreClient();
+        final ApiConnectionInfo appStoreConfig = configuration.getAppStore();
+
+        final AppStoreCloudAccount cloudAccount = new AppStoreCloudAccount()
+                .setUri("https://"+hostname+"/api/verify")
+                .setUcid(UUID.randomUUID().toString());
+
+        RestResponse response = null;
+        ApiToken token = null;
+        try {
+            token = appStoreClient.refreshToken(appStoreConfig.getUser(), appStoreConfig.getPassword());
+            appStoreClient.setToken(token.getToken());
+            response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT, toJson(cloudAccount));
+
+        } catch (Exception e) {
+            log.error("Exception setting up appstore account: "+e, e);
+        } finally {
+            if (token != null) {
+                try { appStoreClient.deleteToken(token.getToken()); } catch (Exception e) {
+                    log.warn("Error deleting token: "+e);
+                }
+            }
+        }
+
+        if (response == null || !response.isSuccess()) {
+            status.error("{setup.error.createAppStoreAccount}", "Error setting up appstore account");
+            if (response != null) log.error("Error setting up appstore account: "+response);
+            return false;
+        }
+        return true;
     }
 
     private String getShasum(Object databag, String config) {

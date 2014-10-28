@@ -48,6 +48,10 @@ adminAuthy:
   user: {{ADMIN_AUTHY_KEY}}
   baseUri: {{ADMIN_AUTHY_URI}}
 
+authy:
+  user: {{AUTHY_KEY}}
+  baseUri: {{AUTHY_URI}}
+
 cloudConfig:
   # the CloudOs java server to unroll and install on new instances
   cloudOsServerTarball: {{CLOUDOS_SERVER_TARBALL}}
@@ -100,11 +104,12 @@ sendGridConfig:
   user: {{SENDGRID_API_USER}}
   password: {{SENDGRID_API_KEY}}
 
-authy:
-  user: {{AUTHY_KEY}}
-  baseUri: {{AUTHY_URI}}
-
 cloudOsDns:
   user: {{CLOUDOS_DNS_USER}}
   password: {{CLOUDOS_DNS_PASSWORD}}
   baseUri: {{CLOUDOS_DNS_BASE_URI}}
+
+appStore:
+  user: {{APPSTORE_ADMIN_USER}}
+  password: {{APPSTORE_ADMIN_PASSWORD}}
+  baseUri: {{APPSTORE_BASE_URI}}

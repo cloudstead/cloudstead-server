@@ -1,5 +1,6 @@
 package cloudos.cloudstead.server;
 
+import cloudos.appstore.client.AppStoreApiClient;
 import cloudos.cloudstead.resources.ApiConstants;
 import cloudos.cloudstead.resources.AuthResource;
 import cloudos.dns.DnsClient;
@@ -34,6 +35,7 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     @Getter @Setter private SmtpMailConfig smtpMailConfig;
 
     @Getter @Setter private ApiConnectionInfo adminAuthy;
+    @Getter @Setter private ApiConnectionInfo authy;
 
     private TwoFactorAuthService twoFactorAuthService = null;
     @Override public TwoFactorAuthService getTwoFactorAuthService () {
@@ -44,10 +46,18 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     @Setter private CloudConfiguration cloudConfig;
     @Bean public CloudConfiguration getCloudConfig() { return cloudConfig; }
 
+    @Getter @Setter private ApiConnectionInfo cloudOsDns;
     @Setter private DnsClient dnsClient;
     public DnsClient getDnsClient () {
         if (dnsClient == null) dnsClient = new DnsClient(cloudOsDns);
         return dnsClient;
+    }
+
+    @Getter @Setter private ApiConnectionInfo appStore;
+    @Setter private AppStoreApiClient appStoreClient;
+    public AppStoreApiClient getAppStoreClient () {
+        if (appStoreClient == null) appStoreClient = new AppStoreApiClient(appStore);
+        return appStoreClient;
     }
 
     @Setter private ApiConnectionInfo sendGridConfig;
@@ -56,10 +66,6 @@ public class CloudsteadConfiguration extends RestServerConfiguration
         if (sendGrid == null) sendGrid = new SendGrid(sendGridConfig);
         return sendGrid;
     }
-
-    @Getter @Setter private ApiConnectionInfo authy;
-
-    @Getter @Setter private ApiConnectionInfo cloudOsDns;
 
     public String getServiceRequestEndpoint () {
         return getPublicUriBase() + getHttp().getBaseUri() + ApiConstants.SERVICEKEYS_ENDPOINT;

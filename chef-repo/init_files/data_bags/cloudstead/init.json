@@ -37,5 +37,11 @@
     "cloudos_dns": {
         "user": "cloudos-dns-admin-user",
         "password": "cloudos-dns-admin-password"
+    },
+
+    "cloudos_appstore": {
+        "user": "cloudos-appstore-admin-user",
+        "password": "cloudos-appstore-admin-password",
+        "base_uri": "cloudos-appstore-url"
     }
 }

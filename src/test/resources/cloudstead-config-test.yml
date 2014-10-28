@@ -46,6 +46,10 @@ adminAuthy:
   user: {{ADMIN_AUTHY_KEY}}
   baseUri: {{AUTHY_URI}}
 
+authy:
+  user: {{AUTHY_KEY}}
+  baseUri: {{AUTHY_URI}}
+
 cloudConfig:
   # the CloudOs java server to unroll and install on new instances
   cloudOsServerTarball: {{CLOUDOS_SERVER_TARBALL}}
@@ -98,11 +102,13 @@ sendGridConfig:
   user: {{SENDGRID_API_USER}}
   password: {{SENDGRID_API_KEY}}
 
-authy:
-  user: {{AUTHY_KEY}}
-  baseUri: {{AUTHY_URI}}
-
 cloudOsDns:
   user: dummy
   password: dummy
   baseUri: http://107.170.204.49/api/mock
+
+# Bogus data -- ApiResourceITBase uses MockAppStoreApiClient
+appStore:
+  user: admin
+  password: foobar
+  baseUri: http://127.0.0.1:3111

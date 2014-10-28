@@ -36,6 +36,9 @@ public class CloudOs extends UniquelyNamedEntity {
 
     @Getter @Setter private boolean running = false;
 
+    @Column(nullable=false, updatable=false, unique=true, length=100)
+    @Getter @Setter private String ucid;
+
     @Size(max=1024, message="error.cloudOsRequest.instanceJson.tooLong")
     @Getter @Setter @JsonIgnore private String instanceJson;
 

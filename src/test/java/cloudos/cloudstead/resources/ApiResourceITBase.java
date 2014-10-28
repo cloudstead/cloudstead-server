@@ -1,5 +1,6 @@
 package cloudos.cloudstead.resources;
 
+import cloudos.appstore.test.MockAppStoreApiClient;
 import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.cloudstead.model.support.AdminResponse;
@@ -45,6 +46,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
         configuration.setDnsClient(new MockDnsClient());
         configuration.setSendGrid(new MockSendGrid());
+        configuration.setAppStoreClient(new MockAppStoreApiClient());
         super.beforeStart();
     }
 
