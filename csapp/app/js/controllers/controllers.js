@@ -2,7 +2,12 @@ String.prototype.trim = String.prototype.trim || function trim() { return this.r
 
 App.RegistrationController = Ember.ObjectController.extend({
 	tos: false,
+	triggered_focus: false,
 	actions: {
+
+		changeInput: function() {
+			$('input').trigger('focus');
+		},
 		doNewAccount: function () {
 			var validate = this.validateSignup(
 				this.get('firstName'),
@@ -15,79 +20,90 @@ App.RegistrationController = Ember.ObjectController.extend({
 				this.get('tos')
 			);
 
-			if ( validate.firstName || validate.lastName || validate.email ||
-								validate.mobilePhoneCountryCode || validate.mobilePhone ||
-								validate.password || validate.password2 || validate.tos) {
-				this.set('requestMessages',
-						App.RequestMessagesObject.create({
-							json: {
-								"status": 'error',
-								"api_token" : null,
-								"errors": {
-									"firstName": validate.firstName,
-									"lastName": validate.lastName,
-									"email": validate.email,
-									"mobilePhoneCountryCode": validate.mobilePhoneCountryCode,
-									"mobilePhone": validate.mobilePhone,
-									"password": validate.password,
-									"password2": validate.password2,
-									"tos": validate.tos
+			// triger focus event, alter flag and then re-call this action.
+			// this is done to ensure that ember registers the autocompleted text in the input elements.
+			// TODO: refactor this.
+			if (!this.triggered_focus) {
+				$('input').trigger('focus');
+				this.triggered_focus = true;
+				this.send('doNewAccount');
+			}else{
+				this.triggered_focus = false;
+
+				if ( validate.firstName || validate.lastName || validate.email ||
+									validate.mobilePhoneCountryCode || validate.mobilePhone ||
+									validate.password || validate.password2 || validate.tos) {
+					this.set('requestMessages',
+							App.RequestMessagesObject.create({
+								json: {
+									"status": 'error',
+									"api_token" : null,
+									"errors": {
+										"firstName": validate.firstName,
+										"lastName": validate.lastName,
+										"email": validate.email,
+										"mobilePhoneCountryCode": validate.mobilePhoneCountryCode,
+										"mobilePhone": validate.mobilePhone,
+										"password": validate.password,
+										"password2": validate.password2,
+										"tos": validate.tos
+									}
 								}
-							}
-						})
-					);
-				return false;
-			}
-
-			// todo: ensure minimum password length. perhaps some generic validation framework can be applied?
-			// instead of doing validation imperatively, let's do declarative validation, like how the backend API works...
-			var result = Api.register_admin({
-				firstName: this.get('firstName'),
-				lastName: this.get('lastName'),
-				email: this.get('email'),
-				mobilePhoneCountryCode: this.get('mobilePhoneCountryCode'),
-				mobilePhone: this.get('mobilePhone'),
-				password: this.get('password'),
-				tos: !!this.get('tos')
-			});
-
-			if (result.status === 'success') {
-
-				var ckDeviceId = checkCookie("deviceId");
-				var ckDeviceName = checkCookie("deviceName");
-
-				if ((!ckDeviceId) || (!ckDeviceName)){
-					setCookie("deviceId", generateDeviceId(), 365);
-					setCookie("deviceName", getDeviceName(), 365);
+							})
+						);
+					return false;
 				}
 
-				result = Api.login_admin({
-					name: this.get('email'),
+				// todo: ensure minimum password length. perhaps some generic validation framework can be applied?
+				// instead of doing validation imperatively, let's do declarative validation, like how the backend API works...
+				var result = Api.register_admin({
+					firstName: this.get('firstName'),
+					lastName: this.get('lastName'),
+					email: this.get('email'),
+					mobilePhoneCountryCode: this.get('mobilePhoneCountryCode'),
+					mobilePhone: this.get('mobilePhone'),
 					password: this.get('password'),
-					deviceId: getCookie("deviceId"),
-					deviceName: getCookie("deviceName")
+					tos: !!this.get('tos')
 				});
 
-				if ((result.status === 'success') && (result.twofactor)){
-					this.send('closeModal');
-					this.set('model',{
-						username: this.get('email'),
-						deviceId: getCookie("deviceId"),
-						deviceName: getCookie("deviceName"),
-						isRegister: true
-					});
-					this.send('openModal','twoFactorVerification', this.get('model') );
-				}else{
-					// TODO should not happen, but nevertheless handle this
-				}
+				if (result.status === 'success') {
 
-			}
-			else if (result.status === 'error') {
-				this.set('requestMessages',
-					App.RequestMessagesObject.create({
-						json: result
-					})
-				);
+					var ckDeviceId = checkCookie("deviceId");
+					var ckDeviceName = checkCookie("deviceName");
+
+					if ((!ckDeviceId) || (!ckDeviceName)){
+						setCookie("deviceId", generateDeviceId(), 365);
+						setCookie("deviceName", getDeviceName(), 365);
+					}
+
+					result = Api.login_admin({
+						name: this.get('email'),
+						password: this.get('password'),
+						deviceId: getCookie("deviceId"),
+						deviceName: getCookie("deviceName")
+					});
+
+					if ((result.status === 'success') && (result.twofactor)){
+						this.send('closeModal');
+						this.set('model',{
+							username: this.get('email'),
+							deviceId: getCookie("deviceId"),
+							deviceName: getCookie("deviceName"),
+							isRegister: true
+						});
+						this.send('openModal','twoFactorVerification', this.get('model') );
+					}else{
+						// TODO should not happen, but nevertheless handle this
+					}
+
+				}
+				else if (result.status === 'error') {
+					this.set('requestMessages',
+						App.RequestMessagesObject.create({
+							json: result
+						})
+					);
+				}
 			}
 		},
 		close: function() {
