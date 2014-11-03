@@ -107,7 +107,7 @@ App.RegistrationController = Ember.ObjectController.extend({
 			}
 		},
 		close: function() {
-			return this.send('closeModal');
+			return this.transitionToRoute('index');
 		}
 	},
 	validateSignup: function(firstName, lastName, email, mobilePhoneCountryCode, mobilePhone, password, password2, tos){
@@ -236,7 +236,7 @@ App.LoginController = Ember.ObjectController.extend({
 			}
 		},
 		close: function() {
-				return this.send('closeModal');
+				return this.transitionToRoute('index');
 			}
 	},
 	validateLogin: function(username, password){
@@ -377,6 +377,15 @@ App.ApplicationController = Ember.ObjectController.extend({
 App.IndexController = Ember.ObjectController.extend({
 //	active_account: Api.json_safe_parse(sessionStorage.getItem('active_account')),
 //	username: get_username()
+	actions: {
+		doRegister: function(){
+			this.transitionToRoute('registration');
+		},
+
+		doLogin: function(){
+			this.transitionToRoute('login');
+		}
+	}
 });
 
 App.CloudOsCreationController = Ember.ObjectController.extend({
@@ -467,7 +476,8 @@ App.AdminDetailsController = Ember.ObjectController.extend({
 App.TwoFactorVerificationController = Ember.ObjectController.extend({
 	actions:{
 		close: function() {
-			return this.send('closeModal');
+			this.send('closeModal');
+			return this.transitionToRoute('index');
 		},
 		verifyFactor: function(){
 
