@@ -12,7 +12,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.firstName}}</label>
 							</div>
 							<div class="small-5 columns">
-									{{ input type="text" value=firstName }}
+									{{ input type="text" value=firstName classNames="first_name_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.firstName}}
@@ -27,7 +27,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.lastName}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{ input type="text" value=lastName }}
+								{{ input type="text" value=lastName classNames="last_name_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.lastName}}
@@ -42,7 +42,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.email}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{ input type="text" value=email }}
+								{{ input type="text" value=email classNames="email_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.email}}
@@ -57,7 +57,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.mobilePhoneCountryCode}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{ input type="text" value=mobilePhoneCountryCode }}
+								{{ input type="text" value=mobilePhoneCountryCode classNames="mobile_country_code_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.mobilePhoneCountryCode}}
@@ -72,7 +72,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.mobilePhone}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{ input type="text" value=mobilePhone }}
+								{{ input type="text" value=mobilePhone classNames="mobile_phone_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.mobilePhone}}
@@ -87,7 +87,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.password}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{input type="password" value=password}}
+								{{ input type="password" value=password classNames="password_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.password}}
@@ -102,7 +102,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.password2}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{input type="password" value=password2}}
+								{{ input type="password" value=password2 classNames="password_confirm_input" }}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.password2}}
@@ -117,7 +117,7 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.tos}}</label>
 							</div>
 							<div class="small-5 columns">
-								{{input type="checkbox" checkedBinding="tos"}}
+								{{ input type="checkbox" checkedBinding="tos"  classNames="tos_checkbox"}}
 							</div>
 							<div class="small-2 columns">
 								{{#if requestMessages.error.tos}}
@@ -132,13 +132,17 @@
 								&nbsp;
 							</div>
 							<div class="large-2 medium-2 small-6 columns">
-									<button type="submit" class="alert expand" {{action 'close'}}>{{t forms.admin.cancel_button}}</button>
+									<button id="cancel_sign_up" type="submit" class="alert expand" {{action 'close'}}>
+										{{t forms.admin.cancel_button}}
+									</button>
 							</div>
 							<div class="large-1 medium-1 hide-for-small columns">
 								&nbsp;
 							</div>
 							<div class="large-2 medium-2 small-6 columns">
-									<button type="submit" class="secondary expand" {{action 'doNewAccount'}}>{{t forms.admin.signup_button}}</button>
+									<button id="confirm_sign_up" type="submit" class="secondary expand" {{action 'doNewAccount'}}>
+										{{t forms.admin.signup_button}}
+									</button>
 							</div>
 							<div class="small-2 columns">
 								&nbsp;
