@@ -1,4 +1,4 @@
-<div class="overlay" {{action "close"}}>
+<div class="overlay">
 </div>
 <div class="modal">
 	{{yield}}

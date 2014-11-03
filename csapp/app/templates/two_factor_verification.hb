@@ -1,4 +1,4 @@
-{{#modal-dialog action="close"}}
+{{#modal-dialog}}
 	<div class="row modal-filler">
 		<legend>{{t sections.login_two_factor}}</legend>
 	</div>

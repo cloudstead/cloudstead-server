@@ -1,4 +1,4 @@
-{{#modal-dialog action="close"}}
+{{#modal-dialog}}
 	<div class="row modal-filler">
 		<legend>{{t sections.registration}}</legend>
 	</div>
