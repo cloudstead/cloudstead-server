@@ -12,7 +12,7 @@ body{
 	position: absolute;
 	bottom: 0px;
 	width: 100%;
-	z-index:1;
+	z-index:10;
 }
 
 .topit{
@@ -20,7 +20,7 @@ body{
 }
 
 .modal {
-	
+
 	width: 70%;
 	background-color: #fff;
 	left: 0;
@@ -30,7 +30,7 @@ body{
 	right: 0;
 	margin-top: 100px;
 	margin-bottom: 100px;
-	z-index:2;
+	z-index:20;
 
 }
 
@@ -41,6 +41,7 @@ body{
 	top: 0;
 	left: 0;
 	background-color: rgba(0, 0, 0, 0.2);
+	z-index:20;
 }
 
 .modal-filler{
