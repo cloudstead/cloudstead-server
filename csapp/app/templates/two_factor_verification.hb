@@ -17,9 +17,9 @@
 							</div>
 							<div class="small-5 columns">
 								{{#if requestMessages.error.verifyCode}}
-									{{ input type="text" value=verifyCode class="error" }}
+									{{ input type="text" value=verifyCode classNames="error two_factor_code" }}
 								{{else}}
-									{{ input type="text" value=verifyCode }}
+									{{ input type="text" value=verifyCode classNames="two_factor_code" }}
 								{{/if}}
 
 								{{#if requestMessages.error.verifyCode}}

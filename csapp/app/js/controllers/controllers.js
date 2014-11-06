@@ -488,21 +488,41 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 				deviceName: this.get('model')["deviceName"]
 			};
 
-			// TODO validate data
+			var validationError = Validator.validateTwoFactorVerificationCode(data.secondFactor);
 
-			var result = Api.send_second_factor(data);
-			if (result.status === 'success'){
-				if (result.api_token) {
-					window.location.href = window.location.protocol + '//' +
-											window.location.host + '/' +
-											'#/adminHome';
+			if (validationError.verificationCode){
+				this._handleVerificationCodeError(validationError);
+			}
+			else{
+				this.send('_validateSecondFactorResponse', Api.send_second_factor(data));
+			}
+		},
+		_validateSecondFactorResponse: function(response) {
+			if (response.status === 'success'){
+				if (response.api_token) {
+					this.transitionToRoute("adminHome");
 				}
 			}else{
-				// TODO display error messages
+				// TODO display error messages, requires error message from API.
 			}
 		}
 	},
+
 	isFirst: function(){
 		return this.get('model')["isRegister"];
-	}.property('model')
+	}.property('model'),
+
+	_handleVerificationCodeError: function(validationError) {
+		this.set('requestMessages',
+			App.RequestMessagesObject.create({
+				json: {
+					"status": 'error',
+					"api_token" : null,
+					"errors": {
+						"verifyCode": validationError.verificationCode
+					}
+				}
+			})
+		);
+	}
 });
