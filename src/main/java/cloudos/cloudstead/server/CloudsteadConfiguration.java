@@ -14,6 +14,7 @@ import org.cobbzilla.mail.sender.SmtpMailConfig;
 import org.cobbzilla.mail.service.TemplatedMailSenderConfiguration;
 import org.cobbzilla.sendgrid.SendGrid;
 import org.cobbzilla.util.http.ApiConnectionInfo;
+import org.cobbzilla.wizard.cache.redis.HasRedisConfiguration;
 import org.cobbzilla.wizard.server.config.DatabaseConfiguration;
 import org.cobbzilla.wizard.server.config.HasDatabaseConfiguration;
 import org.cobbzilla.wizard.server.config.RestServerConfiguration;
@@ -25,10 +26,12 @@ import java.util.Map;
 
 @Configuration @Slf4j
 public class CloudsteadConfiguration extends RestServerConfiguration
-        implements HasDatabaseConfiguration, HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration {
+        implements HasDatabaseConfiguration, HasRedisConfiguration, HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration {
 
     @Setter private DatabaseConfiguration database;
     @Bean public DatabaseConfiguration getDatabase() { return database; }
+
+    @Getter @Setter private CloudsteadRedisConfiguration redis = new CloudsteadRedisConfiguration(this);
 
     @Getter @Setter private String emailTemplateRoot;
     @Getter @Setter private Map<String, SimpleEmailMessage> emailSenderNames = new HashMap<>();
