@@ -17,7 +17,7 @@ import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 public class CloudConfiguration implements AWSCredentials {
 
     // todo: pick these based on how many accounts the cloudos will have, and based on geo
-    private static final String CLOUDOS_INSTANCE_SIZE = "2gb";
+    private static final String CLOUDOS_INSTANCE_SIZE = "4gb";
     private static final String CLOUDOS_REGION = "sfo1";
     private static final String CLOUDOS_IMAGE = "ubuntu-14-04-x64";
 

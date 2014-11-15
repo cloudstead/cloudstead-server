@@ -9,10 +9,12 @@ import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.model.auth.ChangePasswordRequest;
 import cloudos.model.auth.LoginRequest;
 import cloudos.resources.AccountsResourceBase;
+import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.mail.SimpleEmailMessage;
 import org.cobbzilla.mail.TemplatedMail;
 import org.cobbzilla.mail.service.TemplatedMailService;
+import org.cobbzilla.wizard.cache.redis.ActivationCodeService;
 import org.cobbzilla.wizard.model.HashedPassword;
 import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,20 +22,22 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static cloudos.cloudstead.resources.ApiConstants.ADMINS_ENDPOINT;
 import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
 
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
-@Path(ApiConstants.ADMINS_ENDPOINT)
+@Consumes(APPLICATION_JSON)
+@Produces(APPLICATION_JSON)
+@Path(ADMINS_ENDPOINT)
 @Service @Slf4j
 public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthResponse> {
 
     public static final String EP_CHANGE_PASSWORD = "/{uuid}/change_password";
+    @Autowired private ActivationCodeService acService;
+
     public static String getChangePasswordPath (String uuid) { return ADMINS_ENDPOINT + EP_CHANGE_PASSWORD.replace("{uuid}", uuid); }
 
     @Autowired private AdminDAO adminDAO;
@@ -46,8 +50,15 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         return new CloudsteadAuthResponse(sessionId, account);
     }
 
+    /**
+     * Lookup your account (requires that you are already logged in, can only lookup yourself)
+     * @param apiKey Your API key (from login)
+     * @param uuid The UUID to look up
+     * @return
+     */
     @GET
     @Path("/{uuid}")
+    @ReturnType("cloudos.cloudstead.model.Admin")
     public Response find (@HeaderParam(H_API_KEY) String apiKey,
                           @PathParam("uuid") String uuid) {
 
@@ -62,9 +73,17 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         return Response.ok(admin).build();
     }
 
+    /**
+     * Create a new Admin
+     * @param name The email address of the admin to create
+     * @param request The other Admin information
+     * @return an AdminResponse, containing the Admin that was created and the session ID to use for subsequent requests
+     */
     @PUT
     @Path("/{name}")
-    public Response create(@PathParam("name") String name, @Valid AdminRequest request) {
+    @ReturnType("cloudos.cloudstead.model.support.AdminResponse")
+    public Response create(@PathParam("name") String name,
+                           @Valid AdminRequest request) {
 
         // sanity check
         if (!name.equalsIgnoreCase(request.getEmail())) return ResourceUtil.invalid();
@@ -74,6 +93,12 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         admin.setTwoFactor(true); // everyone gets two-factor turned on by default
         admin.setAuthIdInt(set2factor(request));
         admin.initEmailVerificationCode();
+        admin.initUuid();
+
+        // ensure activation key is valid
+        if (!acService.attempt(request.getActivationCode(), admin.getUuid())) {
+            return ResourceUtil.invalid();
+        }
 
         admin = adminDAO.create(admin);
 
@@ -114,8 +139,16 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         configuration.getTwoFactorAuthService().deleteUser(admin.getAuthIdInt());
     }
 
+    /**
+     * Update an admin
+     * @param apiKey The session ID
+     * @param uuid The UUID to update
+     * @param request The updated information
+     * @return The updated Admin object
+     */
     @POST
     @Path("/{uuid}")
+    @ReturnType("cloudos.cloudstead.model.Admin")
     public Response update(@HeaderParam(H_API_KEY) String apiKey,
                            @PathParam("uuid") String uuid,
                            @Valid AdminRequest request) {
@@ -153,8 +186,16 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         return Response.ok(admin).build();
     }
 
+    /**
+     * Change your password
+     * @param apiKey The session ID
+     * @param uuid The UUID of the Admin
+     * @param request The change password request object
+     * @return The updated Admin object
+     */
     @POST
     @Path(EP_CHANGE_PASSWORD)
+    @ReturnType("cloudos.cloudstead.model.Admin")
     public Response changePassword(@HeaderParam(H_API_KEY) String apiKey,
                                    @PathParam("uuid") String uuid,
                                    @Valid ChangePasswordRequest request) {
@@ -177,8 +218,15 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         return Response.ok(admin).build();
     }
 
+    /**
+     * Delete an Admin
+     * @param apiKey The session ID
+     * @param uuid The UUID to delete
+     * @return No response body. 200 = success, anything else = fail
+     */
     @DELETE
     @Path("/{uuid}")
+    @ReturnType("java.lang.Void")
     public Response delete(@HeaderParam(H_API_KEY) String apiKey,
                            @PathParam("uuid") String uuid) {
 

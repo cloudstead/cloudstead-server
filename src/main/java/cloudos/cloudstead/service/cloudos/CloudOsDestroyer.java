@@ -5,9 +5,10 @@ import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.CsCloud;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.dns.DnsRecordMatch;
 
-@AllArgsConstructor
+@AllArgsConstructor @Slf4j
 public class CloudOsDestroyer implements Runnable {
 
     private CloudOsStatus status;
@@ -36,7 +37,7 @@ public class CloudOsDestroyer implements Runnable {
 
         } catch (Exception e) {
             status.error("{destroy.error.removingDnsRecords}", "An error occurred removing DNS records");
-            throw new IllegalStateException("Error removing DNS records: "+e, e);
+            log.error("Error removing DNS records: " + e, e);
         }
 
         status.update("{destroy.deletingFromDB}");

@@ -74,6 +74,11 @@ public class CloudOsResource {
         admin = adminDAO.findByUuid(admin.getUuid());
         if (!admin.isEmailVerified()) return ResourceUtil.invalid("setup.error.unverifiedEmail");
 
+        // non-admins: cannot create more than max # of cloudsteads
+        if (!admin.isAdmin() && cloudOsDAO.findByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
+            return ResourceUtil.invalid("setup.error.maxCloudsteads");
+        }
+
         // this should return quickly with a status of pending
         CloudOsStatus status = launchManager.launch(admin, request);
 

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cobbzilla.wizard.validation.IsUnique;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 
 @Entity
@@ -15,6 +16,8 @@ import javax.persistence.Entity;
         @IsUnique(unique="mobilePhone", daoBean="adminDAO", message="{err.mobilePhone.notUnique}")
 })
 public class Admin extends AccountBase {
+
+    @Override public void beforeCreate() { if (!hasUuid()) throw new IllegalStateException("no uuid assigned"); }
 
     @Override
     public AccountBase setEmail(String email) {
@@ -30,4 +33,6 @@ public class Admin extends AccountBase {
         return this;
     }
 
+    @Column(nullable=false, updatable=false)
+    @Getter @Setter private int maxCloudsteads = 1;
 }

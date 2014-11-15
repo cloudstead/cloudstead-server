@@ -43,5 +43,11 @@
         "user": "cloudos-appstore-admin-user",
         "password": "cloudos-appstore-admin-password",
         "base_uri": "cloudos-appstore-url"
+    },
+
+    "activation": {
+        "name": "cloudos-activation-code-name",
+        "quantity": "how-many-to-permit",
+        "expiration_days": "90"
     }
 }
