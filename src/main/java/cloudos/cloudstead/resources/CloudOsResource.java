@@ -11,6 +11,7 @@ import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
+import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,13 @@ public class CloudOsResource {
     @Autowired private CloudOsEventDAO eventDAO;
     @Autowired private CloudsteadConfiguration configuration;
 
+    /**
+     * List your CloudOs instances
+     * @param apiKey The session ID
+     * @return A List of your CloudOs instances
+     */
     @GET
+    @ReturnType("java.util.List<cloudos.cloudstead.model.CloudOs>")
     public Response findAll (@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
 
         final Admin admin = sessionDAO.find(apiKey);
@@ -44,8 +51,17 @@ public class CloudOsResource {
         return Response.ok(found).build();
     }
 
+    /**
+     * Find a single CloudOs instance
+     * @param apiKey The session ID
+     * @param name The name of the instance
+     * @return A CloudOs instance
+     * @statuscode 403 instance is owned by another user
+     * @statuscode 404 no instance with that name
+     */
     @GET
     @Path("/{name}")
+    @ReturnType("cloudos.cloudstead.model.CloudOs")
     public Response find (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                           @PathParam("name") String name) {
 
@@ -59,8 +75,16 @@ public class CloudOsResource {
         return Response.ok(cloudOs).build();
     }
 
+    /**
+     * Create or re-launch a cloudstead
+     * @param apiKey The session ID
+     * @param name The name of the instance
+     * @param request The CloudOs request
+     * @return A CloudOsStatus object
+     */
     @PUT
     @Path("/{name}")
+    @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
     public Response createOrRelaunch (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                                       @PathParam("name") String name,
                                       CloudOsRequest request) {
@@ -85,8 +109,17 @@ public class CloudOsResource {
         return Response.ok(status).build();
     }
 
+    /**
+     * Request a status update on a CloudOs launch
+     * @param apiKey The session ID
+     * @param name The name of the instance
+     * @return an updated CloudOsStatus object
+     * @statuscode 403 instance is owned by another user
+     * @statuscode 404 instance not found
+     */
     @GET
     @Path("/{name}/status")
+    @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
     public Response status(@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                            @PathParam("name") String name) {
 
@@ -104,8 +137,17 @@ public class CloudOsResource {
         return Response.ok(status).build();
     }
 
+    /**
+     * Destroy a CloudOs instance
+     * @param apiKey The session ID
+     * @param name the name of the instance
+     * @return "true" if the teardown request was successfully started
+     * @statuscode 403 instance is owned by another user
+     * @statuscode 404 instance not found
+     */
     @DELETE
     @Path("/{name}")
+    @ReturnType("java.lang.Boolean")
     public Response delete (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name) {
         final Admin admin = sessionDAO.find(apiKey);
