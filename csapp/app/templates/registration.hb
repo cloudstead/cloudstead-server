@@ -12,12 +12,15 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.firstName}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-									{{ input type="text" value=firstName classNames="first_name_input" }}
-							</div>
-							<div class="large-2 small-12 columns">
 								{{#if requestMessages.error.firstName}}
-									<span class="message error right">{{requestMessages.error.firstName}}</span>
+									{{input type="text" value=password class="error first_name_input"}}
+									<span class="message error">{{requestMessages.error.firstName}}</span>
+								{{else}}
+									{{ input type="text" value=firstName classNames="first_name_input" }}
 								{{/if}}
+							</div>
+							<div class="large-2 hide-for-medium hide-for-small columns">
+								&nbsp;
 							</div>
 						</div>
 					</div>
@@ -27,12 +30,15 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.lastName}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{ input type="text" value=lastName classNames="last_name_input" }}
+								{{#if requestMessages.error.lastName}}
+									{{ input type="text" value=lastName classNames="error last_name_input" }}
+									<span class="message error">{{requestMessages.error.lastName}}</span>
+								{{else}}
+									{{ input type="text" value=lastName classNames="last_name_input" }}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.lastName}}
-									<span class="message error right">{{requestMessages.error.lastName}}</span>
-								{{/if}}
+								&nbsp;
 							</div>
 						</div>
 					</div>
@@ -42,12 +48,15 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.email}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{ input type="text" value=email classNames="email_input" }}
+								{{#if requestMessages.error.email}}
+									{{ input type="text" value=email classNames="error email_input" }}
+									<span class="message error">{{requestMessages.error.email}}</span>
+								{{else}}
+									{{ input type="text" value=email classNames="email_input" }}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.email}}
-									<span class="message error right">{{requestMessages.error.email}}</span>
-								{{/if}}
+								&nbsp;
 							</div>
 						</div>
 					</div>
@@ -57,12 +66,15 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.mobilePhoneCountryCode}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{ input type="text" value=mobilePhoneCountryCode classNames="mobile_country_code_input" }}
+								{{#if requestMessages.error.mobilePhoneCountryCode}}
+									{{ input type="text" value=mobilePhoneCountryCode classNames="error mobile_country_code_input" }}
+									<span class="message error">{{requestMessages.error.mobilePhoneCountryCode}}</span>
+								{{else}}
+									{{ input type="text" value=mobilePhoneCountryCode classNames="mobile_country_code_input" }}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.mobilePhoneCountryCode}}
-									<span class="message error right">{{requestMessages.error.mobilePhoneCountryCode}}</span>
-								{{/if}}
+								&nbsp;
 							</div>
 						</div>
 					</div>
@@ -72,12 +84,15 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.mobilePhone}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{ input type="text" value=mobilePhone classNames="mobile_phone_input" }}
+								{{#if requestMessages.error.mobilePhone}}
+									{{ input type="text" value=mobilePhone classNames="error mobile_phone_input" }}
+									<span class="message error">{{requestMessages.error.mobilePhone}}</span>
+								{{else}}
+									{{ input type="text" value=mobilePhone classNames="mobile_phone_input" }}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.mobilePhone}}
-									<span class="message error right">{{requestMessages.error.mobilePhone}}</span>
-								{{/if}}
+								&nbsp;
 							</div>
 						</div>
 					</div>
@@ -87,12 +102,15 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.password}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{ input type="password" value=password classNames="password_input" }}
+								{{#if requestMessages.error.password}}
+									{{ input type="password" value=password classNames="error password_input" }}
+									<span class="message error">{{requestMessages.error.password}}</span>
+								{{else}}
+									{{ input type="password" value=password classNames="password_input" }}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.password}}
-									<span class="message error right">{{requestMessages.error.password}}</span>
-								{{/if}}
+								&nbsp;
 							</div>
 						</div>
 					</div>
@@ -102,27 +120,31 @@
 								<label for="right-label" class="right msg-mod">{{t forms.admin.password2}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{ input type="password" value=password2 classNames="password_confirm_input" }}
+								{{#if requestMessages.error.password2}}
+									{{ input type="password" value=password2 classNames="error password_confirm_input" }}
+									<span class="message error">{{requestMessages.error.password2}}</span>
+								{{else}}
+									{{ input type="password" value=password2 classNames="password_confirm_input" }}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.password2}}
-									<span class="message error right">{{requestMessages.error.password2}}</span>
-								{{/if}}
 							</div>
 						</div>
 					</div>
 					<div class="field-container">
 						<div class="row">
-							<div class="large-5 small-10 columns">
+							<div class="large-5 small-8 columns">
 								<label for="right-label" class="right msg-mod">{{t forms.admin.tos}}</label>
 							</div>
-							<div class="large-5 small-2 columns">
-								{{ input type="checkbox" checkedBinding="tos"  classNames="tos_checkbox"}}
+							<div class="large-5 small-4 columns">
+								{{#if requestMessages.error.tos}}
+									{{ input type="checkbox" checkedBinding="tos"  classNames="error tos_checkbox"}}
+									<span class="message error">{{requestMessages.error.tos}}</span>
+								{{else}}
+									{{ input type="checkbox" checkedBinding="tos"  classNames="tos_checkbox"}}
+								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
-								{{#if requestMessages.error.tos}}
-									<span class="message error right">{{requestMessages.error.tos}}</span>
-								{{/if}}
 							</div>
 						</div>
 					</div>
