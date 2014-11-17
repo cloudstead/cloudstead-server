@@ -7,10 +7,10 @@
 				<form {{action 'doLogin' on="submit"}}>
 					<div class="field-container">
 						<div class="row">
-							<div class="small-5 columns">
+							<div class="large-5 small-12 columns">
 								<label for="right-label" class="right">{{t forms.admin.email}}</label>
 							</div>
-							<div class="small-5 columns">
+							<div class="large-5 small-12 columns">
 								{{#if requestMessages.error.name}}
 									{{ input type="text" value=name class="error" }}
 								{{else}}
@@ -28,10 +28,10 @@
 					</div>
 					<div class="field-container">
 						<div class="row">
-							<div class="small-5 columns">
+							<div class="large-5 small-12 columns">
 								<label for="right-label" class="right">{{t forms.admin.password}}</label>
 							</div>
-							<div class="small-5 columns">
+							<div class="large-5 small-12 columns">
 										{{#if requestMessages.error.password}}
 									{{input type="password" value=password class="error"}}
 								{{else}}
@@ -49,19 +49,19 @@
 					</div>
 					<div class="field-container">
 						<div class="row">
-							<div class="large-5 medium-5 hide-for-small columns">
+							<div class="large-5 hide-for-medium hide-for-small columns">
 								&nbsp;
 							</div>
-							<div class="large-2 medium-2 small-6 columns">
+							<div class="large-2 medium-5 small-6 columns">
 									<button type="submit" class="alert expand" {{action 'close'}}>{{t forms.admin.cancel_button}}</button>
 							</div>
 							<div class="large-1 medium-1 hide-for-small columns">
 								&nbsp;
 							</div>
-							<div class="large-2 medium-2 small-6 columns">
+							<div class="large-2 medium-6 small-6 columns">
 									<button type="submit" class="secondary expand" {{action 'doLogin'}}>{{t forms.admin.login_button}}</button>
 							</div>
-							<div class="large-2 medium-2 hide-for-small columns">
+							<div class="large-2 hide-for-medium hide-for-small columns">
 								&nbsp;
 							</div>
 						</div>
