@@ -51,7 +51,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
     }
 
     /**
-     * @summary Lookup your account (requires that you are already logged in, can only lookup yourself)
+     * Lookup your account. Requires that you are already logged in, can only lookup yourself
      * @param apiKey Your API key (from login)
      * @param uuid The UUID to look up
      * @return The Admin
