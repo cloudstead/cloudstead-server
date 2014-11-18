@@ -137,10 +137,10 @@
 							</div>
 							<div class="large-5 small-4 columns">
 								{{#if requestMessages.error.tos}}
-									{{ input type="checkbox" checkedBinding="tos"  classNames="error tos_checkbox"}}
+									{{ input type="checkbox" checkedBinding="tos" classNames="error tos_checkbox"}}
 									<span class="message error">{{requestMessages.error.tos}}</span>
 								{{else}}
-									{{ input type="checkbox" checkedBinding="tos"  classNames="tos_checkbox"}}
+									{{ input type="checkbox" checkedBinding="tos" classNames="tos_checkbox"}}
 								{{/if}}
 							</div>
 							<div class="large-2 small-12 columns">
