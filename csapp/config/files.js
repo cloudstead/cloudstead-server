@@ -17,7 +17,8 @@ module.exports = function(lineman) {
         "vendor/js/modernizer.js",
         "vendor/js/purl.js",
         "vendor/js/i18n.js",
-        "vendor/js/all.js"
+        "vendor/js/all.js",
+        "vendor/js/countries.js"
       ]
     },
     img: {

@@ -60,18 +60,17 @@
 							</div>
 						</div>
 					</div>
-					<div class="field-container">
+					<div class="select-container">
 						<div class="row">
 							<div class="large-5 small-12 columns">
 								<label for="right-label" class="right msg-mod">{{t forms.admin.mobilePhoneCountryCode}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{#if requestMessages.error.mobilePhoneCountryCode}}
-									{{ input type="text" value=mobilePhoneCountryCode classNames="error mobile_country_code_input" }}
-									<span class="message error">{{requestMessages.error.mobilePhoneCountryCode}}</span>
-								{{else}}
-									{{ input type="text" value=mobilePhoneCountryCode classNames="mobile_country_code_input" }}
-								{{/if}}
+								{{view Ember.Select
+										content=countryList
+										optionValuePath="content.code"
+										optionLabelPath="content.country"
+										selectionBinding="mobilePhoneCountry" }}
 							</div>
 							<div class="large-2 small-12 columns">
 								&nbsp;

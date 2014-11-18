@@ -9,6 +9,7 @@ App.RegistrationController = Ember.ObjectController.extend({
 			$('input').trigger('focus');
 		},
 		doNewAccount: function () {
+			this.set("mobilePhoneCountryCode", this.get("mobilePhoneCountry").code);
 			var validate = this.validateSignup(
 				this.get('firstName'),
 				this.get('lastName'),
@@ -169,6 +170,7 @@ App.RegistrationController = Ember.ObjectController.extend({
 	mobilePhone:'',
 	password:'',
 	password2:'',
+	countryList: Countries.list
 });
 
 
