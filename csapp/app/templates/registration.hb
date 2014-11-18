@@ -13,7 +13,7 @@
 							</div>
 							<div class="large-5 small-12 columns">
 								{{#if requestMessages.error.firstName}}
-									{{input type="text" value=password class="error first_name_input"}}
+									{{input type="text" value=firstName class="error first_name_input"}}
 									<span class="message error">{{requestMessages.error.firstName}}</span>
 								{{else}}
 									{{ input type="text" value=firstName classNames="first_name_input" }}
