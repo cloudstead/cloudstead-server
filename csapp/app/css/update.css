@@ -86,3 +86,7 @@ label.right{
 .select-container{
 	margin-bottom: 1em;
 }
+
+.half-width-tab{
+	width: 50% !important;
+}

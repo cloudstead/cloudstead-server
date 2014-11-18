@@ -1,8 +1,8 @@
 <section class="deck">
 	<div class="row">
 		<dl class="tabs" data-tab>
-			<dd class="active">{{#link-to 'adminHome'}}Your Cloudsteads{{/link-to}}</dd>
-			<dd>{{#link-to 'adminDetails' }}Account details{{/link-to}}</dd>
+			<dd class="active half-width-tab">{{#link-to 'adminHome'}}Your Cloudsteads{{/link-to}}</dd>
+			<dd class="half-width-tab">{{#link-to 'adminDetails' }}Account details{{/link-to}}</dd>
 		</dl>
 		<div class="tabs-content">
 			<div class="content active">
@@ -43,10 +43,10 @@
 									&nbsp;
 								{{/if}}
 							</div>
-							<div {{bind-attr class=":small-5 :columns isAddCloudsEnabled:el_visible:el_hidden"}}>
+							<div {{bind-attr class=":large-5 :medium-12 :small-12 :columns isAddCloudsEnabled:el_visible:el_hidden"}}>
 								<label for="right-label" class="right msg-mod">{{t forms.cloudos.name}}</label>
 							</div>
-							<div {{bind-attr class=":small-5 :columns isAddCloudsEnabled:el_visible:el_hidden"}}>
+							<div {{bind-attr class=":large-5 :medium-12 :small-12 :columns isAddCloudsEnabled:el_visible:el_hidden"}}>
 								{{#if requestMessages.error.cloudOsName}}
 									{{input type="text" value=cloudOsRequest.name class="error"}}
 								{{else}}
@@ -61,7 +61,7 @@
 					</div>
 					<div {{bind-attr class=":field-container isAddCloudsEnabled:el_visible:el_hidden"}}>
 						<div class="row">
-							<div class="small-7 columns">
+							<div class="large-7 hide-for-medium hide-for-small columns">
 								&nbsp;
 							</div>
 							<div class="small-5 columns">
