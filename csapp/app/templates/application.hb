@@ -1,3 +1,4 @@
+<div id="cloudstead-content">
 {{#view App.NavbarView}}
 	<section class="app-bar">
 	<nav class="top-bar" data-top-bar>
@@ -29,6 +30,7 @@
 
 {{outlet}}
 {{outlet modal}}
+</div>
 
 <footer class="footer">
 	<section class="row">
