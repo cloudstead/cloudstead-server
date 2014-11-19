@@ -149,6 +149,24 @@
 					</div>
 					<div class="field-container">
 						<div class="row">
+							<div class="large-5 small-12 columns">
+								<label for="right-label" class="right msg-mod">{{t forms.admin.activationCode}}</label>
+							</div>
+							<div class="large-5 small-12 columns">
+								{{#if requestMessages.error.activationCode}}
+									{{input type="text" value=activationCode class="error first_name_input"}}
+									<span class="message error">{{requestMessages.error.activationCode}}</span>
+								{{else}}
+									{{ input type="text" value=activationCode classNames="first_name_input" }}
+								{{/if}}
+							</div>
+							<div class="large-2 hide-for-medium hide-for-small columns">
+								&nbsp;
+							</div>
+						</div>
+					</div>
+					<div class="field-container">
+						<div class="row">
 							<div class="large-5 medium-1 hide-for-small columns">
 								&nbsp;
 							</div>

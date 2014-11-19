@@ -18,7 +18,8 @@ App.RegistrationController = Ember.ObjectController.extend({
 				this.get('mobilePhone'),
 				this.get('password'),
 				this.get('password2'),
-				this.get('tos')
+				this.get('tos'),
+				this.get('activationCode')
 			);
 
 			// triger focus event, alter flag and then re-call this action.
@@ -33,7 +34,8 @@ App.RegistrationController = Ember.ObjectController.extend({
 
 				if ( validate.firstName || validate.lastName || validate.email ||
 									validate.mobilePhoneCountryCode || validate.mobilePhone ||
-									validate.password || validate.password2 || validate.tos) {
+									validate.password || validate.password2 || validate.tos ||
+									validate.activationCode) {
 					this.set('requestMessages',
 							App.RequestMessagesObject.create({
 								json: {
@@ -47,7 +49,8 @@ App.RegistrationController = Ember.ObjectController.extend({
 										"mobilePhone": validate.mobilePhone,
 										"password": validate.password,
 										"password2": validate.password2,
-										"tos": validate.tos
+										"tos": validate.tos,
+										"activationCode": validate.activationCode
 									}
 								}
 							})
@@ -58,13 +61,21 @@ App.RegistrationController = Ember.ObjectController.extend({
 				// todo: ensure minimum password length. perhaps some generic validation framework can be applied?
 				// instead of doing validation imperatively, let's do declarative validation, like how the backend API works...
 				var result = Api.register_admin({
+					name: this.get('email'),
 					firstName: this.get('firstName'),
 					lastName: this.get('lastName'),
+					admin: false,
+					suspended: false,
+					twoFactor: false,
 					email: this.get('email'),
+					emailVerified: false,
 					mobilePhoneCountryCode: this.get('mobilePhoneCountryCode'),
 					mobilePhone: this.get('mobilePhone'),
+					maxCloudsteads: 1,
 					password: this.get('password'),
-					tos: !!this.get('tos')
+					tos: !!this.get('tos'),
+					activationCode: this.get('activationCode'),
+					accountName: this.get('email'),
 				});
 
 				if (result.status === 'success') {
@@ -111,12 +122,12 @@ App.RegistrationController = Ember.ObjectController.extend({
 			return this.transitionToRoute('index');
 		}
 	},
-	validateSignup: function(firstName, lastName, email, mobilePhoneCountryCode, mobilePhone, password, password2, tos){
+	validateSignup: function(firstName, lastName, email, mobilePhoneCountryCode, mobilePhone, password, password2, tos, activationCode){
 
 		var response = {
 			"firstName": null, "lastName": null, "email": null,
 			"mobilePhoneCountryCode": null, "mobilePhone": null,
-			"password":null, "password2":null, "tos": null
+			"password":null, "password2":null, "tos": null, "activationCode": null
 		};
 		var error_msg = locate(Em.I18n.translations, 'errors');
 		var pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -158,6 +169,10 @@ App.RegistrationController = Ember.ObjectController.extend({
 
 		if (!tos || ((''+tos).trim() === '')) {
 			response.tos = error_msg.field_required;
+		}
+
+		if (!activationCode || (activationCode.trim() === '')) {
+			response.activationCode = error_msg.field_required;
 		}
 
 		return response;
