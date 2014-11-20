@@ -544,3 +544,37 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 		);
 	}
 });
+
+App.ResetPasswordController = Ember.ObjectController.extend({
+	actions:{
+		doResetPassword: function () {
+			console.log("reset password");
+			var token = this.get('model').token;
+
+			// var passwordErrors =
+			// PasswordValidator.getErrorsFor(this, "password", "passwordConfirm");
+
+			// if (passwordErrors.is_not_empty){
+			// this._handleChangeAccountPasswordErrors(passwordErrors);
+			// }
+			// else{
+				Api.reset_password(token, this.get('password'));
+
+				this.transitionToRoute("index");
+			// }
+
+		}
+	},
+
+	_handleChangeAccountPasswordErrors: function(errors) {
+		this.set('requestMessages',
+			App.RequestMessagesObject.create({
+				json: {
+					"status": 'error',
+					"api_token" : null,
+					"errors": errors
+				}
+			})
+		);
+	}
+});

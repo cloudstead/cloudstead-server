@@ -245,7 +245,39 @@ Api = {
 			}
 		});
 		return result;
-	}
+	},
+
+	reset_password: function(token, password){
+
+		var result = {
+			"status": null,
+			"errors": {
+				"resetPassword":null
+			}
+		};
+
+		var data = {
+			token: token,
+			password: password
+		};
+
+		Ember.$.ajax({
+			'type': 'POST',
+			'url':'/api/auth/reset_password',
+			'contentType': 'application/json',
+			'async': false,
+			'data': JSON.stringify(data),
+			'success': function (data, status, jqXHR) {
+				result.status = status;
+			},
+			'error': function (jqXHR, status, error) {
+				result.status = status;
+				result.errors.resetPassword = error;
+				console.log('Reset password error: status='+status+', error='+error);
+			}
+		});
+		return result;
+	},
 
 //    'change_password': function (oldPassword, newPassword) {
 //        api_token = sessionStorage.getItem('api_token');

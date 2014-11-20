@@ -29,6 +29,8 @@ App.Router.map(function() {
 	this.resource('about');
 	this.resource('contact');
 	this.resource('adminDetails');
+
+	this.resource('resetPassword', { path: '/reset_password/:token' });
 //	this.resource('settings');
 //	this.resource('app', { path: '/app/:app_name' });
 });
@@ -92,5 +94,11 @@ App.LogoutRoute = Ember.Route.extend({
 		sessionStorage.clear();
 		localStorage.clear();
 		window.location.replace('/index.html');
+	}
+});
+
+App.ResetPasswordRoute = Ember.Route.extend({
+	model: function (params) {
+		return { token : params['token'] };
 	}
 });
