@@ -593,16 +593,16 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 App.ResetPasswordController = Ember.ObjectController.extend({
 	actions:{
 		doResetPassword: function () {
-			console.log("reset password");
 			var token = this.get('model').token;
+			var self = this;
 
-			// var passwordErrors =
-			// PasswordValidator.getErrorsFor(this, "password", "passwordConfirm");
+			var passwordErrors =
+				PasswordValidator.getErrorsFor(this, "password", "passwordConfirm");
 
-			// if (passwordErrors.is_not_empty){
-			// this._handleChangeAccountPasswordErrors(passwordErrors);
-			// }
-			// else{
+			if (passwordErrors.is_not_empty){
+				this._handleChangeAccountPasswordErrors(passwordErrors);
+			}
+			else{
 				Api.reset_password(token, this.get('password'));
 
 				this.set(
@@ -614,7 +614,7 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 					self.transitionToRoute("login");},
 					3000
 				);
-			// }
+			}
 
 		}
 	},
