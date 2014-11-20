@@ -247,6 +247,33 @@ Api = {
 		return result;
 	},
 
+	forgot_password: function(email){
+
+		var result = {
+			"status": null,
+			"errors": {
+				"forgotPassword":null
+			}
+		};
+
+		Ember.$.ajax({
+			'type': 'POST',
+			'url':'/api/auth/forgot_password',
+			'contentType': 'application/json',
+			'async': false,
+			'data': email,
+			'success': function (data, status, jqXHR) {
+				result.status = status;
+			},
+			'error': function (jqXHR, status, error) {
+				result.status = status;
+				result.errors.forgotPassword = error;
+				console.log('Forgot password error: status='+status+', error='+error);
+			}
+		});
+		return result;
+	},
+
 	reset_password: function(token, password){
 
 		var result = {

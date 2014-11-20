@@ -67,6 +67,7 @@
 						</div>
 					</div>
 				</form>
+				<a href="" {{action "doForgotPassword"}}>{{t forms.admin.forgot_password}}</a>
 			</div>
 	</div>
 	<div class="row modal-filler">

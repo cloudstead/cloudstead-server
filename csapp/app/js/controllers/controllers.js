@@ -254,7 +254,30 @@ App.LoginController = Ember.ObjectController.extend({
 		},
 		close: function() {
 				return this.transitionToRoute('index');
+		},
+
+		doForgotPassword: function() {
+			var validate = this.validateLogin(this.get('name'),this.get('password'));
+
+			if (validate.name){
+					this.set(
+						'requestMessages',
+						App.RequestMessagesObject.create({
+							json: {
+								"status": 'error',
+								"api_token" : null,
+								"errors": {
+									"name": validate.name
+								}
+							}
+						})
+					);
+				return false;
 			}
+			else{
+				Api.forgot_password(this.get("name"));
+			}
+		}
 	},
 	validateLogin: function(username, password){
 
@@ -273,6 +296,19 @@ App.LoginController = Ember.ObjectController.extend({
 		}
 		return response;
 	},
+
+	_handleLoginError: function(validationErrors) {
+		this.set('requestMessages',
+			App.RequestMessagesObject.create({
+				json: {
+					"status": 'error',
+					"api_token" : null,
+					"errors": validationErrors
+				}
+			})
+		);
+	},
+
 	name:'',
 	password:'',
 	requestMessages:''
