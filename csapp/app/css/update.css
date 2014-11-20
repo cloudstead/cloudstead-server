@@ -98,3 +98,8 @@ label.right{
 .half-width-tab{
 	width: 50% !important;
 }
+
+.forgot-password-notification{
+	color: rgba(204, 88, 74, 1);
+	margin: 1em;
+}

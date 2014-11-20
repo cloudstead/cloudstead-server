@@ -69,6 +69,7 @@
 				</form>
 				<a href="" {{action "doForgotPassword"}}>{{t forms.admin.forgot_password}}</a>
 			</div>
+			<div class="forgot-password-notification">{{notificationForgotPassword}}</div>
 	</div>
 	<div class="row modal-filler">
 		&nbsp;

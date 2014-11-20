@@ -281,6 +281,11 @@ App.LoginController = Ember.ObjectController.extend({
 			}
 			else{
 				Api.forgot_password(this.get("name"));
+
+				this.set(
+					'notificationForgotPassword',
+					Ember.I18n.translations.notifications.forgot_password_email_sent
+				);
 			}
 		}
 	},
@@ -600,7 +605,15 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 			// else{
 				Api.reset_password(token, this.get('password'));
 
-				this.transitionToRoute("index");
+				this.set(
+					'notificationResetPassword',
+					Ember.I18n.translations.notifications.reset_password_successful
+				);
+
+				setTimeout(function(){
+					self.transitionToRoute("login");},
+					3000
+				);
 			// }
 
 		}

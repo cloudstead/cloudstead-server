@@ -31,6 +31,7 @@
 					<div class="field-container">
 						<p><button type="submit" class="expand">{{t forms.reset_password.label}}</button></p>
 					</div>
+					<div class="forgot-password-notification">{{notificationResetPassword}}</div>
 				</fieldset>
 			</form>
 		</div>
