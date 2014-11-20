@@ -234,9 +234,16 @@ App.LoginController = Ember.ObjectController.extend({
 				Redirector.redirectToAdminHome();
 			}
 			else if (result.status === 'error') {
+				var error_msg = locate(Em.I18n.translations, 'errors');
 				this.set('requestMessages',
 					App.RequestMessagesObject.create({
-						json: result
+							json: {
+								"status": 'error',
+								"errors": {
+									"name": error_msg.bad_credentials,
+									"password": error_msg.bad_credentials,
+								}
+							}
 					})
 				);
 			}else if( (result.status === 'success') && (result.twofactor === true) ){
