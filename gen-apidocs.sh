@@ -9,7 +9,7 @@ mkdir -p ${SRC_DIR}
 
 rsync -avzc ${BASE_DIR}/src/main/* ${SRC_DIR}
 rsync -avzc ${BASE_DIR}/../cloudos/cloudos-lib/src/main/* ${SRC_DIR}
-rsync -avzc ${BASE_DIR}/../cloudos/utils/cobbzilla-wizard/wizard-server/src/main ${SRC_DIR}
+rsync -avzc ${BASE_DIR}/../cloudos/utils/cobbzilla-wizard/wizard-server/src/main/* ${SRC_DIR}
 
 cp pom-apidocs.xml ${BUILD_DIR}/pom.xml
 
