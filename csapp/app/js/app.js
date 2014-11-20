@@ -133,3 +133,9 @@ Validator = {
 		return errors;
 	}
 };
+
+Redirector = {
+	redirectToAdminHome: function() {
+		window.location.href = window.location.origin + '/#/adminHome';
+	}
+};

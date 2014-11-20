@@ -231,9 +231,7 @@ App.LoginController = Ember.ObjectController.extend({
 			});
 
 			if ( (result.status === 'success') && (result.api_token)) {
-				window.location.href = window.location.protocol + '//' +
-										window.location.host + '/' +
-										'#/adminHome';
+				Redirector.redirectToAdminHome();
 			}
 			else if (result.status === 'error') {
 				this.set('requestMessages',
@@ -553,8 +551,7 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 		_validateSecondFactorResponse: function(response) {
 			if (response.status === 'success'){
 				if (response.api_token) {
-					this.send('closeModal');
-					this.transitionToRoute("adminHome");
+					Redirector.redirectToAdminHome();
 				}
 			}else{
 				// TODO display error messages, requires error message from API.
