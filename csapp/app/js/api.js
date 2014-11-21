@@ -7,6 +7,14 @@ function add_api_auth (xhr) {
 	xhr.setRequestHeader(Api.API_TOKEN, token);
 }
 
+function show_loading(){
+	$('.loading_animation').removeClass("hide");
+}
+
+function hide_loading(){
+	$('.loading_animation').addClass("hide");
+}
+
 ErrorResponseMessages = {
 	"{err.email.notUnique}": {
 		errorType: "email",
@@ -26,6 +34,8 @@ Api = {
 	},
 
 	register_admin: function (reg) {
+
+		show_loading();
 
 		var result = {
 			"status": null,
@@ -67,12 +77,16 @@ Api = {
 						}
 					});
 				}
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 
 	login_admin: function (login) {
+		show_loading();
 
 		var result = {
 			"status": null,
@@ -110,11 +124,15 @@ Api = {
 				// TODO : fill out errors differently, according to server response
 				result.status = status;
 				result.errors.username = error;
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 	send_second_factor: function(data){
+		show_loading();
 
 		var result = {"status": null,
 					"api_token": null,
@@ -136,11 +154,16 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('login error: status='+status+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 	list_cloudos_instances: function () {
+		show_loading();
+
 		instances = [];
 		Ember.$.ajax({
 			'type': 'GET',
@@ -153,11 +176,16 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('login error: status='+status+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return instances;
 	},
 	get_admin_profile: function (uuid) {
+		show_loading();
+
 		var result;
 		Ember.$.ajax({
 			'type': 'GET',
@@ -170,11 +198,16 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('login error: status='+status+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 	update_admin_profile: function (data) {
+		show_loading();
+
 		var result;
 		Ember.$.ajax({
 			'type': 'POST',
@@ -188,11 +221,16 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('login error: status='+status+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 	new_cloud_os: function (cloudOsRequest) {
+		show_loading();
+
 		var result = null;
 		Ember.$.ajax({
 			'type': 'PUT',
@@ -207,12 +245,17 @@ Api = {
 			'error': function (jqXHR, status, error) {
 				console.log('new_cloud_os error: result='+result+', error='+error);
 				result = null;
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 
 	cloud_os_launch_status: function (name) {
+		show_loading();
+
 		var result = null;
 		Ember.$.ajax({
 			'type': 'GET',
@@ -225,11 +268,16 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('cloud_os_launch_result error: result='+result+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 	delete_cloudos_instance: function (name) {
+		show_loading();
+
 		var result = null;
 		Ember.$.ajax({
 			'type': 'DELETE',
@@ -242,12 +290,16 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('delete_cloudos_instance error: result='+result+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 
 	forgot_password: function(email){
+		show_loading();
 
 		var result = {
 			"status": null,
@@ -269,12 +321,16 @@ Api = {
 				result.status = status;
 				result.errors.forgotPassword = error;
 				console.log('Forgot password error: status='+status+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
 	},
 
 	reset_password: function(token, password){
+		show_loading();
 
 		var result = {
 			"status": null,
@@ -301,6 +357,9 @@ Api = {
 				result.status = status;
 				result.errors.resetPassword = error;
 				console.log('Reset password error: status='+status+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
 			}
 		});
 		return result;
