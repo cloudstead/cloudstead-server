@@ -195,33 +195,15 @@ App.LoginController = Ember.ObjectController.extend({
 
 			// data check
 
-			var validate = this.validateLogin(this.get('name'),this.get('password'));
+			var validate = this._validateLogin(this.get('name'),this.get('password'));
 
-			if ( (validate.email) || (validate.password)){
-					this.set(
-						'requestMessages',
-						App.RequestMessagesObject.create({
-							json: {
-								"status": 'error',
-								"api_token" : null,
-								"errors": {
-									"name": validate.name,
-									"password": validate.password
-								}
-							}
-						})
-					);
+			if (validate.hasFailed()){
+				this._handleLoginError(validate.errors);
 				return false;
 			}
 
 			// validation ok, check device cookies
-			var ckDeviceId = checkCookie("deviceId");
-			var ckDeviceName = checkCookie("deviceName");
-
-			if ((!ckDeviceId) || (!ckDeviceName)){
-				setCookie("deviceId", generateDeviceId(), 365);
-				setCookie("deviceName", getDeviceName(), 365);
-			}
+			this._generateDeviceCookies();
 
 			var result = Api.login_admin({
 				name: this.get('name'),
@@ -231,7 +213,12 @@ App.LoginController = Ember.ObjectController.extend({
 			});
 
 			if ( (result.status === 'success') && (result.api_token)) {
-				Redirector.redirectToAdminHome();
+				if (this.get('previousTransition')) {
+					this._retryPreviousTransition();
+				}
+				else {
+					this.transitionToRoute('adminHome');
+				}
 			}
 			else if (result.status === 'error') {
 				var error_msg = locate(Em.I18n.translations, 'errors');
@@ -289,21 +276,46 @@ App.LoginController = Ember.ObjectController.extend({
 			}
 		}
 	},
-	validateLogin: function(username, password){
 
-		var response = {"name": null, "password":null};
+	_validateLogin: function(email, password){
+		var response = {
+			errors: {
+				name: null,
+				password:null
+			},
+			hasFailed: function() {
+				return (this.errors.name) || (this.errors.password);
+			}
+		};
+
+		response.errors.name = this._validateEmail(email);
+		response.errors.password = this._validatePassword(password);
+
+		return response;
+	},
+
+	_validateEmail: function(email) {
+		var response = null;
 		var error_msg = locate(Em.I18n.translations, 'errors');
 		var pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-		if ((username.trim() === '') || (!username)){
-			response.name = error_msg.field_required;
-		}else if(!pattern.test(username)){
-			response.name = error_msg.email_invalid;
+		if ((email.trim() === '') || (!email)){
+			response = error_msg.field_required;
+		}else if(!pattern.test(email)){
+			response = error_msg.email_invalid;
 		}
 
+		return response;
+	},
+
+	_validatePassword: function(password) {
+		var response = null;
+		var error_msg = locate(Em.I18n.translations, 'errors');
+
 		if ((password.trim() === '') || (!password)){
-			response.password = error_msg.field_required;
+			response = error_msg.field_required;
 		}
+
 		return response;
 	},
 
@@ -317,6 +329,24 @@ App.LoginController = Ember.ObjectController.extend({
 				}
 			})
 		);
+	},
+
+	_generateDeviceCookies: function() {
+		var ckDeviceId = checkCookie("deviceId");
+			var ckDeviceName = checkCookie("deviceName");
+
+			if ((!ckDeviceId) || (!ckDeviceName)){
+				setCookie("deviceId", generateDeviceId(), 365);
+				setCookie("deviceName", getDeviceName(), 365);
+			}
+	},
+
+	previousTransition: null,
+
+	_retryPreviousTransition: function() {
+		var previousTransition = this.get('previousTransition');
+		this.set('previousTransition', null);
+		previousTransition.retry();
 	},
 
 	name:'',
@@ -435,6 +465,11 @@ App.ApplicationController = Ember.ObjectController.extend({
 //			this.transitionTo('app', App.app_model(app_name));
 //		}
 //	}
+	authStatus: null,
+
+	refreshAuthStatus: function() {
+		this.set('authStatus', sessionStorage.getItem('api_token'));
+	}
 });
 
 App.IndexController = Ember.ObjectController.extend({
@@ -563,7 +598,8 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 		_validateSecondFactorResponse: function(response) {
 			if (response.status === 'success'){
 				if (response.api_token) {
-					Redirector.redirectToAdminHome();
+					this.send('closeModal');
+					this.transitionToRoute('adminHome');
 				}
 			}else{
 				// TODO display error messages, requires error message from API.

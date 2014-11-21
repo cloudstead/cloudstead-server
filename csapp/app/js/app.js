@@ -134,12 +134,6 @@ Validator = {
 	}
 };
 
-Redirector = {
-	redirectToAdminHome: function() {
-		window.location.href = window.location.origin + '/#/adminHome';
-	}
-};
-
 PasswordValidator = {
     getErrorsFor: function(object, password, confirm){
         var data = new ValidatorData(locate(Em.I18n.translations, 'errors'), object);

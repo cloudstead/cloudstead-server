@@ -35,6 +35,19 @@ App.Router.map(function() {
 //	this.resource('app', { path: '/app/:app_name' });
 });
 
+App.ProtectedRoute = Ember.Route.extend({
+	beforeModel: function(transition) {
+		if (Ember.isEmpty(sessionStorage.getItem('api_token'))){
+			var loginController = this.controllerFor('login');
+			loginController.set('previousTransition', transition);
+			this.transitionTo('login');
+		}
+		else{
+			this.controllerFor('application').refreshAuthStatus();
+		}
+	}
+});
+
 App.RegistrationRoute = Ember.Route.extend({
 	model: function () {
 		return {
@@ -55,30 +68,24 @@ App.LoginRoute = Ember.Route.extend({
 	}
 });
 
-App.AdminHomeRoute = Ember.Route.extend({
+App.AdminHomeRoute = App.ProtectedRoute.extend({
 	model: function () {
 		return {
 			cloudOsRequest: {
 				name: ''
 			}
 		};
-	},
-	setupController: function(controller, model) {
-		if (!sessionStorage.getItem('api_token')) {
-			window.location.replace('/index.html');
-		}
-		controller.set("content", model);
 	}
 });
 
-App.AdminDetailsRoute = Ember.Route.extend({
+App.AdminDetailsRoute = App.ProtectedRoute.extend({
 	model: function () {
 		var adminData = JSON.parse(sessionStorage.active_admin);
 		return Api.get_admin_profile(adminData.uuid);
 	}
 });
 
-App.CloudOsStatusRoute = Ember.Route.extend({
+App.CloudOsStatusRoute = App.ProtectedRoute.extend({
 	model: function (params) {
 		var name = params.cloudos_name;
 		return {
@@ -93,7 +100,8 @@ App.LogoutRoute = Ember.Route.extend({
 		// probably want to do a more selective removal of attributes, rather than wiping everything out
 		sessionStorage.clear();
 		localStorage.clear();
-		window.location.replace('/index.html');
+		this.controllerFor('application').refreshAuthStatus();
+		this.transitionTo('index');
 	}
 });
 

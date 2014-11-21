@@ -17,7 +17,7 @@
 		</ul>
 		<section class="top-bar-section">
 			<ul class="right">
-				{{#if view.authStatus}}
+				{{#if authStatus}}
 					<li>{{#link-to 'logout'}}Sign out{{/link-to}}</li>
 				{{else}}
 					<!--<li>{{#link-to 'login'}}Sign in{{/link-to}}</li>-->
