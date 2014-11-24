@@ -589,7 +589,7 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 	actions:{
 		doResetPassword: function () {
 			var token = this.get('model').token;
-			var self = this;
+			var delayInSeconds = 3;
 
 			var validation =
 				PasswordValidator.validate(this.get("password"), this.get("passwordConfirm"));
@@ -600,15 +600,9 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 			else{
 				Api.reset_password(token, this.get('password'));
 
-				this.set(
-					'notificationResetPassword',
-					Ember.I18n.translations.notifications.reset_password_successful
-				);
+				this._setResetNotificationTo(this._delayMessage(delayInSeconds));
 
-				setTimeout(function(){
-					self.transitionToRoute("login");},
-					3000
-				);
+				this._delayedTransitionTo("login", delayInSeconds);
 			}
 
 		}
@@ -624,5 +618,35 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 				}
 			})
 		);
+	},
+
+	_delayedTransitionTo: function(routeName, delayInSeconds){
+		TIMER_STEP_IN_SECONDS = 1;
+		var passedInSeconds = 0;
+		var self = this;
+
+		var interval = setInterval(
+			function() {
+				passedInSeconds += 1;
+				self._setResetNotificationTo(
+					self._delayMessage(parseInt(delayInSeconds - passedInSeconds, 10))
+				);
+
+				if (passedInSeconds >= delayInSeconds){
+					clearInterval(interval);
+					self.transitionToRoute(routeName);
+				}
+			},
+			Timer.s2ms(TIMER_STEP_IN_SECONDS)
+		);
+	},
+
+	_delayMessage: function(delayInSeconds) {
+		return Ember.I18n.translations.notifications.reset_password_successful +
+			" " + delayInSeconds + "s.";
+	},
+
+	_setResetNotificationTo: function(message){
+		this.set("notificationResetPassword", message);
 	}
 });
