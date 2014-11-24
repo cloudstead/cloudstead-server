@@ -309,7 +309,8 @@ App.LoginController = Ember.ObjectController.extend({
 
 	name:'',
 	password:'',
-	requestMessages:''
+	requestMessages: null,
+	notificationForgotPassword: null
 });
 
 App.AdminHomeController = Ember.ObjectController.extend({
