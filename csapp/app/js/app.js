@@ -134,57 +134,106 @@ Validator = {
 	}
 };
 
-PasswordValidator = {
-	getErrorsFor: function(object, password, confirm){
-		var data = new ValidatorData(locate(Em.I18n.translations, 'errors'), object);
-
-		data.errors = EqualPasswordsValidator.getErrors(data, password, confirm);
-
-		data.errors = PresenceValidator.getErrors(data, [password, confirm]);
-
-		return data.errors;
+EmptyValidator = {
+	isEmpty: function(value) {
+		return Ember.isNone(value) || String(value).trim().length === 0;
 	}
 };
 
-ValidatorData = function(error_msg, validationSubject) {
-	this.errors = {
-		is_not_empty: false
-	};
+LoginValidator = {
+	validate: function(email, password){
+		var response = {
+			errors: {
+				name: null,
+				password:null
+			},
+			hasFailed: function() {
+				return (this.errors.name) || (this.errors.password);
+			}
+		};
 
-	this.error_msg = error_msg;
+		response.errors.name = EmailValidator.validate(email).errors.email;
+		response.errors.password = PresenceValidator.validate(password).errors.presence;
 
-	this.validationSubject = validationSubject;
+		return response;
+	}
+};
+
+EmailValidator = {
+	validate: function(email){
+		var response = {
+			errors: {
+				email: null
+			},
+			hasFailed: function() {
+				return !Ember.isNone(this.errors.email);
+			}
+		};
+
+		var error_msg = locate(Em.I18n.translations, 'errors');
+		var pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+		if ((email.trim() === '') || (!email)){
+			response.errors.email = error_msg.field_required;
+		}else if(!pattern.test(email)){
+			response.errors.email = error_msg.email_invalid;
+		}
+
+		return response;
+	}
 };
 
 PresenceValidator = {
-	getErrors: function(data, fields) {
-		fields.forEach(function(property){
-			if(EmptyValidator.is_empty(data.validationSubject.get(property))){
-				data.errors[property] = data.error_msg.field_required;
-				data.errors["is_not_empty"] = true;
+	validate: function(fieldValue){
+		var response = {
+			errors: {
+				presence: null
+			},
+			hasFailed: function() {
+				return !Ember.isNone(this.errors.presence);
 			}
-		});
+		};
 
-		return data.errors;
-	}
-};
+		var error_msg = locate(Em.I18n.translations, 'errors');
 
-EmptyValidator = {
-	is_empty: function(value) {
-		return (value === undefined || String(value).trim().length === 0) ? true : false;
-	}
-};
-
-EqualPasswordsValidator = {
-	getErrors: function(data, passwordField, confirmField) {
-		password = data.validationSubject.get(passwordField);
-		confirm = data.validationSubject.get(confirmField);
-
-		if (password !== confirm){
-			data.errors[passwordField] = data.error_msg.password_mismatch;
-			data.errors[confirmField] = data.error_msg.password_mismatch;
-			data.errors["is_not_empty"] = true;
+		if ((!fieldValue) || (fieldValue.trim() === '')){
+			response.errors.presence = error_msg.field_required;
 		}
-		return data.errors;
+
+		return response;
+	}
+};
+
+PasswordValidator = {
+	validate: function(password, confirm){
+		console.log(password+" | "+confirm);
+		var response = {
+			errors: {
+				password: null,
+				passwordConfirm: null
+			},
+			hasFailed: function() {
+				return !Ember.isNone(this.errors.password) || !Ember.isNone(this.errors.passwordConfirm);
+			}
+		};
+
+		var error_msg = locate(Em.I18n.translations, 'errors');
+
+		response.errors.password = PresenceValidator.validate(password).errors.presence;
+		response.errors.passwordConfirm = PresenceValidator.validate(confirm).errors.presence;
+
+		if (response.hasFailed()){
+			return response;
+		}
+
+		if (this._passwordsMissmatch(password, confirm)){
+			response.errors.password = response.errors.passwordConfirm = error_msg.password_mismatch;
+		}
+
+		return response;
+	},
+
+	_passwordsMissmatch: function(password, confirm) {
+		return password !== confirm;
 	}
 };

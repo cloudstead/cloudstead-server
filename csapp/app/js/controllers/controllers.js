@@ -195,7 +195,7 @@ App.LoginController = Ember.ObjectController.extend({
 
 			// data check
 
-			var validate = this._validateLogin(this.get('name'),this.get('password'));
+			var validate = LoginValidator.validate(this.get('name'),this.get('password'));
 
 			if (validate.hasFailed()){
 				this._handleLoginError(validate.errors);
@@ -249,21 +249,21 @@ App.LoginController = Ember.ObjectController.extend({
 		},
 
 		doForgotPassword: function() {
-			var validate = this.validateLogin(this.get('name'),this.get('password'));
+			var validate = EmailValidator.validate(this.get('name'));
 
-			if (validate.name){
-					this.set(
-						'requestMessages',
-						App.RequestMessagesObject.create({
-							json: {
-								"status": 'error',
-								"api_token" : null,
-								"errors": {
-									"name": validate.name
-								}
+			if (validate.hasFailed()){
+				this.set(
+					'requestMessages',
+					App.RequestMessagesObject.create({
+						json: {
+							"status": 'error',
+							"api_token" : null,
+							"errors": {
+								"name": validate.errors.email
 							}
-						})
-					);
+						}
+					})
+				);
 				return false;
 			}
 			else{
@@ -275,48 +275,6 @@ App.LoginController = Ember.ObjectController.extend({
 				);
 			}
 		}
-	},
-
-	_validateLogin: function(email, password){
-		var response = {
-			errors: {
-				name: null,
-				password:null
-			},
-			hasFailed: function() {
-				return (this.errors.name) || (this.errors.password);
-			}
-		};
-
-		response.errors.name = this._validateEmail(email);
-		response.errors.password = this._validatePassword(password);
-
-		return response;
-	},
-
-	_validateEmail: function(email) {
-		var response = null;
-		var error_msg = locate(Em.I18n.translations, 'errors');
-		var pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-		if ((email.trim() === '') || (!email)){
-			response = error_msg.field_required;
-		}else if(!pattern.test(email)){
-			response = error_msg.email_invalid;
-		}
-
-		return response;
-	},
-
-	_validatePassword: function(password) {
-		var response = null;
-		var error_msg = locate(Em.I18n.translations, 'errors');
-
-		if ((password.trim() === '') || (!password)){
-			response = error_msg.field_required;
-		}
-
-		return response;
 	},
 
 	_handleLoginError: function(validationErrors) {
@@ -632,11 +590,11 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 			var token = this.get('model').token;
 			var self = this;
 
-			var passwordErrors =
-				PasswordValidator.getErrorsFor(this, "password", "passwordConfirm");
+			var validation =
+				PasswordValidator.validate(this.get("password"), this.get("passwordConfirm"));
 
-			if (passwordErrors.is_not_empty){
-				this._handleChangeAccountPasswordErrors(passwordErrors);
+			if (validation.hasFailed()){
+				this._handleChangeAccountPasswordErrors(validation.errors);
 			}
 			else{
 				Api.reset_password(token, this.get('password'));
