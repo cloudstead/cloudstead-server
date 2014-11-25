@@ -10,17 +10,17 @@
 		<div class="large-2 medium-2 columns text-center">&nbsp;
 		</div>
 		<div class="large-3 medium-3 columns text-center">
-			<a id="sign_up_link" href="#" class="button expand secondary" {{action 'doRegister'}}>
-				{{t sections.index.signup_button}}
-			</a>
+			{{#link-to "registration" classNames="button expand secondary"}}
+				{{t sections.index.signin_button}}
+			{{/link-to}}
 		</div>
 		<div class="large-2 medium-2 columns text-center topit">
 			OR
 		</div>
 		<div class="large-3 medium-3 columns text-center">
-			<a id="sign_in_link" href="" class="button expand" {{action 'doLogin'}}>
+			{{#link-to "login" classNames="button expand"}}
 				{{t sections.index.signin_button}}
-			</a>
+			{{/link-to}}
 		</div>
 		<div class="large-2 medium-2 columns text-center">&nbsp;
 		</div>
