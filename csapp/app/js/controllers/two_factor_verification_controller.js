@@ -13,7 +13,7 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 				deviceName: this.get('model')["deviceName"]
 			};
 
-			var validationError = Validator.validateTwoFactorVerificationCode(data.secondFactor);
+			var validationError = TwoFactorValidator.validate(data.secondFactor);
 
 			if (validationError.verificationCode){
 				this._handleVerificationCodeError(validationError);
