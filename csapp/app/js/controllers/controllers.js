@@ -80,33 +80,25 @@ App.RegistrationController = Ember.ObjectController.extend({
 
 				if (result.status === 'success') {
 
-					var ckDeviceId = checkCookie("deviceId");
-					var ckDeviceName = checkCookie("deviceName");
+					DeviceCookieGenerator.generate();
 
-					if ((!ckDeviceId) || (!ckDeviceName)){
-						setCookie("deviceId", generateDeviceId(), 365);
-						setCookie("deviceName", getDeviceName(), 365);
-					}
-
-					result = Api.login_admin({
+					var loginData = {
 						name: this.get('email'),
 						password: this.get('password'),
 						deviceId: getCookie("deviceId"),
 						deviceName: getCookie("deviceName")
-					});
+					};
 
-					if ((result.status === 'success') && (result.twofactor)){
-						this.send('closeModal');
-						this.set('model',{
-							username: this.get('email'),
-							deviceId: getCookie("deviceId"),
-							deviceName: getCookie("deviceName"),
-							isRegister: true
-						});
-						this.send('openModal','twoFactorVerification', this.get('model') );
-					}else{
-						// TODO should not happen, but nevertheless handle this
-					}
+					var loginCallbacks = {
+						failedValidation: this._handleLoginValidationError,
+						failedCredentials: this._handleLoginCredentialError,
+						needsTwoFactor: this._showTwoFactorModal,
+						success: this._handleSuccess
+					};
+
+					var loginService = new LoginService(loginData, loginCallbacks);
+
+					loginService.handleResponse(this, loginService.login());
 
 				}
 				else if (result.status === 'error') {
@@ -177,6 +169,29 @@ App.RegistrationController = Ember.ObjectController.extend({
 
 		return response;
 	},
+
+	_handleLoginValidationError: function(validationErrors) {
+		// TODO implement this if needed.
+	},
+
+	_handleLoginCredentialError: function(validationErrors) {
+		// TODO implement this if needed.
+	},
+
+	_handleSuccess: function(){
+		// TODO implement this if needed.
+	},
+
+	_showTwoFactorModal: function() {
+		this.send('closeModal');
+		this.set('model',{
+			username: this.get('email'),
+			deviceId: getCookie("deviceId"),
+			deviceName: getCookie("deviceName"),
+			isRegister: true
+		});
+		this.send('openModal','twoFactorVerification', this.get('model') );
+	},
 	requestMessages:'',
 	firstName:'',
 	lastName:'',
@@ -193,56 +208,25 @@ App.LoginController = Ember.ObjectController.extend({
 	actions: {
 		doLogin: function () {
 
-			// data check
+			DeviceCookieGenerator.generate();
 
-			var validate = LoginValidator.validate(this.get('name'),this.get('password'));
-
-			if (validate.hasFailed()){
-				this._handleLoginError(validate.errors);
-				return false;
-			}
-
-			// validation ok, check device cookies
-			this._generateDeviceCookies();
-
-			var result = Api.login_admin({
+			var loginData = {
 				name: this.get('name'),
 				password: this.get('password'),
 				deviceId: getCookie("deviceId"),
 				deviceName: getCookie("deviceName")
-			});
+			};
 
-			if ( (result.status === 'success') && (result.api_token)) {
-				if (this.get('previousTransition')) {
-					this._retryPreviousTransition();
-				}
-				else {
-					this.transitionToRoute('adminHome');
-				}
-			}
-			else if (result.status === 'error') {
-				var error_msg = locate(Em.I18n.translations, 'errors');
-				this.set('requestMessages',
-					App.RequestMessagesObject.create({
-							json: {
-								"status": 'error',
-								"errors": {
-									"name": error_msg.bad_credentials,
-									"password": error_msg.bad_credentials,
-								}
-							}
-					})
-				);
-			}else if( (result.status === 'success') && (result.twofactor === true) ){
-				this.send('closeModal');
-				this.set('model',{
-					username: this.get('name'),
-					deviceId: getCookie("deviceId"),
-					deviceName: getCookie("deviceName"),
-					isRegister: false
-				});
-				this.send('openModal','twoFactorVerification', this.get('model') );
-			}
+			var loginCallbacks = {
+				failedValidation: this._handleLoginValidationError,
+				failedCredentials: this._handleLoginCredentialError,
+				needsTwoFactor: this._showTwoFactorModal,
+				success: this._transitionToNextRoute
+			};
+
+			var loginService = new LoginService(loginData, loginCallbacks);
+
+			loginService.handleResponse(this, loginService.login());
 		},
 		close: function() {
 				return this.transitionToRoute('index');
@@ -277,7 +261,7 @@ App.LoginController = Ember.ObjectController.extend({
 		}
 	},
 
-	_handleLoginError: function(validationErrors) {
+	_handleLoginValidationError: function(validationErrors) {
 		this.set('requestMessages',
 			App.RequestMessagesObject.create({
 				json: {
@@ -289,14 +273,41 @@ App.LoginController = Ember.ObjectController.extend({
 		);
 	},
 
-	_generateDeviceCookies: function() {
-		var ckDeviceId = checkCookie("deviceId");
-			var ckDeviceName = checkCookie("deviceName");
+	_handleLoginCredentialError: function(validationErrors) {
+		var error_msg = locate(Em.I18n.translations, 'errors');
+		this.set('requestMessages',
+			App.RequestMessagesObject.create({
+					json: {
+						"status": 'error',
+						"errors": {
+							"name": error_msg.bad_credentials,
+							"password": error_msg.bad_credentials,
+						}
+					}
+			})
+		);
+	},
 
-			if ((!ckDeviceId) || (!ckDeviceName)){
-				setCookie("deviceId", generateDeviceId(), 365);
-				setCookie("deviceName", getDeviceName(), 365);
-			}
+	_transitionToNextRoute: function(){
+		var previousTransition = this.get('previousTransition');
+
+		if (Ember.isNone(previousTransition)){
+			this.transitionToRoute('adminHome');
+		}
+		else{
+			this._retryPreviousTransition();
+		}
+	},
+
+	_showTwoFactorModal: function() {
+		this.send('closeModal');
+		this.set('model',{
+			username: this.get('name'),
+			deviceId: getCookie("deviceId"),
+			deviceName: getCookie("deviceName"),
+			isRegister: false
+		});
+		this.send('openModal','twoFactorVerification', this.get('model') );
 	},
 
 	previousTransition: null,

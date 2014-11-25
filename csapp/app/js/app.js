@@ -246,3 +246,16 @@ Timer = {
 		return s * this.ms_in_s;
 	}
 };
+
+
+DeviceCookieGenerator = {
+	generate: function() {
+		var ckDeviceId = checkCookie("deviceId");
+		var ckDeviceName = checkCookie("deviceName");
+
+		if ((!ckDeviceId) || (!ckDeviceName)){
+			setCookie("deviceId", generateDeviceId(), 365);
+			setCookie("deviceName", getDeviceName(), 365);
+		}
+	}
+};

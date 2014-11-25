@@ -151,52 +151,8 @@ Api = {
 		return result;
 	},
 
-	login_admin: function (login) {
-		show_loading();
+	login_admin: function (login) { return this._post('/api/admins', login); },
 
-		var result = {
-			"status": null,
-			"api_token": null,
-			"errors": {
-				"name":null,
-				"password":null
-			}
-		};
-
-		sessionStorage.removeItem('api_token');
-		Ember.$.ajax({
-			'type': 'POST',
-			'url':'/api/admins',
-			'contentType': 'application/json',
-			'data': JSON.stringify(login),
-			'async': false,
-			'success': function (admin, status, jqXHR) {
-
-				if (admin.account && admin.account.uuid) {
-
-					sessionStorage.setItem('api_token', admin.sessionId);
-					sessionStorage.setItem('active_admin', JSON.stringify(admin.account));
-
-					result.status = status;
-					result.api_token = sessionStorage.getItem('api_token');
-				}
-
-				if (admin.sessionId === '2-factor'){
-					result.status = 'success';
-					result["twofactor"] = true;
-				}
-			},
-			'error': function (jqXHR, status, error) {
-				// TODO : fill out errors differently, according to server response
-				result.status = status;
-				result.errors.username = error;
-			},
-			'complete': function(jqXHR, status, error) {
-				hide_loading();
-			}
-		});
-		return result;
-	},
 	send_second_factor: function(data){
 		show_loading();
 
