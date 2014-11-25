@@ -205,6 +205,8 @@ PresenceValidator = {
 };
 
 PasswordValidator = {
+	MIN_PASSWORD_LENGTH: 8,
+
 	validate: function(password, confirm){
 		var response = {
 			errors: {
@@ -221,6 +223,10 @@ PasswordValidator = {
 		response.errors.password = PresenceValidator.validate(password).errors.presence;
 		response.errors.passwordConfirm = PresenceValidator.validate(confirm).errors.presence;
 
+		if (this._passwordTooShort(password)){
+			response.errors.password = error_msg.password_short;
+		}
+
 		if (response.hasFailed()){
 			return response;
 		}
@@ -234,6 +240,10 @@ PasswordValidator = {
 
 	_passwordsMissmatch: function(password, confirm) {
 		return password !== confirm;
+	},
+
+	_passwordTooShort: function(password) {
+		return password.length < this.MIN_PASSWORD_LENGTH;
 	}
 };
 
