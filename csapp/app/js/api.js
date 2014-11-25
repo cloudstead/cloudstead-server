@@ -33,6 +33,72 @@ Api = {
 		return j ? JSON.parse(j) : null;
 	},
 
+	_get: function (url) {
+		var results = null;
+		show_loading();
+		Ember.$.ajax({
+			type: 'GET',
+			url: url,
+			async: false,
+			beforeSend: add_api_auth,
+			success: function (response, status, jqXHR) {
+				results = response;
+			},
+			complete: function (jqXHR, status, error) {
+				hide_loading();
+			}
+		});
+		return results;
+	},
+
+	_update: function (method, url, data) {
+		var result = null;
+		show_loading();
+		Ember.$.ajax({
+			type: method,
+			url: url,
+			async: false,
+			contentType: 'application/json',
+			data: JSON.stringify(data),
+			beforeSend: add_api_auth,
+			success: function (response, status, jqXHR) {
+				result = response;
+			},
+			error: function (jqXHR, status, error) {
+				console.log('setup error: status='+status+', error='+error+', url='+url);
+				result = jqXHR;
+			},
+			complete: function (jqXHR, status, error) {
+				hide_loading();
+			}
+		});
+		return result;
+	},
+
+	_post: function(url, data) { return Api._update('POST', url, data); },
+	_put:  function(url, data) { return Api._update('PUT', url, data); },
+
+	_delete: function (url) {
+		var ok = false;
+		show_loading();
+		Ember.$.ajax({
+			type: 'DELETE',
+			url: url,
+			async: false,
+			beforeSend: add_api_auth,
+			'success': function (accounts, status, jqXHR) {
+				ok = true;
+			},
+			'error': function (jqXHR, status, error) {
+				alert('error deleting '+url+': '+error);
+			},
+			complete: function (jqXHR, status, error) {
+				hide_loading();
+			}
+		});
+		return ok;
+	},
+
 	register_admin: function (reg) {
 
 		show_loading();
