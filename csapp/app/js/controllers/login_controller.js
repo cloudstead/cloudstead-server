@@ -4,24 +4,11 @@ App.LoginController = App.CloudOSController.extend({
 
 			DeviceCookieGenerator.generate();
 
-			var loginData = {
-				name: this.get('email'),
-				password: this.get('password'),
-				deviceId: getCookie("deviceId"),
-				deviceName: getCookie("deviceName")
-			};
-
-			var loginCallbacks = {
-				failedValidation: this._handleLoginValidationError,
-				failedCredentials: this._handleLoginCredentialError,
-				needsTwoFactor: this._showTwoFactorModal,
-				success: this._transitionToNextRoute
-			};
-
-			var loginService = new LoginService(loginData, loginCallbacks);
+			var loginService = new LoginService(this._loginData(), this._loginCallbacks());
 
 			loginService.handleResponse(this, loginService.login());
 		},
+
 		close: function() {
 				return this.transitionToRoute('index');
 		},
@@ -42,6 +29,24 @@ App.LoginController = App.CloudOSController.extend({
 				);
 			}
 		}
+	},
+
+	_loginData: function() {
+		return {
+			name: this.get('email'),
+			password: this.get('password'),
+			deviceId: getCookie("deviceId"),
+			deviceName: getCookie("deviceName")
+		};
+	},
+
+	_loginCallbacks: function() {
+		return {
+			failedValidation: this._handleLoginValidationError,
+			failedCredentials: this._handleLoginCredentialError,
+			needsTwoFactor: this._showTwoFactorModal,
+			success: this._transitionToNextRoute
+		};
 	},
 
 	_handleLoginValidationError: function(validationErrors) {
