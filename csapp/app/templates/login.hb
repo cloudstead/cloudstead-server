@@ -11,14 +11,14 @@
 								<label for="right-label" class="right">{{t forms.admin.email}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-								{{#if requestMessages.error.name}}
-									{{ input type="text" value=name class="error" }}
+								{{#if requestMessages.error.email}}
+									{{ input type="text" value=email class="error" }}
 								{{else}}
-									{{ input type="text" value=name }}
+									{{ input type="text" value=email }}
 								{{/if}}
 
-								{{#if requestMessages.error.name}}
-									<span class="message error">{{requestMessages.error.name}}</span>
+								{{#if requestMessages.error.email}}
+									<span class="message error">{{requestMessages.error.email}}</span>
 								{{/if}}
 							</div>
 							<div class="large-2 medium-2 hide-for-small columns">

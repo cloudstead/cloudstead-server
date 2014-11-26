@@ -17,6 +17,20 @@ LoginValidationErrorResponse.prototype.resolve = function(self) {
 };
 
 
+LoginCredentialsErrorResponse = function(payload, callback){
+	LoginResponse.call(this, payload, callback);
+};
+
+LoginCredentialsErrorResponse.prototype.resolve = function(self) {
+	var error_msg = locate(Em.I18n.translations, 'errors');
+	var errors = {
+		email: error_msg.bad_credentials,
+		password: error_msg.bad_credentials
+	};
+	return this.callback.call(self, errors);
+};
+
+
 LoginService = function(loginData, callbacks) {
 	this.loginData = loginData;
 	this.callbacks = callbacks;
@@ -47,7 +61,7 @@ LoginService.prototype.login = function() {
 		loginResponse = new LoginResponse(response, this.callbacks.needsTwoFactor);
 	}
 	else {
-		loginResponse = new LoginResponse(response, this.callbacks.failedCredentials);
+		loginResponse = new LoginCredentialsErrorResponse(response, this.callbacks.failedCredentials);
 	}
 
 	return loginResponse;

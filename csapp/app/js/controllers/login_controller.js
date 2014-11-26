@@ -1,11 +1,11 @@
-App.LoginController = Ember.ObjectController.extend({
+App.LoginController = App.CloudOSController.extend({
 	actions: {
 		doLogin: function () {
 
 			DeviceCookieGenerator.generate();
 
 			var loginData = {
-				name: this.get('name'),
+				name: this.get('email'),
 				password: this.get('password'),
 				deviceId: getCookie("deviceId"),
 				deviceName: getCookie("deviceName")
@@ -27,25 +27,14 @@ App.LoginController = Ember.ObjectController.extend({
 		},
 
 		doForgotPassword: function() {
-			var validate = EmailValidator.validate(this.get('name'));
+			var validate = EmailValidator.validate(this.get('email'));
 
 			if (validate.hasFailed()){
-				this.set(
-					'requestMessages',
-					App.RequestMessagesObject.create({
-						json: {
-							"status": 'error',
-							"api_token" : null,
-							"errors": {
-								"name": validate.errors.email
-							}
-						}
-					})
-				);
+				this._setRequestErrors(validate.errors);
 				return false;
 			}
 			else{
-				Api.forgot_password(this.get("name"));
+				Api.forgot_password(this.get('email'));
 
 				this.set(
 					'notificationForgotPassword',
@@ -56,30 +45,11 @@ App.LoginController = Ember.ObjectController.extend({
 	},
 
 	_handleLoginValidationError: function(validationErrors) {
-		this.set('requestMessages',
-			App.RequestMessagesObject.create({
-				json: {
-					"status": 'error',
-					"api_token" : null,
-					"errors": validationErrors
-				}
-			})
-		);
+		this._setRequestErrors(validationErrors);
 	},
 
-	_handleLoginCredentialError: function(validationErrors) {
-		var error_msg = locate(Em.I18n.translations, 'errors');
-		this.set('requestMessages',
-			App.RequestMessagesObject.create({
-					json: {
-						"status": 'error',
-						"errors": {
-							"name": error_msg.bad_credentials,
-							"password": error_msg.bad_credentials,
-						}
-					}
-			})
-		);
+	_handleLoginCredentialError: function(credentialErrors) {
+		this._setRequestErrors(credentialErrors);
 	},
 
 	_transitionToNextRoute: function(){
@@ -96,7 +66,7 @@ App.LoginController = Ember.ObjectController.extend({
 	_showTwoFactorModal: function() {
 		this.send('closeModal');
 		this.set('model',{
-			username: this.get('name'),
+			username: this.get('email'),
 			deviceId: getCookie("deviceId"),
 			deviceName: getCookie("deviceName"),
 			isRegister: false
@@ -114,6 +84,5 @@ App.LoginController = Ember.ObjectController.extend({
 
 	name:'',
 	password:'',
-	requestMessages: null,
 	notificationForgotPassword: null
 });
