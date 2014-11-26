@@ -1,9 +1,6 @@
 App.LoginController = App.CloudOSController.extend({
 	actions: {
 		doLogin: function () {
-
-			DeviceCookieGenerator.generate();
-
 			var loginService = new LoginService(this._loginData(), this._loginCallbacks());
 
 			loginService.handleResponse(this, loginService.login());
@@ -32,21 +29,25 @@ App.LoginController = App.CloudOSController.extend({
 	},
 
 	_loginData: function() {
-		return {
-			name: this.get('email'),
-			password: this.get('password'),
-			deviceId: getCookie("deviceId"),
-			deviceName: getCookie("deviceName")
-		};
+		DeviceCookieGenerator.generate();
+
+		return new LoginData(
+			this.get('email'),
+			this.get('password'),
+			getCookie("deviceId"),
+			getCookie("deviceName")
+		);
 	},
 
 	_loginCallbacks: function() {
-		return {
-			failedValidation: this._handleLoginValidationError,
-			failedCredentials: this._handleLoginCredentialError,
-			needsTwoFactor: this._showTwoFactorModal,
-			success: this._transitionToNextRoute
-		};
+		var loginCallbacks = new LoginCallbacks();
+
+		loginCallbacks.addFailedValidation(this._handleLoginValidationError);
+		loginCallbacks.addFailedCredentials(this._handleLoginCredentialError);
+		loginCallbacks.addNeedsTwoFactor(this._showTwoFactorModal);
+		loginCallbacks.addSuccess(this._transitionToNextRoute);
+
+		return loginCallbacks;
 	},
 
 	_handleLoginValidationError: function(validationErrors) {
@@ -69,7 +70,6 @@ App.LoginController = App.CloudOSController.extend({
 	},
 
 	_showTwoFactorModal: function() {
-		this.send('closeModal');
 		this.set('model',{
 			username: this.get('email'),
 			deviceId: getCookie("deviceId"),
@@ -79,15 +79,12 @@ App.LoginController = App.CloudOSController.extend({
 		this.send('openModal','twoFactorVerification', this.get('model') );
 	},
 
-	previousTransition: null,
-
 	_retryPreviousTransition: function() {
 		var previousTransition = this.get('previousTransition');
 		this.set('previousTransition', null);
 		previousTransition.retry();
 	},
 
-	name:'',
-	password:'',
-	notificationForgotPassword: null
+	notificationForgotPassword: null,
+	previousTransition: null
 });
