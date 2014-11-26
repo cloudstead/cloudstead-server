@@ -11,20 +11,10 @@ App.LoginController = App.CloudOSController.extend({
 		},
 
 		doForgotPassword: function() {
-			var validate = EmailValidator.validate(this.get('email'));
+			var forgotPasswordService =
+				new ForgotPasswordService(this.get('email'), this._forgotPasswordCallbacks());
 
-			if (validate.hasFailed()){
-				this._setRequestErrors(validate.errors);
-				return false;
-			}
-			else{
-				Api.forgot_password(this.get('email'));
-
-				this.set(
-					'notificationForgotPassword',
-					Ember.I18n.translations.notifications.forgot_password_email_sent
-				);
-			}
+			forgotPasswordService.handleResponse(this, forgotPasswordService.forget());
 		}
 	},
 
@@ -42,7 +32,7 @@ App.LoginController = App.CloudOSController.extend({
 	_loginCallbacks: function() {
 		var loginCallbacks = new LoginCallbacks();
 
-		loginCallbacks.addFailedValidation(this._handleLoginValidationError);
+		loginCallbacks.addFailedValidation(this._handleValidationError);
 		loginCallbacks.addFailedCredentials(this._handleLoginCredentialError);
 		loginCallbacks.addNeedsTwoFactor(this._showTwoFactorModal);
 		loginCallbacks.addSuccess(this._transitionToNextRoute);
@@ -50,7 +40,16 @@ App.LoginController = App.CloudOSController.extend({
 		return loginCallbacks;
 	},
 
-	_handleLoginValidationError: function(validationErrors) {
+	_forgotPasswordCallbacks: function() {
+		var forgotPasswordCallbacks = new ForgotPasswordCallbacks();
+
+		forgotPasswordCallbacks.addFailedValidation(this._handleValidationError);
+		forgotPasswordCallbacks.addSuccess(this._displayForgotPasswordNotification);
+
+		return forgotPasswordCallbacks;
+	},
+
+	_handleValidationError: function(validationErrors) {
 		this._setRequestErrors(validationErrors);
 	},
 
@@ -77,6 +76,13 @@ App.LoginController = App.CloudOSController.extend({
 			isRegister: false
 		});
 		this.send('openModal','twoFactorVerification', this.get('model') );
+	},
+
+	_displayForgotPasswordNotification: function() {
+		this.set(
+			'notificationForgotPassword',
+			Ember.I18n.translations.notifications.forgot_password_email_sent
+		);
 	},
 
 	_retryPreviousTransition: function() {
