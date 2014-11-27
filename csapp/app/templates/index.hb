@@ -11,7 +11,7 @@
 		</div>
 		<div class="large-3 medium-3 columns text-center">
 			{{#link-to "registration" classNames="button expand secondary"}}
-				{{t sections.index.signin_button}}
+				{{t sections.index.signup_button}}
 			{{/link-to}}
 		</div>
 		<div class="large-2 medium-2 columns text-center topit">

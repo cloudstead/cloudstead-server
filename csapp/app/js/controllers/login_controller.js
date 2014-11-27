@@ -1,6 +1,6 @@
 App.LoginController = App.CloudOSController.extend({
 	actions: {
-		doLogin: function () {
+		doLogin: function() {
 			var loginService = new LoginService(this._loginData(), this._loginCallbacks());
 
 			loginService.handleResponse(this, loginService.login());
