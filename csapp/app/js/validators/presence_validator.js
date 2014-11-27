@@ -11,7 +11,7 @@ PresenceValidator = {
 
 		var error_msg = locate(Em.I18n.translations, 'errors');
 
-		if ((!fieldValue) || (fieldValue.trim() === '')){
+		if ((!fieldValue) || (fieldValue.toString().trim() === '')){
 			response.errors.presence = error_msg.field_required;
 		}
 
