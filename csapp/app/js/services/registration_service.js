@@ -33,11 +33,13 @@ RegistrationService.prototype.register = function() {
 
 	var response = Api.register_admin(this._prepereDataForApi(this.registrationData));
 
-	if (response.status === 'success'){
+	if (API_RESPONSE_STATUS.isSuccess(response.status)){
 		registrationResponse = new RegistrationResponse(response, this.callbacks.success);
 	}
-	else if (response.status === 'error'){
-		registrationResponse = new RegistrationErrorResponse(response, this.callbacks.registrationError);
+	else if (API_RESPONSE_STATUS.isError(response.status)){
+		var proccessedResponse = this._proccessRegistrationError(response);
+		registrationResponse =
+			new RegistrationErrorResponse(proccessedResponse, this.callbacks.registrationError);
 	}
 
 	return registrationResponse;
@@ -45,6 +47,25 @@ RegistrationService.prototype.register = function() {
 
 RegistrationService.prototype.handleResponse = function(self, registrationResponse) {
 	return registrationResponse.resolve(self);
+};
+
+RegistrationService.prototype._proccessRegistrationError = function(registrationResponse) {
+	var result = {
+		errors: {}
+	};
+	if (registrationResponse !== undefined){
+		var response = registrationResponse.responseJSON;
+
+		response.forEach(function(error){
+			var errorMessage = error.message;
+
+			if(ErrorResponseMessages.doesKnowError(errorMessage)){
+				var errorType = ErrorResponseMessages[errorMessage].errorType;
+				result.errors[errorType] = ErrorResponseMessages[errorMessage].message;
+			}
+		});
+	}
+	return result;
 };
 
 

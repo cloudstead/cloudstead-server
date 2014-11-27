@@ -15,14 +15,14 @@ function hide_loading(){
 	$('.loading_animation').addClass("hide");
 }
 
-ErrorResponseMessages = {
-	"{err.email.notUnique}": {
-		errorType: "email",
-		message: "This email has already been taken."
+API_RESPONSE_STATUS = {
+	success: 'success',
+	error: 'error',
+	isSuccess: function(responseStatus) {
+		return responseStatus === this.success;
 	},
-	"{err.mobilePhone.notUnique}": {
-		errorType: "mobilePhone",
-		message: "This phone number has already been registered."
+	isError: function(responseStatus) {
+		return responseStatus === this.error;
 	}
 };
 
@@ -69,6 +69,7 @@ Api = {
 				result = jqXHR;
 			},
 			complete: function (jqXHR, status, error) {
+				result.status = status;
 				hide_loading();
 			}
 		});
@@ -100,58 +101,12 @@ Api = {
 	},
 
 	register_admin: function (reg) {
-
-		show_loading();
-
-		var result = {
-			"status": null,
-			"api_token": null,
-			"errors": {
-			"firstName":null,
-			"lastName":null,
-			"email":null,
-			"mobilePhoneCountryCode":null,
-			"mobilePhone":null,
-			"password":null,
-			"password2":null,
-			"tos":null}};
-
-		sessionStorage.removeItem('api_token');
-		Ember.$.ajax({
-			'type': 'PUT',
-			'url':'/api/admins/' + encodeURIComponent(reg.email),
-			'contentType': 'application/json',
-			'data': JSON.stringify(reg),
-			'async': false,
-			'success': function (admin, status, jqXHR) {
-				if (admin && admin.uuid) {
-					result.status = status;
-				}
-			},
-			'error': function (jqXHR, status, error) {
-				result.status = status;
-				result.errors.username = error;
-
-				errors = jqXHR.responseJSON;
-
-				if (errors !== undefined){
-					errors.forEach(function(error){
-						var errorMessage = error.message;
-						if(ErrorResponseMessages[errorMessage] !== undefined){
-							result.errors[ErrorResponseMessages[errorMessage].errorType] =
-								ErrorResponseMessages[errorMessage].message;
-						}
-					});
-				}
-			},
-			'complete': function(jqXHR, status, error) {
-				hide_loading();
-			}
-		});
-		return result;
+		return this._put('/api/admins/' + encodeURIComponent(reg.email), reg);
 	},
 
-	login_admin: function (login) { return this._post('/api/admins', login); },
+	login_admin: function (login) {
+		return this._post('/api/admins', login);
+	},
 
 	send_second_factor: function(data){
 		show_loading();

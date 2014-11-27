@@ -140,3 +140,19 @@ DeviceCookieGenerator = {
 		}
 	}
 };
+
+ErrorResponseMessages = {
+	"{err.email.notUnique}": {
+		errorType: "email",
+		message: "This email has already been taken."
+	},
+
+	"{err.mobilePhone.notUnique}": {
+		errorType: "mobilePhone",
+		message: "This phone number has already been registered."
+	},
+
+	doesKnowError: function(error) {
+		return ErrorResponseMessages[error] !== undefined ? true : false;
+	}
+};
