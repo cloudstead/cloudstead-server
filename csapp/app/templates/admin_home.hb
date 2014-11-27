@@ -1,8 +1,16 @@
 <section class="deck">
 	<div class="row">
 		<dl class="tabs" data-tab>
-			<dd class="active half-width-tab">{{#link-to 'adminHome'}}Your Cloudsteads{{/link-to}}</dd>
-			<dd class="half-width-tab">{{#link-to 'adminDetails' }}Account details{{/link-to}}</dd>
+			<dd class="active half-width-tab">
+				{{#link-to 'adminHome'}}
+					{{t sections.admin.your_cloudsteads}}
+				{{/link-to}}
+			</dd>
+			<dd class="half-width-tab">
+				{{#link-to 'adminDetails' }}
+					{{t sections.admin.account_details}}
+				{{/link-to}}
+			</dd>
 		</dl>
 		<div class="tabs-content">
 			<div class="content active">
@@ -10,27 +18,28 @@
 				<table  width="100%">
 					<thead>
 						<tr>
-							<th>Name
-							</th>
-							<th>Running
-							</th>
-							<th>Control
-							</th>
+							<th>{{t sections.admin.name}}</th>
+							<th>{{t sections.admin.running}}</th>
+							<th>{{t sections.admin.control}}</th>
 						</tr>
 					</thead>
 					<tbody>
 						{{#each cloudosInstances}}
-						<tr>
-							<td>{{#link-to 'cloudOsStatus' name}}{{name}}{{/link-to}}</td>
-							<td>{{running}}</td>
-							<td><a href="#" {{action "deleteInstance" name}}><span class="icon-trash-o"></span> Delete</a></td>
-						</tr>
+							<tr>
+								<td>{{#link-to 'cloudOsStatus' name}}{{name}}{{/link-to}}</td>
+								<td>{{running}}</td>
+								<td>
+									<a href="#" {{action "deleteInstance" name}}>
+										<span class="icon-trash-o"></span> {{t sections.admin.delete}}
+									</a>
+								</td>
+							</tr>
 						{{/each}}
 					</tbody>
 				</table>
 				{{else}}
 					<article class="event-single">
-						<p>You have no running Cloudsteads. Click the 'Start Cloudstead' button below to launch one.</p>
+						<p>{{t sections.admin.no_cloudsteads_message}}</p>
 					</article>
 				{{/if}}
 				<form >
@@ -38,7 +47,11 @@
 						<div class="row">
 							<div class="small-2 columns">
 								{{#if cloudosInstances}}
-									<h3><a href="#" {{action addMoreClouds}}><span {{bind-attr class="isAddCloudsEnabled:icon-minus:icon-plus"}}></span></a></h3>
+									<h3>
+										<a href="#" {{action addMoreClouds}}>
+											<span {{bind-attr class="isAddCloudsEnabled:icon-minus:icon-plus"}}></span>
+										</a>
+									</h3>
 								{{else}}
 									&nbsp;
 								{{/if}}
@@ -65,7 +78,9 @@
 								&nbsp;
 							</div>
 							<div class="small-5 columns">
-								<button id="cloudOsSubmit" type="submit" class="expand" {{action 'doNewCloudOs'}}>{{t forms.cloudos.new_button}}</button>
+								<button id="cloudOsSubmit" type="submit" class="expand" {{action 'doNewCloudOs'}}>
+									{{t forms.cloudos.new_button}}
+								</button>
 							</div>
 						</div>
 					</div>

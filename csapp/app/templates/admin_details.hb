@@ -1,8 +1,16 @@
 <section class="deck">
 	<div class="row">
 		<dl class="tabs" data-tab>
-			<dd class="half-width-tab">{{#link-to 'adminHome'}}Your Cloudsteads{{/link-to}}</dd>
-			<dd class="active half-width-tab">{{#link-to 'adminDetails' }}Account details{{/link-to}}</dd>
+			<dd class="half-width-tab">
+				{{#link-to 'adminHome'}}
+					{{t sections.admin.your_cloudsteads}}
+				{{/link-to}}
+			</dd>
+			<dd class="active half-width-tab">
+				{{#link-to 'adminDetails' }}
+					{{t sections.admin.account_details}}
+				{{/link-to}}
+			</dd>
 		</dl>
 		<div class="tabs-content">
 			<div class="content active">
@@ -53,17 +61,25 @@
 								</div>
 							</div>
 						</div>
-						<div class="field-container">
+						<div class="select-container">
 							<div class="row">
 								<div class="large-3 medium-10 small-10 columns">
-									<label for="right-label" class="left msg-mod">{{t forms.admin.mobilePhoneCountryCode}}</label>
+									<label for="right-label" class="left msg-mod">
+										{{t forms.admin.mobilePhoneCountryCode}}
+									</label>
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
-									{{ input type="text" value=mobilePhoneCountryCode }}
+									{{view Ember.Select
+										content=countryList
+										optionValuePath="content.code"
+										optionLabelPath="content.country"
+										selectionBinding="mobilePhoneCountry" }}
 								</div>
 								<div class="large-2 medium-10 small-10 columns">
 									{{#if requestMessages.error.mobilePhoneCountryCode}}
-										<span class="message error right">{{requestMessages.error.mobilePhoneCountryCode}}</span>
+										<span class="message error right">
+											{{requestMessages.error.mobilePhoneCountryCode}}
+										</span>
 									{{/if}}
 								</div>
 							</div>
@@ -71,7 +87,9 @@
 						<div class="field-container">
 							<div class="row">
 								<div class="large-3 medium-10 small-10 columns">
-									<label for="right-label" class="left msg-mod">{{t forms.admin.mobilePhone}}</label>
+									<label for="right-label" class="left msg-mod">
+										{{t forms.admin.mobilePhone}}
+									</label>
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
 									{{ input type="text" value=mobilePhone }}
@@ -85,11 +103,13 @@
 						</div>
 						<div class="field-container">
 							<div class="row">
-								<div class="large-3 medium-3 hide-for-small columns">
+								<div class="large-3 hide-for-medium hide-for-small columns">
 									&nbsp;
 								</div>
-								<div class="large-5 medium-2 small-6 columns">
-										<button type="submit" class="secondary expand" {{action 'updateAdminAccount'}}>Update</button>
+								<div class="large-5 medium-10 small-10 columns">
+									<button type="submit" class="secondary expand" {{action 'updateAdminAccount'}}>
+										{{t forms.admin.update}}
+									</button>
 								</div>
 								<div class="small-2 columns">
 									&nbsp;

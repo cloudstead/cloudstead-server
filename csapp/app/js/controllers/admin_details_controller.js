@@ -29,5 +29,9 @@ App.AdminDetailsController = Ember.ObjectController.extend({
 			//TODO - error checking, nicer messaging, update password part
 		}
 	},
-	tempProperty : "!!!"
+	tempProperty : "!!!",
+	countryList: Countries.list,
+	mobilePhoneCountry: function() {
+		return Countries.findByCode(this.get('mobilePhoneCountryCode'));
+	}.property()
 });
