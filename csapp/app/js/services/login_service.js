@@ -1,47 +1,62 @@
 // loginData is an instance of `LoginData`.
 // loginCallbacks is an instance of `LoginCallbacks`.
-LoginService = function(loginData, loginCallbacks) {
-	this.loginData = loginData;
-	this.callbacks = loginCallbacks;
+LoginService = function(subject, loginData, loginCallbacks) {
+	BasicService.call(this, subject, loginData, loginCallbacks);
+	this.loginData = this.serviceData;
 };
 
-// Validates `loginData` and performs the `admin_login` api call.
-// Returns `LoginResponse` if login is a success or a two factor verification is needed.
-// Returns `LoginValidationErrorResponse` if validation fails.
-// Returns `LoginCredentialsErrorResponse` if server responds with an error.
-LoginService.prototype.login = function() {
+LoginService.prototype = new BasicService();
+
+LoginService.prototype.perform = function() {
+	var response = new BasicNoResponse();
+	response = this._do(response, this.validate);
+	response = this._do(response, this.login);
+	return this.handleResponse(response);
+};
+
+LoginService.prototype.validate = function() {
 	var validation = LoginValidator.validate(this.loginData.name, this.loginData.password);
-	var loginResponse = new LoginResponse('empty_response', {});
+	var response = new BasicNoResponse();
 
 	if (validation.hasFailed()){
-		return new LoginValidationErrorResponse(validation.errors, this.callbacks.failedValidation);
+		response = new BasicPayloadResponse(validation.errors, this.callbacks.failedValidation);
 	}
 
-	var response = Api.login_admin(this.loginData);
+	return response;
+};
 
-	if (!Ember.isNone(response.account) && !Ember.isNone(response.account.uuid)) {
-		this.registerSession(response.sessionId, JSON.stringify(response.account));
-		loginResponse = new LoginResponse(response, this.callbacks.success);
-	}
-	else if (!Ember.isNone(response.sessionId) && response.sessionId === '2-factor'){
-		loginResponse = new LoginResponse(response, this.callbacks.needsTwoFactor);
-	}
-	else {
-		loginResponse = new LoginCredentialsErrorResponse(response, this.callbacks.failedCredentials);
-	}
+LoginService.prototype.login = function() {
+		var loginResponse = new BasicNoResponse();
 
-	return loginResponse;
+		var response = Api.login_admin(this.loginData);
+
+		if (this.isLoginSuccessful(response)) {
+			this.registerSession(response.sessionId, JSON.stringify(response.account));
+			loginResponse = new BasicEmptyResponse(this.callbacks.success);
+		}
+		else if (this.needsTwoFactor(response)){
+			loginResponse = new BasicEmptyResponse(this.callbacks.needsTwoFactor);
+		}
+		else {
+			loginResponse = new LoginCredentialsErrorResponse(response, this.callbacks.failedCredentials);
+		}
+
+		return loginResponse;
 };
 
 LoginService.prototype.registerSession = function(api_token, active_admin) {
-		sessionStorage.removeItem('api_token');
+	sessionStorage.removeItem('api_token');
 
-		sessionStorage.setItem('api_token', api_token);
-		sessionStorage.setItem('active_admin', active_admin);
+	sessionStorage.setItem('api_token', api_token);
+	sessionStorage.setItem('active_admin', active_admin);
 };
 
-LoginService.prototype.handleResponse = function(self, loginResponse) {
-	return loginResponse.resolve(self);
+LoginService.prototype.isLoginSuccessful = function(response) {
+	return !this.isNone(response.account) && !this.isNone(response.account.uuid);
+};
+
+LoginService.prototype.needsTwoFactor = function(response) {
+	return !this.isNone(response.sessionId) && response.sessionId === '2-factor';
 };
 
 
@@ -91,30 +106,12 @@ LoginCallbacks.prototype.addSuccess = function(callback) {
 
 
 
-LoginResponse = function(payload, callback){
-	this.payload = payload;
-	this.callback = callback;
-};
-
-LoginResponse.prototype.resolve = function(self) {
-	return this.callback.call(self);
-};
-
-
-
-LoginValidationErrorResponse = function(payload, callback){
-	LoginResponse.call(this, payload, callback);
-};
-
-LoginValidationErrorResponse.prototype.resolve = function(self) {
-	return this.callback.call(self, this.payload);
-};
-
-
-
 LoginCredentialsErrorResponse = function(payload, callback){
-	LoginResponse.call(this, payload, callback);
+	BasicPayloadResponse.call(this, payload, callback);
 };
+
+LoginCredentialsErrorResponse.prototype = new BasicPayloadResponse();
+
 
 LoginCredentialsErrorResponse.prototype.resolve = function(self) {
 	var error_msg = locate(Em.I18n.translations, 'errors');

@@ -16,9 +16,9 @@ App.RegistrationController = App.CloudOSController.extend({
 				this._triggerUnfocus();
 
 				var registrationService =
-					new RegistrationService(this._registrationData(), this._registrationCallbacks());
+					new RegistrationService(this, this._registrationData(), this._registrationCallbacks());
 
-				registrationService.handleResponse(this, registrationService.register());
+				registrationService.perform();
 
 			} else {
 				this._triggerFocus();
@@ -68,8 +68,8 @@ App.RegistrationController = App.CloudOSController.extend({
 	},
 
 	_handleSuccessfulRegistartion: function() {
-		var loginService = new LoginService(this._loginData(), this._loginCallbacks());
-		loginService.handleResponse(this, loginService.login());
+		var loginService = new LoginService(this, this._loginData(), this._loginCallbacks());
+		loginService.perform();
 	},
 
 	_loginData: function() {

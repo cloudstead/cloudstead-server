@@ -1,9 +1,9 @@
 App.LoginController = App.CloudOSController.extend({
 	actions: {
 		doLogin: function() {
-			var loginService = new LoginService(this._loginData(), this._loginCallbacks());
+			var loginService = new LoginService(this, this._loginData(), this._loginCallbacks());
 
-			loginService.handleResponse(this, loginService.login());
+			loginService.perform();
 		},
 
 		close: function() {
@@ -12,9 +12,9 @@ App.LoginController = App.CloudOSController.extend({
 
 		doForgotPassword: function() {
 			var forgotPasswordService =
-				new ForgotPasswordService(this.get('email'), this._forgotPasswordCallbacks());
+				new ForgotPasswordService(this, this.get('email'), this._forgotPasswordCallbacks());
 
-			forgotPasswordService.handleResponse(this, forgotPasswordService.forget());
+			forgotPasswordService.perform();
 		}
 	},
 

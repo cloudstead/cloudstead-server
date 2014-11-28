@@ -1,48 +1,33 @@
-ForgotPasswordService = function(email, forgotPasswordCallbacks) {
-	this.email = email;
-	this.callbacks = forgotPasswordCallbacks;
+ForgotPasswordService = function(subject, email, forgotPasswordCallbacks) {
+	BasicService.call(this, subject, email, forgotPasswordCallbacks);
+	this.email = this.serviceData;
+};
+
+ForgotPasswordService.prototype = new BasicService();
+
+ForgotPasswordService.prototype.perform = function() {
+	var response = new BasicNoResponse();
+	response = this._do(response, this.validate);
+	response = this._do(response, this.forget);
+	return this.handleResponse(response);
+};
+
+ForgotPasswordService.prototype.validate = function() {
+	var validation = EmailValidator.validate(this.email);
+	var response = new BasicNoResponse();
+
+	if (validation.hasFailed()){
+		response = new BasicPayloadResponse(validation.errors, this.callbacks.failedValidation);
+	}
+
+	return response;
 };
 
 ForgotPasswordService.prototype.forget = function() {
-	var validation = EmailValidator.validate(this.email);
-	var forgotPasswordResponse = new ForgotPasswordResponse('empty_response', {});
 
-	if (validation.hasFailed()){
-		forgotPasswordResponse = new ForgotPasswordValidationErrorResponse(
-			validation.errors, this.callbacks.failedValidation);
-	}
-	else{
-		Api.forgot_password(this.email);
+	Api.forgot_password(this.email);
 
-		forgotPasswordResponse = new ForgotPasswordResponse("success", this.callbacks.success);
-	}
-
-	return forgotPasswordResponse;
-};
-
-ForgotPasswordService.prototype.handleResponse = function(self, forgotPasswordResponse) {
-	return forgotPasswordResponse.resolve(self);
-};
-
-
-
-ForgotPasswordResponse = function(payload, callback){
-	this.payload = payload;
-	this.callback = callback;
-};
-
-ForgotPasswordResponse.prototype.resolve = function(self) {
-	return this.callback.call(self);
-};
-
-
-
-ForgotPasswordValidationErrorResponse = function(payload, callback){
-	ForgotPasswordResponse.call(this, payload, callback);
-};
-
-ForgotPasswordValidationErrorResponse.prototype.resolve = function(self) {
-	return this.callback.call(self, this.payload);
+	return new BasicEmptyResponse(this.callbacks.success);
 };
 
 
