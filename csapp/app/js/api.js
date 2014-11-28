@@ -307,39 +307,12 @@ Api = {
 	},
 
 	reset_password: function(token, password){
-		show_loading();
-
-		var result = {
-			"status": null,
-			"errors": {
-				"resetPassword":null
-			}
-		};
-
 		var data = {
 			token: token,
 			password: password
 		};
 
-		Ember.$.ajax({
-			'type': 'POST',
-			'url':'/api/auth/reset_password',
-			'contentType': 'application/json',
-			'async': false,
-			'data': JSON.stringify(data),
-			'success': function (data, status, jqXHR) {
-				result.status = status;
-			},
-			'error': function (jqXHR, status, error) {
-				result.status = status;
-				result.errors.resetPassword = error;
-				console.log('Reset password error: status='+status+', error='+error);
-			},
-			'complete': function(jqXHR, status, error) {
-				hide_loading();
-			}
-		});
-		return result;
+		return this._post('/api/auth/reset_password', data);
 	},
 
 //    'change_password': function (oldPassword, newPassword) {

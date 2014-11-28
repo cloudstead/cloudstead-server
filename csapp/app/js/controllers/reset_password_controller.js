@@ -1,24 +1,36 @@
 App.ResetPasswordController = Ember.ObjectController.extend({
 	actions:{
 		doResetPassword: function () {
-			var token = this.get('model').token;
-			var delayInSeconds = 3;
+			var resetPasswordService =
+				new PasswordResetService(this, this._resetData(), this._resetCallbacks());
 
-			var validation =
-				PasswordValidator.validate(this.get("password"), this.get("passwordConfirm"));
-
-			if (validation.hasFailed()){
-				this._handleChangeAccountPasswordErrors(validation.errors);
-			}
-			else{
-				Api.reset_password(token, this.get('password'));
-
-				this._setResetNotificationTo(this._delayMessage(delayInSeconds));
-
-				this._delayedTransitionTo("login", delayInSeconds);
-			}
-
+			resetPasswordService.perform();
 		}
+	},
+
+	_resetData: function() {
+		return {
+			token: this.get('model').token,
+			password: this.get('password'),
+			confirm: this.get("passwordConfirm")
+		};
+	},
+
+	_resetCallbacks: function() {
+		var resetCallbacks = new PasswordResetCallbacks();
+
+		resetCallbacks.addFailedValidation(this._handleChangeAccountPasswordErrors);
+		resetCallbacks.addSuccess(this._resetSuccessful);
+		resetCallbacks.addFailedReset(this._resetSuccessful);
+
+		return resetCallbacks;
+	},
+
+	_resetSuccessful: function() {
+		var delayInSeconds = 3;
+
+		this._setResetNotificationTo(this._delayMessage(delayInSeconds));
+		this._delayedTransitionTo("login", delayInSeconds);
 	},
 
 	_handleChangeAccountPasswordErrors: function(errors) {
