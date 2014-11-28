@@ -37,6 +37,6 @@ PasswordValidator = {
 	},
 
 	_passwordTooShort: function(password) {
-		return password.length < this.MIN_PASSWORD_LENGTH;
+		return (password) && (password.length < this.MIN_PASSWORD_LENGTH);
 	}
 };
