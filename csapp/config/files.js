@@ -9,6 +9,13 @@ module.exports = function(lineman) {
   //Override file patterns here
   return {
     js: {
+      app: [
+        "app/js/app.js",
+        "app/js/api.js",
+        "app/js/mixins/**/*.js",
+        "app/js/controllers/cloudos_controller.js",
+        "app/js/**/*.js"
+      ],
       vendor: [
         "vendor/js/jquery-1.11.0.js",
         "vendor/js/foundation.min.js",
@@ -22,7 +29,7 @@ module.exports = function(lineman) {
       ]
     },
     img: {
-    	root: "images"
+      root: "images"
     },
     webfonts: {
         root: "fonts"

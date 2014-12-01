@@ -1,4 +1,4 @@
-App.RegistrationController = App.CloudOSController.extend({
+App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 	hasTriggeredFocus: false,
 	actions: {
 
@@ -123,7 +123,6 @@ App.RegistrationController = App.CloudOSController.extend({
 	},
 
 	requestMessages: null,
-	countryList: Countries.list,
 
 	firstName: '',
 	lastName: '',
