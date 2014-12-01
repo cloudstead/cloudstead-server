@@ -22,12 +22,15 @@
 									<label for="right-label" class="left msg-mod">{{t forms.admin.firstName}}</label>
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
-										{{ input type="text" value=firstName }}
-								</div>
-								<div class="small-2 columns">
 									{{#if requestMessages.error.firstName}}
-										<span class="message error right">{{requestMessages.error.firstName}}</span>
+										{{input type="text" value=firstName class="error first_name_input"}}
+										<span class="message error">{{requestMessages.error.firstName}}</span>
+									{{else}}
+										{{ input type="text" value=firstName classNames="first_name_input" }}
 									{{/if}}
+								</div>
+								<div class="large-2 medium-10 small-10 columns">
+									&nbsp;
 								</div>
 							</div>
 						</div>
@@ -37,12 +40,15 @@
 									<label for="right-label" class="left msg-mod">{{t forms.admin.lastName}}</label>
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
-									{{ input type="text" value=lastName }}
+									{{#if requestMessages.error.lastName}}
+										{{ input type="text" value=lastName classNames="error last_name_input" }}
+										<span class="message error">{{requestMessages.error.lastName}}</span>
+									{{else}}
+										{{ input type="text" value=lastName classNames="last_name_input" }}
+									{{/if}}
 								</div>
 								<div class="large-2 medium-10 small-10 columns">
-									{{#if requestMessages.error.lastName}}
-										<span class="message error right">{{requestMessages.error.lastName}}</span>
-									{{/if}}
+									&nbsp;
 								</div>
 							</div>
 						</div>
@@ -52,12 +58,15 @@
 									<label for="right-label" class="left msg-mod">{{t forms.admin.email}}</label>
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
-									{{ input type="text" value=email }}
+									{{#if requestMessages.error.email}}
+										{{ input type="text" value=email classNames="error email_input" }}
+										<span class="message error">{{requestMessages.error.email}}</span>
+									{{else}}
+										{{ input type="text" value=email classNames="email_input" }}
+									{{/if}}
 								</div>
 								<div class="large-2 medium-10 small-10 columns">
-									{{#if requestMessages.error.email}}
-										<span class="message error right">{{requestMessages.error.email}}</span>
-									{{/if}}
+									&nbsp;
 								</div>
 							</div>
 						</div>
@@ -76,11 +85,7 @@
 										selectionBinding="mobilePhoneCountry" }}
 								</div>
 								<div class="large-2 medium-10 small-10 columns">
-									{{#if requestMessages.error.mobilePhoneCountryCode}}
-										<span class="message error right">
-											{{requestMessages.error.mobilePhoneCountryCode}}
-										</span>
-									{{/if}}
+									&nbsp;
 								</div>
 							</div>
 						</div>
@@ -92,12 +97,15 @@
 									</label>
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
-									{{ input type="text" value=mobilePhone }}
+									{{#if requestMessages.error.mobilePhone}}
+										{{ input type="text" value=mobilePhone classNames="error mobile_phone_input" }}
+										<span class="message error">{{requestMessages.error.mobilePhone}}</span>
+									{{else}}
+										{{ input type="text" value=mobilePhone classNames="mobile_phone_input" }}
+									{{/if}}
 								</div>
 								<div class="large-2 medium-10 small-10 columns">
-									{{#if requestMessages.error.mobilePhone}}
-										<span class="message error right">{{requestMessages.error.mobilePhone}}</span>
-									{{/if}}
+									&nbsp;
 								</div>
 							</div>
 						</div>

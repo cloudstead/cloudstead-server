@@ -183,27 +183,7 @@ Api = {
 		return result;
 	},
 	update_admin_profile: function (data) {
-		show_loading();
-
-		var result;
-		Ember.$.ajax({
-			'type': 'POST',
-			'url':'/api/admins/' + data.uuid,
-			'contentType': 'application/json',
-			'async': false,
-			'data': JSON.stringify(data),
-			'beforeSend': add_api_auth,
-			'success': function (data, status, jqXHR) {
-				result = data;
-			},
-			'error': function (jqXHR, status, error) {
-				console.log('login error: status='+status+', error='+error);
-			},
-			'complete': function(jqXHR, status, error) {
-				hide_loading();
-			}
-		});
-		return result;
+		return this._post('/api/admins/' + data.uuid, data);
 	},
 	new_cloud_os: function (cloudOsRequest) {
 		show_loading();
