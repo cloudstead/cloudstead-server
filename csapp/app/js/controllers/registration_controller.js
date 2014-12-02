@@ -46,10 +46,10 @@ App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 	},
 
 	_registrationCallbacks: function() {
-		var registrationCallbacks = new RegistrationCallbacks();
+		var registrationCallbacks = new BasicServiceCallbacks();
 
 		registrationCallbacks.addFailedValidation(this._handleValidationError);
-		registrationCallbacks.addRegistrationError(this._handleFailedRegistartion);
+		registrationCallbacks.addError(this._handleFailedRegistartion);
 		registrationCallbacks.addSuccess(this._handleSuccessfulRegistartion);
 
 		return registrationCallbacks;
@@ -60,11 +60,7 @@ App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 	},
 
 	_handleFailedRegistartion: function(registrationErrors) {
-		this.set('requestMessages',
-			App.RequestMessagesObject.create({
-				json: registrationErrors
-			})
-		);
+		this._setRequestMessage(registrationErrors);
 	},
 
 	_handleSuccessfulRegistartion: function() {

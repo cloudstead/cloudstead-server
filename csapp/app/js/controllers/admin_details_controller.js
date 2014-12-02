@@ -35,7 +35,7 @@ App.AdminDetailsController = App.CloudOSController.extend(App.CountriesMixin, {
 	},
 
 	_updateCallbacks: function() {
-		var updateCallbacks = new UpdateCallbacks();
+		var updateCallbacks = new BasicServiceCallbacks();
 
 		updateCallbacks.addFailedValidation(this._handleValidationError);
 		updateCallbacks.addError(this._handleUpdateError);
@@ -48,16 +48,12 @@ App.AdminDetailsController = App.CloudOSController.extend(App.CountriesMixin, {
 		this._setRequestErrors(validationErrors);
 	},
 
-	_handleUpdateError: function(registrationErrors) {
-		this.set('requestMessages',
-			App.RequestMessagesObject.create({
-				json: registrationErrors
-			})
-		);
+	_handleUpdateError: function(updateErrors) {
+		this._setRequestMessage(updateErrors);
 	},
 
 	_handleUpdateSuccess: function() {
-		this.set('requestMessages', null);
+		this._resetRequestMessage();
 		alert('Account updated successfully.');
 	},
 });

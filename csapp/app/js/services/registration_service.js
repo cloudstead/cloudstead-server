@@ -35,7 +35,7 @@ RegistrationService.prototype.register = function() {
 		var proccessedResponse = this._proccessRegistrationError(response);
 
 		registrationResponse =
-			new BasicPayloadResponse(proccessedResponse, this.callbacks.registrationError);
+			new BasicPayloadResponse(proccessedResponse, this.callbacks.failedWithError);
 	}
 
 	return registrationResponse;
@@ -78,32 +78,4 @@ RegistrationService.prototype._proccessRegistrationError = function(registration
 		});
 	}
 	return result;
-};
-
-
-
-RegistrationCallbacks = function(){
-	this.failedValidation = function(validationErrors) {
-		return validationErrors;
-	};
-
-	this.registrationError = function(registrationError) {
-		return registrationError;
-	};
-
-	this.success = function(credentialErrors) {
-		console.log('Registration Successful');
-	};
-};
-
-RegistrationCallbacks.prototype.addFailedValidation = function(callback) {
-	this.failedValidation = callback;
-};
-
-RegistrationCallbacks.prototype.addRegistrationError = function(callback) {
-	this.registrationError = callback;
-};
-
-RegistrationCallbacks.prototype.addSuccess = function(callback) {
-	this.success = callback;
 };

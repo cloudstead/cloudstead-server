@@ -63,3 +63,31 @@ BasicPayloadResponse.prototype = new BasicEmptyResponse();
 BasicPayloadResponse.prototype.resolve = function(self) {
 	return this.callback.call(self, this.payload);
 };
+
+
+
+BasicServiceCallbacks = function(){
+	this.failedValidation = function(validationErrors) {
+		return validationErrors;
+	};
+
+	this.failedWithError = function(error) {
+		return error;
+	};
+
+	this.success = function(credentialErrors) {
+		console.log('success');
+	};
+};
+
+BasicServiceCallbacks.prototype.addFailedValidation = function(callback) {
+	this.failedValidation = callback;
+};
+
+BasicServiceCallbacks.prototype.addError = function(callback) {
+	this.failedWithError = callback;
+};
+
+BasicServiceCallbacks.prototype.addSuccess = function(callback) {
+	this.success = callback;
+};

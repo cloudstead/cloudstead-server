@@ -60,31 +60,3 @@ UpdateService.prototype._proccessRegistrationError = function(registrationRespon
 	return result;
 };
 
-
-
-UpdateCallbacks = function(){
-	this.failedValidation = function(validationErrors) {
-		return validationErrors;
-	};
-
-	this.failedWithError = function(error) {
-		return error;
-	};
-
-	this.success = function(credentialErrors) {
-		console.log('Registration Successful');
-	};
-};
-
-UpdateCallbacks.prototype.addFailedValidation = function(callback) {
-	this.failedValidation = callback;
-};
-
-UpdateCallbacks.prototype.addError = function(callback) {
-	this.failedWithError = callback;
-};
-
-UpdateCallbacks.prototype.addSuccess = function(callback) {
-	this.success = callback;
-};
-

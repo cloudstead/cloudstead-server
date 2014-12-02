@@ -33,7 +33,7 @@ App.LoginController = App.CloudOSController.extend({
 		var loginCallbacks = new LoginCallbacks();
 
 		loginCallbacks.addFailedValidation(this._handleValidationError);
-		loginCallbacks.addFailedCredentials(this._handleLoginCredentialError);
+		loginCallbacks.addError(this._handleLoginCredentialError);
 		loginCallbacks.addNeedsTwoFactor(this._showTwoFactorModal);
 		loginCallbacks.addSuccess(this._transitionToNextRoute);
 
@@ -41,7 +41,7 @@ App.LoginController = App.CloudOSController.extend({
 	},
 
 	_forgotPasswordCallbacks: function() {
-		var forgotPasswordCallbacks = new ForgotPasswordCallbacks();
+		var forgotPasswordCallbacks = new BasicServiceCallbacks();
 
 		forgotPasswordCallbacks.addFailedValidation(this._handleValidationError);
 		forgotPasswordCallbacks.addSuccess(this._displayForgotPasswordNotification);

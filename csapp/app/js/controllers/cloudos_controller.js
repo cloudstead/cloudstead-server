@@ -12,5 +12,17 @@ App.CloudOSController = Ember.ObjectController.extend({
 				}
 			})
 		);
+	},
+
+	_setRequestMessage: function(messageObject) {
+		this.set('requestMessages',
+			App.RequestMessagesObject.create({
+				json: registrationErrors
+			})
+		);
+	},
+
+	_resetRequestMessage: function() {
+		this.set('requestMessages', null);
 	}
 });

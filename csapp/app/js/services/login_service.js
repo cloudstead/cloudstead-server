@@ -38,7 +38,7 @@ LoginService.prototype.login = function() {
 			loginResponse = new BasicEmptyResponse(this.callbacks.needsTwoFactor);
 		}
 		else {
-			loginResponse = new LoginCredentialsErrorResponse(response, this.callbacks.failedCredentials);
+			loginResponse = new LoginCredentialsErrorResponse(response, this.callbacks.failedWithError);
 		}
 
 		return loginResponse;
@@ -71,37 +71,17 @@ LoginData = function(name, password, deviceId, deviceName) {
 
 
 LoginCallbacks = function(){
-	this.failedValidation = function(validationErrors) {
-		return validationErrors;
-	};
-
-	this.failedCredentials = function(credentialErrors) {
-		return credentialErrors;
-	};
+	BasicServiceCallbacks.call(this);
 
 	this.needsTwoFactor = function() {
 		console.log("Two Factor Verification is required");
 	};
-
-	this.success = function(credentialErrors) {
-		console.log('Login Successful');
-	};
 };
 
-LoginCallbacks.prototype.addFailedValidation = function(callback) {
-	this.failedValidation = callback;
-};
-
-LoginCallbacks.prototype.addFailedCredentials = function(callback) {
-	this.failedCredentials = callback;
-};
+LoginCallbacks.prototype = new BasicServiceCallbacks();
 
 LoginCallbacks.prototype.addNeedsTwoFactor = function(callback) {
 	this.needsTwoFactor = callback;
-};
-
-LoginCallbacks.prototype.addSuccess = function(callback) {
-	this.success = callback;
 };
 
 

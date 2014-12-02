@@ -17,11 +17,11 @@ App.ResetPasswordController = Ember.ObjectController.extend({
 	},
 
 	_resetCallbacks: function() {
-		var resetCallbacks = new PasswordResetCallbacks();
+		var resetCallbacks = new BasicServiceCallbacks();
 
 		resetCallbacks.addFailedValidation(this._handleChangeAccountPasswordErrors);
 		resetCallbacks.addSuccess(this._resetSuccessful);
-		resetCallbacks.addFailedReset(this._resetSuccessful);
+		resetCallbacks.addError(this._resetSuccessful);
 
 		return resetCallbacks;
 	},

@@ -29,23 +29,3 @@ ForgotPasswordService.prototype.forget = function() {
 
 	return new BasicEmptyResponse(this.callbacks.success);
 };
-
-
-
-ForgotPasswordCallbacks = function(){
-	this.failedValidation = function(validationErrors) {
-		return validationErrors;
-	};
-
-	this.success = function(credentialErrors) {
-		console.log('Forgot Password Successful');
-	};
-};
-
-ForgotPasswordCallbacks.prototype.addFailedValidation = function(callback) {
-	this.failedValidation = callback;
-};
-
-ForgotPasswordCallbacks.prototype.addSuccess = function(callback) {
-	this.success = callback;
-};

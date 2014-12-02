@@ -32,7 +32,7 @@ PasswordResetService.prototype.reset = function() {
 			resetResponse = new BasicEmptyResponse(this.callbacks.success);
 		}
 		else {
-			resetResponse = new BasicPayloadResponse(response, this.callbacks.failedReset);
+			resetResponse = new BasicPayloadResponse(response, this.callbacks.failedWithError);
 		}
 
 		return resetResponse;
@@ -40,32 +40,4 @@ PasswordResetService.prototype.reset = function() {
 
 PasswordResetService.prototype.isResetSuccessful = function(response) {
 	return API_RESPONSE_STATUS.isSuccess(response.status);
-};
-
-
-
-PasswordResetCallbacks = function(){
-	this.failedValidation = function(validationErrors) {
-		return validationErrors;
-	};
-
-	this.success = function(credentialErrors) {
-		console.log('Reset Password Successful');
-	};
-
-	this.failedReset = function(resetErrors) {
-		return resetErrors;
-	};
-};
-
-PasswordResetCallbacks.prototype.addFailedValidation = function(callback) {
-	this.failedValidation = callback;
-};
-
-PasswordResetCallbacks.prototype.addSuccess = function(callback) {
-	this.success = callback;
-};
-
-PasswordResetCallbacks.prototype.addFailedReset = function(callback) {
-	this.failedReset = callback;
 };
