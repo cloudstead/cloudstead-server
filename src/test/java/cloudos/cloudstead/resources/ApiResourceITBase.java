@@ -17,6 +17,7 @@ import org.cobbzilla.sendgrid.mock.MockSendGrid;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.cache.redis.ActivationCodeService;
+import org.cobbzilla.wizard.server.RestServer;
 import org.cobbzilla.wizard.server.config.factory.ConfigurationSource;
 import org.cobbzilla.wizard.server.config.factory.StreamConfigurationSource;
 import org.cobbzilla.wizard.util.RestResponse;
@@ -44,13 +45,13 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         return StreamConfigurationSource.fromResources(getClass(), "cloudstead-config-test.yml");
     }
 
-    @Override public void beforeStart() {
+    @Override public void beforeStart(RestServer<CloudsteadConfiguration> server) {
         // register mocks for DNS
         final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
         configuration.setDnsClient(new MockDnsClient());
         configuration.setSendGrid(new MockSendGrid());
         configuration.setAppStoreClient(new MockAppStoreApiClient());
-        super.beforeStart();
+        super.beforeStart(server);
     }
 
 
