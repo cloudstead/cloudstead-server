@@ -32,7 +32,7 @@ RegistrationValidator = {
 
 		response.errors.email = EmailValidator.validate(registrationData['email']).errors.email;
 
-		response.errors.mobilePhone = NumberValidator.validate(registrationData['mobilePhone']).errors.number;
+		response.errors.mobilePhone = PhoneNumberValidator.validate(registrationData['mobilePhone']).errors.number;
 
 		return response;
 	}
