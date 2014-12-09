@@ -315,8 +315,10 @@ public class CloudOsLauncher implements Runnable {
             return;
         }
 
-        // notify app store of new cloud
-        if (!addAppStoreAccount(getFqdn())) return;
+        // notify app store of new cloud; set appstore connection info
+        final ApiConnectionInfo appStoreAccount = addAppStoreAccount(getFqdn());
+        if (appStoreAccount == null) return;
+        configuration.setAppStore(appStoreAccount);
 
         // generate sendgrid credentials
         status.update("{setup.generatingSendgridCredentials}");
@@ -437,14 +439,14 @@ public class CloudOsLauncher implements Runnable {
         status.completed();
     }
 
-    private boolean addAppStoreAccount(String hostname) {
+    private ApiConnectionInfo addAppStoreAccount(String hostname) {
 
         status.update("{setup.createAppStoreAccount}");
         final AppStoreApiClient appStoreClient = configuration.getAppStoreClient();
         final ApiConnectionInfo appStoreConfig = configuration.getAppStore();
 
-        final AppStoreCloudAccount cloudAccount = new AppStoreCloudAccount()
-                .setUri("https://"+hostname+"/api/verify")
+        final AppStoreCloudAccount storeAccount = new AppStoreCloudAccount()
+                .setUri("https://"+hostname+"/api/appstore/verify")
                 .setUcid(UUID.randomUUID().toString());
 
         RestResponse response = null;
@@ -452,7 +454,7 @@ public class CloudOsLauncher implements Runnable {
         try {
             token = appStoreClient.refreshToken(appStoreConfig.getUser(), appStoreConfig.getPassword());
             appStoreClient.setToken(token.getToken());
-            response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT, toJson(cloudAccount));
+            response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT, toJson(storeAccount));
 
         } catch (Exception e) {
             log.error("Exception setting up appstore account: "+e, e);
@@ -467,9 +469,9 @@ public class CloudOsLauncher implements Runnable {
         if (response == null || !response.isSuccess()) {
             status.error("{setup.error.createAppStoreAccount}", "Error setting up appstore account");
             if (response != null) log.error("Error setting up appstore account: "+response);
-            return false;
+            return null;
         }
-        return true;
+        return new ApiConnectionInfo(appStoreClient.getBaseUri(), storeAccount.getUcid(), null);
     }
 
     private String getShasum(Object databag, String config) {
