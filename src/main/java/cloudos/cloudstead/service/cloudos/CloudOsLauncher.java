@@ -60,7 +60,7 @@ public class CloudOsLauncher implements Runnable {
     public static final int MAX_TRIES = 3;
 
     public static final String[] INIT_CONFIGS = {
-            "aws_access_key", "aws_secret_key", "aws_iam_user", "s3_bucket", "authy.password"
+            "aws_access_key", "aws_secret_key", "aws_iam_user", "s3_bucket", "authy.user"
     };
     public static final String[] EMAIL_CONFIGS = {
             "smtp_relay.username", "smtp_relay.password", "smtp_relay.host", "smtp_relay.port"
@@ -160,6 +160,7 @@ public class CloudOsLauncher implements Runnable {
             cloudOs = new CloudOs();
             cloudOs.setAdminUuid(admin.getUuid());
             cloudOs.setName(request.getName());
+            cloudOs.initUcid();
 
             try {
                 cloudOs = cloudOsDAO.create(cloudOs);
@@ -293,10 +294,8 @@ public class CloudOsLauncher implements Runnable {
 
         // update with instance masterIp and mark as running
         status.update("{setup.updatingCloudOsToMarkAsRunning}");
-        final String ucid = UUID.randomUUID().toString();
         try {
             cloudOs.setRunning(true);
-            cloudOs.setUcid(ucid);
             cloudOs.setInstanceJson(toJson(instance));
             cloudOs = cloudOsDAO.update(cloudOs);
 
@@ -316,9 +315,8 @@ public class CloudOsLauncher implements Runnable {
         }
 
         // notify app store of new cloud; set appstore connection info
-        final ApiConnectionInfo appStoreAccount = addAppStoreAccount(getFqdn());
-        if (appStoreAccount == null) return;
-        configuration.setAppStore(appStoreAccount);
+        final String ucid = cloudOs.getUcid();
+        if (!addAppStoreAccount(getFqdn(), ucid)) return;
 
         // generate sendgrid credentials
         status.update("{setup.generatingSendgridCredentials}");
@@ -366,6 +364,7 @@ public class CloudOsLauncher implements Runnable {
                     .setAdmin_initial_pass(admin.getHashedPassword().getHashedPassword()) // todo: allow cloudstead-specific password
                     .setAuthy(configuration.getAuthy())
                     .setDns(configuration.getCloudOsDns().getBaseUri(), hostname, dnsApiKey)
+                    .setAppstore(configuration.getAppStore().getBaseUri(), ucid)
                     .setVendor(new VendorDatabag()
                             .setService_key_endpoint(configuration.getServiceRequestEndpoint())
                             .setSsl_key_sha(ShaUtil.sha256_file(cloudConfig.getSslKey()))
@@ -374,7 +373,7 @@ public class CloudOsLauncher implements Runnable {
             for (String config : INIT_CONFIGS) {
                 // for now this is the only setting that must be changed before allowing ssh access
                 // (in addition to changing out the cert, see ServiceKeyHandler in rooty-toots for more info)
-                boolean blockSsh = "authy.password".equals(config);
+                boolean blockSsh = "authy.user".equals(config);
                 settings.add(new VendorDatabagSetting(config, getShasum(cloudOsDatabag, config), blockSsh));
             }
 
@@ -400,8 +399,17 @@ public class CloudOsLauncher implements Runnable {
         final File cloudOsChefDir = new File(cloudConfig.getCloudOsChefDir());
         final CommandLine chefSolo = new CommandLine(new File(cloudOsChefDir, "deploy.sh"));
         chefSolo.addArgument(hostname + "@" + publicIp);
+
+        // setup system env for deploy.sh script
         final Map<String, String> chefSoloEnv = new HashMap<>();
         chefSoloEnv.put("INIT_FILES", initFilesDir.getAbsolutePath());
+
+        // do not use default json editor (won't be found), use the one installed here
+        chefSoloEnv.put("JSON_EDIT", "cstead json");
+
+        // cloudsteads callback to this server (the one that launched it) to manage DNS
+        chefSoloEnv.put("DISABLE_DNS", "true");
+
         CommandResult commandResult = null;
         try {
             // decrypt the private key and put it on disk somewhere, so that deploy.sh works without asking for a passphrase
@@ -415,7 +423,7 @@ public class CloudOsLauncher implements Runnable {
                 @Cleanup("delete") final File keyFile = File.createTempFile("cloudos", ".key");
                 CommandShell.chmod(keyFile, "600");
                 toFile(keyFile.getAbsolutePath(), privateKey);
-                chefSoloEnv.put("SSH_KEY", keyFile.getAbsolutePath());
+                chefSoloEnv.put("SSH_KEY", keyFile.getAbsolutePath()); // add key to env
 
                 commandResult = CommandShell.exec(chefSolo, null, cloudOsChefDir, chefSoloEnv);
                 if (!commandResult.isZeroExitStatus()) {
@@ -439,7 +447,7 @@ public class CloudOsLauncher implements Runnable {
         status.completed();
     }
 
-    private ApiConnectionInfo addAppStoreAccount(String hostname) {
+    private boolean addAppStoreAccount(String hostname, String ucid) {
 
         status.update("{setup.createAppStoreAccount}");
         final AppStoreApiClient appStoreClient = configuration.getAppStoreClient();
@@ -447,14 +455,20 @@ public class CloudOsLauncher implements Runnable {
 
         final AppStoreCloudAccount storeAccount = new AppStoreCloudAccount()
                 .setUri("https://"+hostname+"/api/appstore/verify")
-                .setUcid(UUID.randomUUID().toString());
+                .setUcid(ucid);
 
         RestResponse response = null;
         ApiToken token = null;
         try {
             token = appStoreClient.refreshToken(appStoreConfig.getUser(), appStoreConfig.getPassword());
             appStoreClient.setToken(token.getToken());
-            response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT, toJson(storeAccount));
+            response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT+"/"+ucid, null);
+            if (response.status == 404) {
+                response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT, toJson(storeAccount));
+                if (!response.isSuccess()) throw new IllegalStateException("appstore account creation failed: "+response);
+            } else {
+                log.info("Using existing appstore account: "+response.json);
+            }
 
         } catch (Exception e) {
             log.error("Exception setting up appstore account: "+e, e);
@@ -469,9 +483,9 @@ public class CloudOsLauncher implements Runnable {
         if (response == null || !response.isSuccess()) {
             status.error("{setup.error.createAppStoreAccount}", "Error setting up appstore account");
             if (response != null) log.error("Error setting up appstore account: "+response);
-            return null;
+            return false;
         }
-        return new ApiConnectionInfo(appStoreClient.getBaseUri(), storeAccount.getUcid(), null);
+        return true;
     }
 
     private String getShasum(Object databag, String config) {

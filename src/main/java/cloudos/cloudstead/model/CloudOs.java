@@ -15,7 +15,10 @@ import javax.persistence.Entity;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import java.util.UUID;
+
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
+import static org.cobbzilla.util.string.StringUtil.empty;
 
 @Entity
 @IsUnique(unique="name", daoBean="cloudOsDAO", message="{err.name.notUnique}")
@@ -38,6 +41,7 @@ public class CloudOs extends UniquelyNamedEntity {
 
     @Column(nullable=false, updatable=false, unique=true, length=100)
     @Getter @Setter private String ucid;
+    public void initUcid () { if (empty(ucid)) this.ucid = UUID.randomUUID().toString(); }
 
     @Size(max=1024, message="error.cloudOsRequest.instanceJson.tooLong")
     @Getter @Setter @JsonIgnore private String instanceJson;

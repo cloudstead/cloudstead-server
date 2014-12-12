@@ -98,8 +98,12 @@ public class CloudOsResource {
         admin = adminDAO.findByUuid(admin.getUuid());
         if (!admin.isEmailVerified()) return ResourceUtil.invalid("setup.error.unverifiedEmail");
 
+        // is this a relaunch?
+        final boolean isRelaunch = cloudOsDAO.findByName(name) != null;
+        final int limit = isRelaunch ? admin.getMaxCloudsteads()+1 : admin.getMaxCloudsteads();
+
         // non-admins: cannot create more than max # of cloudsteads
-        if (!admin.isAdmin() && cloudOsDAO.findByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
+        if (!admin.isAdmin() && cloudOsDAO.findByAdmin(admin.getUuid()).size() >= limit) {
             return ResourceUtil.invalid("setup.error.maxCloudsteads");
         }
 
