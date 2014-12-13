@@ -22,6 +22,7 @@ for f in JSON.sh solo.rb install.sh deploy_lib.sh ; do
 done && \
 cp ${CLOUDOS_BASE}/cloudos-server/chef-repo/solo-base.json ${CLOUDOS_CHEF}/ && \
 cp ${CLOUDOS_BASE}/cloudos-server/chef-repo/solo.json ${CLOUDOS_CHEF}/ && \
+cp ${CLOUDOS_BASE}/cloudos-server/chef-repo/solo-validate.json ${CLOUDOS_CHEF}/ && \
 cp ${CLOUDOS_BASE}/cloudos-server/chef-repo/deploy.sh ${CLOUDOS_CHEF}/
 
 mkdir -p ${DEPLOY}/email && cp email/* ${DEPLOY}/email
