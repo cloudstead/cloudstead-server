@@ -83,7 +83,7 @@ App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 		var loginCallbacks = new LoginCallbacks();
 
 		loginCallbacks.addFailedValidation(this._handleValidationError);
-		loginCallbacks.addFailedCredentials(this._handleLoginCredentialError);
+		loginCallbacks.addError(this._handleLoginCredentialError);
 		loginCallbacks.addNeedsTwoFactor(this._showTwoFactorModal);
 		loginCallbacks.addSuccess(this._handleSuccessfulLogin);
 
