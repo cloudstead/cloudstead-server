@@ -40,7 +40,7 @@
 								&nbsp;
 							</div>
 							<div class="large-2 medium-2 small-6 columns">
-									<button type="submit" class="secondary expand" {{action 'verifyFactor'}}>{{t forms.verification.verify_submit}}</button>
+									<button type="submit" class="secondary expand verification_submit" {{action 'verifyFactor'}}>{{t forms.verification.verify_submit}}</button>
 							</div>
 						</div>
 					</div>

@@ -12,9 +12,9 @@
 							</div>
 							<div class="large-5 small-12 columns">
 								{{#if requestMessages.error.email}}
-									{{ input type="text" value=email class="error" }}
+									{{ input type="text" value=email class="error email_input" }}
 								{{else}}
-									{{ input type="text" value=email }}
+									{{ input type="text" value=email class="email_input"}}
 								{{/if}}
 
 								{{#if requestMessages.error.email}}
@@ -33,9 +33,9 @@
 							</div>
 							<div class="large-5 small-12 columns">
 										{{#if requestMessages.error.password}}
-									{{input type="password" value=password class="error"}}
+									{{input type="password" value=password class="error password_input"}}
 								{{else}}
-									{{input type="password" value=password}}
+									{{input type="password" value=password class="password_input"}}
 								{{/if}}
 
 								{{#if requestMessages.error.password}}
@@ -53,13 +53,13 @@
 								&nbsp;
 							</div>
 							<div class="large-2 medium-5 small-6 columns">
-									<button type="submit" class="alert expand" {{action 'close'}}>{{t forms.admin.cancel_button}}</button>
+									<button id="cancel_sign_in" type="submit" class="alert expand" {{action 'close'}}>{{t forms.admin.cancel_button}}</button>
 							</div>
 							<div class="large-1 medium-1 hide-for-small columns">
 								&nbsp;
 							</div>
 							<div class="large-2 medium-6 small-6 columns">
-									<button type="submit" class="secondary expand" {{action 'doLogin'}}>{{t forms.admin.login_button}}</button>
+									<button id="confirm_sign_in" type="submit" class="secondary expand" {{action 'doLogin'}}>{{t forms.admin.login_button}}</button>
 							</div>
 							<div class="large-2 hide-for-medium hide-for-small columns">
 								&nbsp;

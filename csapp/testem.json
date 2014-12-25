@@ -1,0 +1,15 @@
+{
+  "framework" : "qunit",
+  "launch_in_dev" : ["PhantomJS"],
+  "launch_in_ci" : ["PhantomJS"],
+  "src_files" : [
+    "generated/js/app.js",
+    "test/fixtures/*.js",
+    "test/helpers/general_helpers.js",
+    "test/helpers/*.js",
+    "test/server/*.js",
+    "test/init_tests.js",
+    "test/**/*.js"
+  ],
+  "url" : "http://localhost:8000"
+}

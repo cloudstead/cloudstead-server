@@ -1,7 +1,7 @@
 <section class="deck">
 	<div class="row">
 		<dl class="tabs" data-tab>
-			<dd class="active half-width-tab">
+			<dd class="active half-width-tab admin_home_tab">
 				{{#link-to 'adminHome'}}
 					{{t sections.admin.your_cloudsteads}}
 				{{/link-to}}

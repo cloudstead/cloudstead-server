@@ -10,7 +10,7 @@
 		<div class="large-2 medium-2 columns text-center">&nbsp;
 		</div>
 		<div class="large-3 medium-3 columns text-center">
-			{{#link-to "registration" classNames="button expand secondary"}}
+			{{#link-to "registration" classNames="button expand secondary signup_link"}}
 				{{t sections.index.signup_button}}
 			{{/link-to}}
 		</div>
@@ -18,7 +18,7 @@
 			OR
 		</div>
 		<div class="large-3 medium-3 columns text-center">
-			{{#link-to "login" classNames="button expand"}}
+			{{#link-to "login" classNames="button expand signin_link"}}
 				{{t sections.index.signin_button}}
 			{{/link-to}}
 		</div>

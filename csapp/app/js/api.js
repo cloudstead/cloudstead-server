@@ -117,7 +117,7 @@ Api = {
 
 		Ember.$.ajax({
 			'type': 'POST',
-			'url':'/api/admins/',
+			'url':'/api/admins',
 			'contentType': 'application/json',
 			'async': false,
 			'data': JSON.stringify(data),

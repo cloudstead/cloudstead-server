@@ -25,7 +25,9 @@ module.exports = function(lineman) {
         "vendor/js/purl.js",
         "vendor/js/i18n.js",
         "vendor/js/all.js",
-        "vendor/js/countries.js"
+        "vendor/js/countries.js",
+        "vendor/js/sinon-quint-1.0.0.js",
+        "vendor/js/sinon-1.11.1.js"
       ]
     },
     img: {

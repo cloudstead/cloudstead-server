@@ -70,7 +70,8 @@
 										content=countryList
 										optionValuePath="content.code"
 										optionLabelPath="content.country"
-										selectionBinding="mobilePhoneCountry" }}
+										selectionBinding="mobilePhoneCountry"
+										classNames="mobile_phone_country_code" }}
 							</div>
 							<div class="large-2 small-12 columns">
 								&nbsp;
@@ -154,10 +155,10 @@
 							</div>
 							<div class="large-5 small-12 columns">
 								{{#if requestMessages.error.activationCode}}
-									{{input type="text" value=activationCode class="error first_name_input"}}
+									{{input type="text" value=activationCode class="error activation_code"}}
 									<span class="message error">{{requestMessages.error.activationCode}}</span>
 								{{else}}
-									{{ input type="text" value=activationCode classNames="first_name_input" }}
+									{{ input type="text" value=activationCode classNames="activation_code" }}
 								{{/if}}
 							</div>
 							<div class="large-2 hide-for-medium hide-for-small columns">
