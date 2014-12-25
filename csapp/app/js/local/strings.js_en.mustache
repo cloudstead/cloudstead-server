@@ -85,7 +85,64 @@ Em.I18n.translations = {
 		buildingInitializationFile: 'Creating initialization bundle for instance...',
 		cheffing: 'Running Chef on the instance...',
 		completed: 'Completing the instance...',
-		success: 'Finished successfully.'
+		success: 'Finished successfully.',
+		creatingCloudOs: {
+			error: 'error creating instance in database'
+		},
+		instanceLookup: 'finding the instance out there on the Internet...',
+		teardownPreviousInstance: 'found the instance, killing it so we can start fresh',
+		teardownPreviousInstanceError: {
+			nonFatalError: "an error occurred tearing down the instance, but we'll continue setting up the new one anyway"
+		},
+		error: {
+			creatingCloudAdminAccount: {
+				notUnique: 'cloud platform account already exists',
+				checkingExistenceOfIAMuser: 'error looking up IAM user',
+				iamAdd: {
+					serverError: 'error creating IAM user'
+				},
+				iamKey: {
+					serverError: 'error creating IAM user key'
+				},
+			},
+			savingCloudAdminAccount: {
+				serverError: 'error saving cloud platform account'
+			},
+			startingMasterInstance: {
+				serverError: 'error launching instance'
+			},
+			updatingCloudOsToMarkAsRunning: {
+				serverError: 'error updating DB to mark instance running'
+			},
+			creatingDnsRecord: {
+				serverError: 'error creating DNS record(s)'
+			},
+			generatingSendgridCredentials: {
+				apiError: 'error creating SMTP credentials'
+			},
+			buildingInitializationFile: {
+				serverError: 'error creating init bundle'
+			},
+			cheffing: {
+				serverError: 'error running chef on the instance'
+			},
+			unexpected: {
+				willRetry: 'a fatal error occurred and we will retry launching the cloudstead',
+				final: 'a fatal error occurred and we will NOT retry'
+			},
+			notOwner: 'you tried to create a cloudstead with a name that is already in use (fatal error)'
+		}
+	},
+	destroy: {
+		tearingDownInstance: 'starting to teardown the instance...',
+		removingDnsRecords: 'removing DNS records...',
+		deletingFromDB: 'removing from DB...',
+		success: 'teardown was successful',
+		error: {
+			tearingDownInstance: 'error tearing down instance',
+			removingDnsRecords: 'error removing DNS records',
+			deletingFromDB: ' error removing from DB'
+		}
 	},
 	notifications: {
 		forgot_password_email_sent: "You have been sent an email with a link for reseting your password.",

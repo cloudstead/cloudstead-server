@@ -72,20 +72,14 @@ function getDeviceName(){
 }
 
 function swapStatusMessage(originalMessage){
-	var n = null;
-	try {
-		n = originalMessage.indexOf(".");
-	}catch(e){
-		return originalMessage;
+	var message = originalMessage.slice(1, -1);
+
+	// Hack for one error message.
+	if (message.indexOf("teardownPreviousInstance.nonFatalError") !== -1){
+		message = message.replace("teardownPreviousInstance", "teardownPreviousInstanceError");
 	}
 
-	var filteredStatus = originalMessage.substring(n+1, originalMessage.length - 1);
-	var locStatus = locate(Em.I18n.translations, 'setup');
-	try{
-		return locStatus[filteredStatus];
-	}catch(e){
-		return originalMessage;
-	}
+	return locate(Em.I18n.translations, message);
 }
 
 Ember.Handlebars.helper('t-subst', function(view, options) {
