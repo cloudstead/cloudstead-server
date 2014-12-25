@@ -1,7 +1,6 @@
 App.TwoFactorVerificationController = Ember.ObjectController.extend({
 	actions:{
 		close: function() {
-			this.send('closeModal');
 			return this.transitionToRoute('index');
 		},
 		verifyFactor: function(){
@@ -25,7 +24,6 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 		_validateSecondFactorResponse: function(response) {
 			if (response.status === 'success'){
 				if (response.api_token) {
-					this.send('closeModal');
 					this.transitionToRoute('adminHome');
 				}
 			}else{

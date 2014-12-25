@@ -1,5 +1,3 @@
-
-
 App.ApplicationRoute = Ember.Route.extend({
 	actions:{
 		openModal: function(modalName, model){
@@ -31,6 +29,7 @@ App.Router.map(function() {
 	this.resource('adminDetails');
 
 	this.resource('resetPassword', { path: '/reset_password/:token' });
+	this.resource('twoFactorVerification', { path: '/verification/:email' });
 //	this.resource('settings');
 //	this.resource('app', { path: '/app/:app_name' });
 });
@@ -117,5 +116,16 @@ App.LogoutRoute = Ember.Route.extend({
 App.ResetPasswordRoute = Ember.Route.extend({
 	model: function (params) {
 		return { token : params['token'] };
+	}
+});
+
+App.TwoFactorVerificationRoute = Ember.Route.extend({
+	model: function (params) {
+		return {
+			username: params.email,
+			deviceId: getCookie("deviceId"),
+			deviceName: getCookie("deviceName"),
+			isRegister: true
+		};
 	}
 });

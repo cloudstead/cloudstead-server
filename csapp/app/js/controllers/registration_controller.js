@@ -99,14 +99,7 @@ App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 	},
 
 	_showTwoFactorModal: function() {
-		this.send('closeModal');
-		this.set('model',{
-			username: this.get('email'),
-			deviceId: getCookie("deviceId"),
-			deviceName: getCookie("deviceName"),
-			isRegister: true
-		});
-		this.send('openModal','twoFactorVerification', this.get('model') );
+		this.transitionToRoute('/verification/' + this.get('email'));
 	},
 
 	_triggerFocus: function() {

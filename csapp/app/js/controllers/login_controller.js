@@ -69,13 +69,7 @@ App.LoginController = App.CloudOSController.extend({
 	},
 
 	_showTwoFactorModal: function() {
-		this.set('model',{
-			username: this.get('email'),
-			deviceId: getCookie("deviceId"),
-			deviceName: getCookie("deviceName"),
-			isRegister: false
-		});
-		this.send('openModal','twoFactorVerification', this.get('model') );
+		this.transitionToRoute('/verification/' + this.get('email'));
 	},
 
 	_displayForgotPasswordNotification: function() {
