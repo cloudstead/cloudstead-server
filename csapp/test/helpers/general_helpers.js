@@ -5,6 +5,13 @@ Ember.Test.registerHelper("default_string", function(app, string, value) {
 	return string;
 });
 
+Ember.Test.registerHelper("default_object", function(app, subject, object) {
+	if (Ember.isNone(subject) || Ember.isEmpty(subject)){
+		subject = $.extend({}, object);
+	}
+	return subject;
+});
+
 Ember.Test.registerHelper("pageHasElementWithText", function(app, element, text) {
 	return find(element).text().indexOf(text !== -1);
 });
