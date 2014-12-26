@@ -115,7 +115,7 @@
 									&nbsp;
 								</div>
 								<div class="large-5 medium-10 small-10 columns">
-									<button type="submit" class="secondary expand" {{action 'updateAdminAccount'}}>
+									<button type="submit" class="secondary expand update_details" {{action 'updateAdminAccount'}}>
 										{{t forms.admin.update}}
 									</button>
 								</div>

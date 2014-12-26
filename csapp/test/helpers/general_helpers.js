@@ -5,6 +5,10 @@ Ember.Test.registerHelper("default_string", function(app, string, value) {
 	return string;
 });
 
+Ember.Test.registerHelper("pageHasElementWithText", function(app, element, text) {
+	return find(element).text().indexOf(text !== -1);
+});
+
 Ember.Test.registerHelper("hasElements", function(app, elements, message) {
 	var actual = true;
 	var missing = "";

@@ -25,7 +25,7 @@ test("User cancels registration", function() {
 	click("#cancel_sign_up");
 
 	andThen(function() {
-		should_not_see_signup_form();
+		should_see_index_page();
 	});
 });
 

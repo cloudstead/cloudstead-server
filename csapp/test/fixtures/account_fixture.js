@@ -10,10 +10,10 @@ Ember.Test.firstUserData = {
 	".activation_code": "foo"
 };
 
-Ember.Test.secondUserData = {
+Ember.Test.verifiedUserData = {
 	".first_name_input": "Jane",
 	".last_name_input": "Macintosh",
-	".email_input": "jane_macintosh@cloudstead_testing.tst",
+	".email_input": "jane_macintosh@cloudsteadtesting.tst",
 	".mobile_country_code_input": 123,
 	".mobile_phone_input": 7654321,
 	".password_input": "secret123",
