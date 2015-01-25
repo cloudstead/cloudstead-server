@@ -528,7 +528,7 @@ public class CloudOsLauncher implements Runnable {
 
             // cloudos can call back to dnsServer to define more names if needed (after installing apps),
             // we generate an API key here for the dnsServer
-            return dnsClient.createUser(hostname);
+            return dnsClient.createOrUpdateUser(hostname);
 
         } catch (Exception e) {
             log.error("Error updating DNS: "+e, e);
