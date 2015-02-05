@@ -9,6 +9,12 @@
         // persistence for cloudstead
         "recipe[postgresql]",
 
+        // persistence for web analytics
+        "recipe[mysql]",
+
+        // for sending email
+        "recipe[email]",
+
         // for cloudos-dns and cloudstead
         "recipe[java]",
 
@@ -16,6 +22,9 @@
         "recipe[cloudstead]",
 
         // DNS and appstore
-        "recipe[cloudos-dns]", "recipe[cloudos-appstore]"
+        "recipe[cloudos-dns]", "recipe[cloudos-appstore]",
+
+        // web analytics
+        "recipe[owa]"
     ]
 }

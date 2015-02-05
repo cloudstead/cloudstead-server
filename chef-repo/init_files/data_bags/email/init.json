@@ -1,0 +1,11 @@
+{
+    "id": "init",
+
+    "smtp_relay": {
+        "username": "sendgrid-username-here",
+        "password": "sendgrid-password-here",
+        "host": "smtp.sendgrid.net",
+        "port": 587
+    }
+
+}
