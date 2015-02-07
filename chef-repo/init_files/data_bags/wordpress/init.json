@@ -1,0 +1,8 @@
+{
+  "id" : "init",
+  "admin" : {
+    "login" : "admin",
+    "password" : "admin-password-goes-here",
+    "email" : "admin-email-goes-here"
+  }
+}
