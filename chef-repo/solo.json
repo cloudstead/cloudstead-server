@@ -25,7 +25,7 @@
         "recipe[cloudos-dns]", "recipe[cloudos-appstore]",
 
         // web analytics
-        "recipe[owa]",
+        "recipe[piwik]",
 
         // blog/site
         "recipe[wordpress]"
