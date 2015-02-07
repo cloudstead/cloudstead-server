@@ -98,7 +98,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         // ensure activation key is valid
         if (!acService.attempt(request.getActivationCode(), admin.getUuid())) {
-            return ResourceUtil.invalid();
+            return ResourceUtil.invalid("{err.activationCode.empty}");
         }
 
         admin = adminDAO.create(admin);
