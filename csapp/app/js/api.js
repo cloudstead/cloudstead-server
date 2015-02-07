@@ -15,6 +15,8 @@ function hide_loading(){
 	$('.loading_animation').addClass("hide");
 }
 
+API_ROOT='/cloudstead';
+
 API_RESPONSE_STATUS = {
 	success: 'success',
 	error: 'error',
@@ -38,7 +40,7 @@ Api = {
 		show_loading();
 		Ember.$.ajax({
 			type: 'GET',
-			url: url,
+			url: API_ROOT + url,
 			async: false,
 			beforeSend: add_api_auth,
 			success: function (response, status, jqXHR) {
@@ -56,7 +58,7 @@ Api = {
 		show_loading();
 		Ember.$.ajax({
 			type: method,
-			url: url,
+			url: API_ROOT + url,
 			async: false,
 			contentType: 'application/json',
 			data: JSON.stringify(data),
@@ -84,7 +86,7 @@ Api = {
 		show_loading();
 		Ember.$.ajax({
 			type: 'DELETE',
-			url: url,
+			url: API_ROOT + url,
 			async: false,
 			beforeSend: add_api_auth,
 			'success': function (accounts, status, jqXHR) {
@@ -117,7 +119,7 @@ Api = {
 
 		Ember.$.ajax({
 			'type': 'POST',
-			'url':'/api/admins',
+			'url': API_ROOT + '/api/admins',
 			'contentType': 'application/json',
 			'async': false,
 			'data': JSON.stringify(data),
@@ -144,7 +146,7 @@ Api = {
 		instances = [];
 		Ember.$.ajax({
 			'type': 'GET',
-			'url':'/api/cloudos',
+			'url':API_ROOT + '/api/cloudos',
 			'contentType': 'application/json',
 			'async': false,
 			'beforeSend': add_api_auth,
@@ -166,7 +168,7 @@ Api = {
 		var result;
 		Ember.$.ajax({
 			'type': 'GET',
-			'url':'/api/admins/' + uuid,
+			'url': API_ROOT + '/api/admins/' + uuid,
 			'contentType': 'application/json',
 			'async': false,
 			'beforeSend': add_api_auth,
@@ -191,7 +193,7 @@ Api = {
 		var result = null;
 		Ember.$.ajax({
 			'type': 'PUT',
-			'url':'/api/cloudos/' + cloudOsRequest.name,
+			'url': API_ROOT + '/api/cloudos/' + cloudOsRequest.name,
 			'contentType': 'application/json',
 			'async': false,
 			'beforeSend': add_api_auth,
@@ -216,7 +218,7 @@ Api = {
 		var result = null;
 		Ember.$.ajax({
 			'type': 'GET',
-			'url':'/api/cloudos/' + name + '/status',
+			'url': API_ROOT + '/api/cloudos/' + name + '/status',
 			'contentType': 'application/json',
 			'async': false,
 			'beforeSend': add_api_auth,
@@ -238,7 +240,7 @@ Api = {
 		var result = null;
 		Ember.$.ajax({
 			'type': 'DELETE',
-			'url':'/api/cloudos/' + name,
+			'url': API_ROOT + '/api/cloudos/' + name,
 			'contentType': 'application/json',
 			'async': false,
 			'beforeSend': add_api_auth,
@@ -267,7 +269,7 @@ Api = {
 
 		Ember.$.ajax({
 			'type': 'POST',
-			'url':'/api/auth/forgot_password',
+			'url': API_ROOT + '/api/auth/forgot_password',
 			'contentType': 'application/json',
 			'async': false,
 			'data': email,
@@ -300,7 +302,7 @@ Api = {
 //        var ok = false;
 //        Ember.$.ajax({
 //            'type': 'POST',
-//            'url':'/api/accounts/' + api_token + '/password',
+//            'url': API_ROOT + '/api/accounts/' + api_token + '/password',
 //            'contentType': 'application/json',
 //            'data': JSON.stringify({
 //                'oldPassword': oldPassword,
