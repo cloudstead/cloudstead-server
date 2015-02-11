@@ -14,11 +14,19 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor @AllArgsConstructor
 public class CloudOsRequest {
 
+    public CloudOsRequest (String name) {
+        setName(name);
+    }
+
     // Name has a lot of restrictions: must have a value; min 3/max 20 alphanumeric chars; cannot be reserved word
     @HasValue(message = "error.cloudosRequest.name.required")
     @Size(max=20, message="error.cloudosRequest.name.tooLong")
     @Pattern(regexp = "[A-Za-z0-9]{3,}", message = "error.cloudosRequest.name.invalid")
     @NotReservedWord(reserved=ReservedCloudOsNames.class, message = "error.cloudosRequest.name.reserved")
     @Getter @Setter private String name;
+
+    @Getter @Setter private CloudOsEdition edition = CloudOsEdition.starter;
+
+    @Getter @Setter private CloudOsGeoLocation location = CloudOsGeoLocation.us_west;
 
 }
