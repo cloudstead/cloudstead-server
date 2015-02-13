@@ -172,16 +172,16 @@
 								&nbsp;
 							</div>
 							<div class="large-2 medium-5 small-6 columns">
-									<button id="cancel_sign_up" type="submit" class="alert expand" {{action 'close'}}>
-										{{t forms.admin.cancel_button}}
+									<button id="confirm_sign_up" type="submit" class="secondary expand" {{action 'doNewAccount'}}>
+										{{t forms.admin.signup_button}}
 									</button>
 							</div>
 							<div class="large-1 hide-for-medium hide-for-small columns">
 								&nbsp;
 							</div>
 							<div class="large-2 medium-5 small-6 columns">
-									<button id="confirm_sign_up" type="submit" class="secondary expand" {{action 'doNewAccount'}}>
-										{{t forms.admin.signup_button}}
+									<button id="cancel_sign_up" class="alert expand" {{action 'close'}}>
+										{{t forms.admin.cancel_button}}
 									</button>
 							</div>
 							<div class="large-2 medium-1 hide-for-small columns">
@@ -196,4 +196,5 @@
 	<div class="row modal-filler">
 		&nbsp;
 	</div>
+	{{ autofocus }}
 {{/modal-dialog}}

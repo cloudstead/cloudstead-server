@@ -14,7 +14,7 @@
 								{{#if requestMessages.error.email}}
 									{{ input type="text" value=email class="error email_input" }}
 								{{else}}
-									{{ input type="text" value=email class="email_input"}}
+									{{ input type="text" value=email class="email_input" }}
 								{{/if}}
 
 								{{#if requestMessages.error.email}}
@@ -32,7 +32,7 @@
 								<label for="right-label" class="right">{{t forms.admin.password}}</label>
 							</div>
 							<div class="large-5 small-12 columns">
-										{{#if requestMessages.error.password}}
+								{{#if requestMessages.error.password}}
 									{{input type="password" value=password class="error password_input"}}
 								{{else}}
 									{{input type="password" value=password class="password_input"}}
@@ -52,16 +52,16 @@
 							<div class="large-5 hide-for-medium hide-for-small columns">
 								&nbsp;
 							</div>
-							<div class="large-2 medium-5 small-6 columns">
-									<button id="cancel_sign_in" type="submit" class="alert expand" {{action 'close'}}>{{t forms.admin.cancel_button}}</button>
-							</div>
-							<div class="large-1 medium-1 hide-for-small columns">
-								&nbsp;
-							</div>
 							<div class="large-2 medium-6 small-6 columns">
 									<button id="confirm_sign_in" type="submit" class="secondary expand" {{action 'doLogin'}}>{{t forms.admin.login_button}}</button>
 							</div>
-							<div class="large-2 hide-for-medium hide-for-small columns">
+							<div class="large-1 hide-for-medium hide-for-small columns">
+								&nbsp;
+							</div>
+							<div class="large-2 medium-5 small-6 columns">
+									<button id="cancel_sign_in" class="alert expand" {{action 'close'}}>{{t forms.admin.cancel_button}}</button>
+							</div>
+							<div class="large-2 medium-1 hide-for-small columns">
 								&nbsp;
 							</div>
 						</div>
@@ -74,4 +74,5 @@
 	<div class="row modal-filler">
 		&nbsp;
 	</div>
+	{{ autofocus }}
 {{/modal-dialog}}
