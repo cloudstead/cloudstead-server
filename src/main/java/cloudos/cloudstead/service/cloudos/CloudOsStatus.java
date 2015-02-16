@@ -71,6 +71,7 @@ public class CloudOsStatus {
     }
 
     public void error(String messageKey, String message) {
+        log.error("ERROR: "+messageKey+" "+message);
         error(messageKey, message, null);
     }
 
