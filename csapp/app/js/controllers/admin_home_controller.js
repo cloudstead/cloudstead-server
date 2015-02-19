@@ -33,15 +33,16 @@ App.AdminHomeController = Ember.ObjectController.extend({
 			}
 		},
 		deleteInstance: function(instanceName){
-			var r = confirm("Are you sure you want to delete cloudstead "+instanceName+" ?");
+			var trans = Em.I18n.translations.sections.admin.dialogs;
+			var r = confirm( trans.confirm_delete_pre_name + instanceName + trans.confirm_delete_post_name);
 			if (r === true) {
 				result = Api.delete_cloudos_instance(instanceName);
 
 					if (result) {
-						alert('Cloudstead ' + instanceName + 'is successfully deleted');
+						alert(trans.info_delete_pre_name + instanceName + trans.info_delete_post_name);
 						location.reload();
 					} else {
-						console.log('not deleted');
+						alert(trans.error_delete_pre_name + instanceName + trans.error_delete_post_name);
 					}
 
 			} else {
