@@ -26,10 +26,11 @@ App.AdminHomeController = Ember.ObjectController.extend({
 			}
 
 			var status = Api.new_cloud_os(cloudOsRequest);
-			if (status) {
+			if (!Ember.isNone(status.message)) {
+				alert(status.message);
+			}
+			else {
 				this.send('openModal','cloudOsCreation', this.get('model') );
-			} else {
-				alert(locate(Em.I18n.translations, status.errorMessageKey));
 			}
 		},
 		deleteInstance: function(instanceName){

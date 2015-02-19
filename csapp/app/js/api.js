@@ -203,7 +203,7 @@ Api = {
 			},
 			'error': function (jqXHR, status, error) {
 				console.log('new_cloud_os error: result='+result+', error='+error);
-				result = null;
+				result = jqXHR.responseJSON[0];
 			},
 			'complete': function(jqXHR, status, error) {
 				hide_loading();
