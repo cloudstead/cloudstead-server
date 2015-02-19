@@ -2,6 +2,7 @@ App.CloudOSController = Ember.ObjectController.extend({
 	requestMessages: null,
 
 	_setRequestErrors: function(errorsObject) {
+		console.log("errors object: ", errorsObject);
 		this.set(
 			'requestMessages',
 			App.RequestMessagesObject.create({
@@ -17,7 +18,7 @@ App.CloudOSController = Ember.ObjectController.extend({
 	_setRequestMessage: function(messageObject) {
 		this.set('requestMessages',
 			App.RequestMessagesObject.create({
-				json: registrationErrors
+				json: messageObject
 			})
 		);
 	},
