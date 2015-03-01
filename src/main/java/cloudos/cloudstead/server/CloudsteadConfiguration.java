@@ -35,7 +35,7 @@ public class CloudsteadConfiguration extends RestServerConfiguration
 
     @Getter @Setter private String emailTemplateRoot;
     @Getter @Setter private Map<String, SimpleEmailMessage> emailSenderNames = new HashMap<>();
-    @Getter @Setter private SmtpMailConfig smtpMailConfig;
+    @Getter @Setter private SmtpMailConfig smtp;
 
     @Getter @Setter private ApiConnectionInfo adminAuthy;
     @Getter @Setter private ApiConnectionInfo authy;

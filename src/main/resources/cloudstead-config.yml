@@ -93,7 +93,7 @@ emailSenderNames:
     fromName: {{RESET_PASSWORD_SENDER_NAME}}
     fromEmail: {{RESET_PASSWORD_SENDER_EMAIL}}
 
-smtpMailConfig:
+smtp:
   host: smtp.sendgrid.net
   port: 587
   user: {{SENDGRID_API_USER}}

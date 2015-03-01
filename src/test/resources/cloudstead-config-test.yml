@@ -91,7 +91,7 @@ emailSenderNames:
     fromName: admin
     fromEmail: admin@example.com
 
-smtpMailConfig:
+smtp:
   host: smtp.sendgrid.net
   port: 587
   user: {{SENDGRID_API_USER}}

@@ -37,6 +37,7 @@ import org.cobbzilla.util.dns.DnsType;
 import org.cobbzilla.util.http.ApiConnectionInfo;
 import org.cobbzilla.util.reflect.ReflectionUtil;
 import org.cobbzilla.util.security.ShaUtil;
+import org.cobbzilla.util.system.Command;
 import org.cobbzilla.util.system.CommandResult;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.util.system.ConnectionInfo;
@@ -46,7 +47,10 @@ import rooty.toots.vendor.VendorDatabagSetting;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.cobbzilla.util.io.FileUtil.toFile;
@@ -425,7 +429,9 @@ public class CloudOsLauncher implements Runnable {
                 toFile(keyFile.getAbsolutePath(), privateKey);
                 chefSoloEnv.put("SSH_KEY", keyFile.getAbsolutePath()); // add key to env
 
-                commandResult = CommandShell.exec(chefSolo, null, cloudOsChefDir, chefSoloEnv);
+                final Command command = new Command(chefSolo).setDir(cloudOsChefDir).setEnv(chefSoloEnv);
+                commandResult = CommandShell.exec(command);
+
                 if (!commandResult.isZeroExitStatus()) {
                     throw new IllegalStateException("Error running chef-solo: " + commandResult.getException(), commandResult.getException());
                 }
