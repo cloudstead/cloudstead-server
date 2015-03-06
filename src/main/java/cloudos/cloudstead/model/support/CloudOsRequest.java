@@ -11,6 +11,7 @@ import org.cobbzilla.util.collection.ListUtil;
 import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.NotReservedWord;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
@@ -29,12 +30,12 @@ public class CloudOsRequest {
     @HasValue(message = "err.cloudos.name.required")
     @Size(max=20, message="err.cloudos.name.length")
     @Pattern(regexp = "[A-Za-z0-9]{3,}", message = "err.cloudos.name.invalid")
-    @NotReservedWord(reserved=ReservedCloudOsNames.class, message = "error.cloudos.name.reserved")
+    @NotReservedWord(reserved=ReservedCloudOsNames.class, message="{err.cloudos.name.reserved}")
     @Getter @Setter private String name;
 
-    @Getter @Setter private CloudOsEdition edition = CloudOsEdition.starter;
-    @Getter @Setter private CloudOsAppBundle appBundle = CloudOsAppBundle.basic;
-    @Getter @Setter private CloudOsGeoRegion region = CloudOsGeoRegion.us_west;
+    @NotNull @Getter @Setter private CloudOsEdition edition = CloudOsEdition.starter;
+    @NotNull @Getter @Setter private CloudOsAppBundle appBundle = CloudOsAppBundle.basic;
+    @NotNull @Getter @Setter private CloudOsGeoRegion region = CloudOsGeoRegion.us_west;
     @Getter @Setter private String additionalApps;
 
     @JsonIgnore public List<String> getAdditionalAppsList () { return Arrays.asList(additionalApps.split("[,\\s]+")); }

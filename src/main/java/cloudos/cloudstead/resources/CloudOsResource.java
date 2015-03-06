@@ -218,7 +218,7 @@ public class CloudOsResource {
 
         if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.setConfig.notInitial}");
 
-        final File stagingDir = configuration.getCloudConfig().getCloudOsStagingDir(cloudOs);
+        final File stagingDir = configuration.getCloudConfig().getChefStagingDir(cloudOs);
         final File databagsDir = new File(stagingDir, ChefSolo.DATABAGS_DIR);
         for (Map.Entry<String, AppConfiguration> entry : configMap.getAppConfigs().entrySet()) {
             final File appDatabagDir = new File(databagsDir, entry.getKey());
@@ -324,7 +324,7 @@ public class CloudOsResource {
     }
 
     public AppConfigurationMap getAppConfiguration(CloudOs cloudOs, String locale) {
-        final File stagingDir = configuration.getCloudConfig().getCloudOsStagingDir(cloudOs);
+        final File stagingDir = configuration.getCloudConfig().getChefStagingDir(cloudOs);
         final AppConfigurationMap configMap = new AppConfigurationMap();
         configMap.addAll(cloudOs.getAllApps(), stagingDir, locale);
         return configMap;
@@ -332,8 +332,8 @@ public class CloudOsResource {
 
     public boolean prepChefStagingDir(CloudOs cloudOs) {
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
-        final File chefMaster = cloudConfig.getCloudOsChefDir();
-        final File stagingDir = cloudConfig.getCloudOsStagingDir(cloudOs);
+        final File chefMaster = cloudConfig.getChefDir();
+        final File stagingDir = cloudConfig.getChefStagingDir(cloudOs);
         try {
             ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir);
         } catch (Exception e) {

@@ -79,8 +79,8 @@ cloudConfig:
   sslKey: {{SSL_KEY}}
 
   # this is where the chef stuff lives, we use the deploy.sh script to provision the new instance
-  cloudOsChefDir: {{CLOUDOS_CHEF_DIR}}
-  cloudOsChefStagingDir: {{CLOUDOS_CHEF_STAGING_DIR}}
+  chefSources: {{CLOUDOS_CHEF_SOURCES}}
+  chefStagingDir: {{CLOUDOS_CHEF_STAGING_DIR}}
 
 emailTemplateRoot: {{EMAIL_TEMPLATE_ROOT}}
 

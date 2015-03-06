@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.dns.DnsRecordMatch;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+
 @AllArgsConstructor @Slf4j
 public class CloudOsDestroyer implements Runnable {
 
@@ -21,11 +23,11 @@ public class CloudOsDestroyer implements Runnable {
         final CloudOs cloudOs = status.getCloudOs();
         if (cloudOs == null) {
             status.error("{destroy.error.notFound}", "No CloudOs record found");
-            throw new IllegalStateException("No CloudOs record found");
+            die("No CloudOs record found");
         }
         if (cloudOs.getInstance() == null) {
             status.error("{destroy.error.noInstance}", "No instance found");
-            throw new IllegalStateException("No instance found");
+            die("No instance found");
         }
 
         final String name = cloudOs.getName();
@@ -36,7 +38,7 @@ public class CloudOsDestroyer implements Runnable {
             cloud.teardown(cloudOs.getInstance());
         } catch (Exception e) {
             status.error("{destroy.error.tearingDownInstance}", "An error occurred during teardown");
-            throw new IllegalStateException("Error tearing down instance: "+e, e);
+            die("Error tearing down instance: "+e, e);
         }
 
         status.update("{destroy.removingDnsRecords}");
@@ -54,7 +56,7 @@ public class CloudOsDestroyer implements Runnable {
             cloudOsDAO.delete(cloudOs.getUuid());
         } catch (Exception e) {
             status.error("{destroy.error.deletingFromDB}", "An error occurred deleting from the DB");
-            throw new IllegalStateException("Error deleting from DB: "+e, e);
+            die("Error deleting from DB: "+e, e);
         }
 
         status.success("{destroy.success}");

@@ -6,6 +6,8 @@ import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+
 public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
 
     @Override protected CloudOsStatus launch(CloudOsStatus status) {
@@ -23,7 +25,7 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
 
     protected static void sleep(int seconds) {
         try { Thread.sleep(TimeUnit.SECONDS.toMillis(seconds)); } catch (InterruptedException e) {
-            throw new IllegalStateException("Interrupted while setting up: "+e, e);
+            die("Interrupted while setting up: "+e, e);
         }
     }
 
@@ -40,7 +42,7 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
                 cloudOs.setName(status.getCloudOs().getName());
                 try { cloudOs = cloudOsDAO.create(cloudOs); } catch (Exception e) {
                     status.error("{setup.creatingCloudOs.error}", "Error saving new CloudOs to DB");
-                    throw new IllegalStateException("error saving new cloudos to DB: "+e, e);
+                    die("error saving new cloudos to DB: " + e, e);
                 }
                 status.setCloudOs(cloudOs);
             }

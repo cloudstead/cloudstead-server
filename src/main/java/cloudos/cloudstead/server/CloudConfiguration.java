@@ -12,12 +12,17 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.s3.AmazonS3Client;
 import lombok.Getter;
 import lombok.Setter;
-import org.cobbzilla.util.security.ShaUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.util.io.FileUtil;
+import rooty.toots.chef.ChefDirSynchronizer;
 
 import java.io.File;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.io.FileUtil.mkdirOrDie;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 
+@Slf4j
 public class CloudConfiguration implements AWSCredentials {
 
     private static final CsCloudFactory cloudFactory = new CsCloudFactory();
@@ -40,11 +45,24 @@ public class CloudConfiguration implements AWSCredentials {
 
     @Getter @Setter private String sslPem;
     @Getter @Setter private String sslKey;
-    @Getter @Setter private File cloudOsChefDir;
-    @Getter @Setter private File cloudOsChefStagingDir;
 
-    public File getCloudOsStagingDir (CloudOs cloudOs) {
-        return new File(cloudOsChefStagingDir, ShaUtil.sha256_hex(cloudOs.getName()+"_"+cloudOs.getAdminUuid()));
+    @Getter @Setter private String chefSources;
+    @Getter @Setter private File chefStagingDir;
+
+    private File chefDir = null;
+    private ChefDirSynchronizer chefSync = null;
+
+    public synchronized File getChefDir () {
+        if (chefDir == null) {
+            chefDir = FileUtil.createTempDirOrDie(CloudConfiguration.class.getName()+"_chef_");
+            chefSync = new ChefDirSynchronizer(chefSources, chefDir);
+            chefSync.fire();
+        }
+        return chefDir;
+    }
+
+    public File getChefStagingDir(CloudOs cloudOs) {
+        return mkdirOrDie(new File(mkdirOrDie(chefStagingDir), sha256_hex(cloudOs.getName() + "_" + cloudOs.getAdminUuid())));
     }
 
     @Getter(lazy=true) private final AmazonIdentityManagementClient IAMclient = initIAMclient();
@@ -63,7 +81,7 @@ public class CloudConfiguration implements AWSCredentials {
             return cloudFactory.buildCloud(config);
 
         } catch (Exception e) {
-            throw new IllegalStateException("Error building hosted cloud: "+e, e);
+            return die("Error building hosted cloud: " + e, e);
         }
     }
 

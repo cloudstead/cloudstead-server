@@ -10,6 +10,8 @@ import org.cobbzilla.wizard.validation.IsUnique;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+
 @Entity
 @IsUnique.List({
         @IsUnique(unique="email",       daoBean="adminDAO", message="{err.email.notUnique}"),
@@ -17,7 +19,7 @@ import javax.persistence.Entity;
 })
 public class Admin extends AccountBase {
 
-    @Override public void beforeCreate() { if (!hasUuid()) throw new IllegalStateException("no uuid assigned"); }
+    @Override public void beforeCreate() { if (!hasUuid()) die("no uuid assigned"); }
 
     @Override
     public AccountBase setEmail(String email) {

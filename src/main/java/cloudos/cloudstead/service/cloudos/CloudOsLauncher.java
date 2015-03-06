@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.io.FileUtil.abs;
 import static org.cobbzilla.util.io.FileUtil.toFile;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
@@ -126,7 +128,7 @@ public class CloudOsLauncher implements Runnable {
 
                     } else {
                         final String fqdn = instance != null ? getFqdn() : "no-fqdn";
-                        throw new IllegalStateException("launch completed OK but instance ("+ fqdn +") was not running!");
+                        die("launch completed OK but instance ("+ fqdn +") was not running!");
                     }
                 }
 
@@ -343,11 +345,7 @@ public class CloudOsLauncher implements Runnable {
         final File initFilesDir = Files.createTempDir();
         try {
             // SSL key & cert
-            final File cloudOsCertDir = new File(initFilesDir.getAbsolutePath() + "/certs/cloudos");
-
-            if (!cloudOsCertDir.exists() && !cloudOsCertDir.mkdirs()) {
-                throw new IllegalStateException("error creating cloudOsCertDir: "+cloudOsCertDir.getAbsolutePath());
-            }
+            final File cloudOsCertDir = FileUtil.mkdirOrDie(new File(abs(initFilesDir) + "/certs/cloudos"));
             Files.copy(new File(cloudConfig.getSslPem()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME+".pem"));
             Files.copy(new File(cloudConfig.getSslKey()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME+".key"));
 
@@ -390,10 +388,10 @@ public class CloudOsLauncher implements Runnable {
                 emailDatabag.getVendor().addSetting(new VendorDatabagSetting(config, getShasum(emailDatabag, config)));
             }
 
-            toFile(new File(initFilesDir.getAbsolutePath() + "/data_bags/cloudos/base.json"), toJson(baseDatabag));
-            toFile(new File(initFilesDir.getAbsolutePath() + "/data_bags/cloudos/init.json"), toJson(cloudOsDatabag));
-            toFile(new File(initFilesDir.getAbsolutePath() + "/data_bags/cloudos/ports.json"), toJson(new PortsDatabag(3001)));
-            toFile(new File(initFilesDir.getAbsolutePath() + "/data_bags/email/init.json"), toJson(emailDatabag));
+            toFile(new File(abs(initFilesDir) + "/data_bags/cloudos/base.json"), toJson(baseDatabag));
+            toFile(new File(abs(initFilesDir) + "/data_bags/cloudos/init.json"), toJson(cloudOsDatabag));
+            toFile(new File(abs(initFilesDir) + "/data_bags/cloudos/ports.json"), toJson(new PortsDatabag(3001)));
+            toFile(new File(abs(initFilesDir) + "/data_bags/email/init.json"), toJson(emailDatabag));
 
         } catch (Exception e) {
             log.warn("Error building initialization file: "+e, e);
@@ -409,7 +407,7 @@ public class CloudOsLauncher implements Runnable {
         CommandResult commandResult = null;
         try {
             // todo: sanity check that the dir contains all appropriate cookbooks/databags
-            cloudOsChefDir = cloudConfig.getCloudOsStagingDir(cloudOs);
+            cloudOsChefDir = cloudConfig.getChefStagingDir(cloudOs);
 
             final CommandLine chefSolo = new CommandLine(new File(cloudOsChefDir, "deploy.sh"))
                     .addArgument(hostname + "@" + publicIp)
@@ -417,7 +415,7 @@ public class CloudOsLauncher implements Runnable {
 
             // setup system env for deploy.sh script
             final Map<String, String> chefSoloEnv = new HashMap<>();
-            chefSoloEnv.put("INIT_FILES", initFilesDir.getAbsolutePath());
+            chefSoloEnv.put("INIT_FILES", abs(initFilesDir));
 
             // do not use default json editor (won't be found), use the one installed here
             chefSoloEnv.put("JSON_EDIT", "cstead json");
@@ -435,15 +433,15 @@ public class CloudOsLauncher implements Runnable {
                 // be careful, this is a plaintext key (low risk though, since after we set the thing up, we lock ourselves out -- though this is still a todo)
                 @Cleanup("delete") final File keyFile = File.createTempFile("cloudos", ".key");
                 chmod(keyFile, "600");
-                toFile(keyFile.getAbsolutePath(), privateKey);
-                chefSoloEnv.put("SSH_KEY", keyFile.getAbsolutePath()); // add key to env
+                toFile(abs(keyFile), privateKey);
+                chefSoloEnv.put("SSH_KEY", abs(keyFile)); // add key to env
 
                 final CommandProgressFilter filter = getLaunchProgressFilter(cloudOsChefDir);
                 final Command command = new Command(chefSolo).setDir(cloudOsChefDir).setEnv(chefSoloEnv).setOut(filter);
                 commandResult = CommandShell.exec(command);
 
                 if (!commandResult.isZeroExitStatus()) {
-                    throw new IllegalStateException("Error running chef-solo: " + commandResult.getException(), commandResult.getException());
+                    die("Error running chef-solo: " + commandResult.getException(), commandResult.getException());
                 }
                 log.info("chef-solo result:\nexit=" + commandResult.getExitStatus() + "\nout=\n" + commandResult.getStdout() + "\nerr=\n" + commandResult.getStderr());
             }
@@ -460,7 +458,7 @@ public class CloudOsLauncher implements Runnable {
             }
             if (cloudOsChefDir != null && cloudOsChefDir.exists()) {
                 try { FileUtils.deleteDirectory(cloudOsChefDir); } catch (Exception e) {
-                    log.warn("Error deleting cloudOsChefDir (" + cloudOsChefDir + "): " + e, e);
+                    log.warn("Error deleting chefDir (" + cloudOsChefDir + "): " + e, e);
                 }
             }
         }
@@ -511,7 +509,7 @@ public class CloudOsLauncher implements Runnable {
             response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT+"/"+ucid, null);
             if (response.status == 404) {
                 response = appStoreClient.doPost(ApiConstants.CLOUDS_ENDPOINT, toJson(storeAccount));
-                if (!response.isSuccess()) throw new IllegalStateException("appstore account creation failed: "+response);
+                if (!response.isSuccess()) die("appstore account creation failed: " + response);
             } else {
                 log.info("Using existing appstore account: "+response.json);
             }
@@ -547,7 +545,7 @@ public class CloudOsLauncher implements Runnable {
 
             if (!existing.isEmpty()) {
                 if (dnsClient.remove(subdomainMatcher) <= 0) {
-                    throw new IllegalStateException("Error removing records, expected to remove some but didn't");
+                    die("Error removing records, expected to remove some but didn't");
                 }
             }
 

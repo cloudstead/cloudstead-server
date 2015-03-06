@@ -16,12 +16,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 import static org.cobbzilla.util.string.StringUtil.empty;
 
@@ -42,13 +44,13 @@ public class CloudOs extends UniquelyNamedEntity {
         name = (n == null) ? null : n.toLowerCase(); return this;
     }
 
-    @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
+    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsEdition edition;
 
-    @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
+    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsAppBundle appBundle;
 
-    @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
+    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsGeoRegion region;
 
     @Size(max=1024, message="err.cloudos.additionalApps.length")
@@ -62,7 +64,7 @@ public class CloudOs extends UniquelyNamedEntity {
                 : ListUtil.concat(appBundle.getApps(), getAdditionalAppsList());
     }
 
-    @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
+    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsState state = CloudOsState.initial;
     @Getter @Setter private long lastStateChange;
 
@@ -86,7 +88,7 @@ public class CloudOs extends UniquelyNamedEntity {
         try {
             return instanceJson == null ? null : JsonUtil.fromJson(instanceJson, CsInstance.class);
         } catch (Exception e) {
-            throw new IllegalStateException("Invalid instanceJson: "+instanceJson);
+            return die("Invalid instanceJson: " + instanceJson);
         }
     }
 

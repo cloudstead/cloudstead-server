@@ -24,6 +24,7 @@ import org.cobbzilla.wizard.util.RestResponse;
 import org.cobbzilla.wizardtest.resources.ApiDocsResourceIT;
 import org.junit.Before;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.util.string.StringUtil.urlEncode;
@@ -45,12 +47,23 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         return StreamConfigurationSource.fromResources(getClass(), "cloudstead-config-test.yml");
     }
 
+    protected File chefStagingDir;
+
     @Override public void beforeStart(RestServer<CloudsteadConfiguration> server) {
-        // register mocks for DNS
-        final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
-        configuration.setDnsClient(new MockDnsClient());
-        configuration.setSendGrid(new MockSendGrid());
-        configuration.setAppStoreClient(new MockAppStoreApiClient());
+
+        try {
+            chefStagingDir = File.createTempFile(getClass().getName(), "_chef_staging");
+
+            // register mocks for DNS
+            final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
+            configuration.setDnsClient(new MockDnsClient());
+            configuration.setSendGrid(new MockSendGrid());
+            configuration.setAppStoreClient(new MockAppStoreApiClient());
+            configuration.getCloudConfig().setChefStagingDir(chefStagingDir);
+
+        } catch (Exception e) {
+            die("beforeStart: " + e, e);
+        }
         super.beforeStart(server);
     }
 
@@ -123,7 +136,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         assertEquals(T_WELCOME, welcome.getTemplateName());
 
         apiDocs.addNote("hit activation URL found in welcome email");
-        response = doGet(welcome.getParameters().get("activationUrl").toString());
+        response = doGet(welcome.getParameters().get("activationApiUrl").toString());
         assertEquals(200, response.status);
 
         return adminResponse;
