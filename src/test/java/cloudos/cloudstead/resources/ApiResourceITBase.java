@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.io.FileUtil.createTempDir;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.util.string.StringUtil.urlEncode;
@@ -52,7 +53,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
     @Override public void beforeStart(RestServer<CloudsteadConfiguration> server) {
 
         try {
-            chefStagingDir = File.createTempFile(getClass().getName(), "_chef_staging");
+            chefStagingDir = createTempDir(getClass().getName() + "_chef_staging");
 
             // register mocks for DNS
             final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();

@@ -64,7 +64,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
             final String ip = instance != null ? instance.getPublicIp() : "unknown-ip";
             final String msg = "Error deleting CloudOs (" + e + "), there may be a stray instance running at " + ip;
             log.warn(msg, e);
-            die(msg, e);
         }
     }
 
@@ -105,7 +104,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
 
         apiDocs.addNote("list cloudos instances -- should be one");
         instances = fromJson(get(CLOUDOS_ENDPOINT).json, CloudOs[].class);
-        assertEquals(0, instances.length);
+        assertEquals(1, instances.length);
         assertEquals(name, instances[0].getName());
 
         apiDocs.addNote("update CloudOs instance, add an app");
@@ -141,7 +140,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
     }
 
     private void assertCookbookDirsExist(CloudOs cloudOs) {
-        final File stagingDir = getBean(CloudsteadConfiguration.class).getCloudConfig().getChefStagingDir(cloudOs);
+        final File stagingDir = ((CloudsteadConfiguration) server.getConfiguration()).getCloudConfig().getChefStagingDir(cloudOs);
         for (String app : cloudOs.getAllApps()) {
             final File appDir = new File(abs(stagingDir) + "/cookbooks/" + app);
             assertTrue(appDir.exists() && appDir.isDirectory());
