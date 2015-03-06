@@ -7,7 +7,9 @@ import cloudos.appstore.model.support.ApiToken;
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.model.support.CloudOsRequest;
+import cloudos.cloudstead.model.support.CloudOsEdition;
+import cloudos.cloudstead.model.support.CloudOsGeoRegion;
+import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.CsCloud;
@@ -35,13 +37,14 @@ import org.cobbzilla.util.dns.DnsRecord;
 import org.cobbzilla.util.dns.DnsRecordMatch;
 import org.cobbzilla.util.dns.DnsType;
 import org.cobbzilla.util.http.ApiConnectionInfo;
+import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.reflect.ReflectionUtil;
 import org.cobbzilla.util.security.ShaUtil;
-import org.cobbzilla.util.system.Command;
-import org.cobbzilla.util.system.CommandResult;
-import org.cobbzilla.util.system.CommandShell;
-import org.cobbzilla.util.system.ConnectionInfo;
+import org.cobbzilla.util.system.*;
 import org.cobbzilla.wizard.util.RestResponse;
+import rooty.toots.chef.ChefHandler;
+import rooty.toots.chef.ChefSolo;
+import rooty.toots.chef.ChefSoloEntry;
 import rooty.toots.vendor.VendorDatabag;
 import rooty.toots.vendor.VendorDatabagSetting;
 
@@ -54,8 +57,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.cobbzilla.util.io.FileUtil.toFile;
+import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
+import static org.cobbzilla.util.system.CommandShell.chmod;
+import static rooty.toots.chef.ChefSolo.SOLO_JSON;
 
 @Slf4j
 public class CloudOsLauncher implements Runnable {
@@ -85,11 +91,20 @@ public class CloudOsLauncher implements Runnable {
         this.configuration = configuration;
         this.cloudOsDAO = cloudOsDAO;
         this.cloudConfig = configuration.getCloudConfig();
-        this.cloud = cloudConfig.buildHostedCloud(status.getAdmin().getUuid(), status.getRequest().getName());
+
+        final CloudOs cloudOs = status.getCloudOs();
+        final String name = cloudOs.getName();
+        final CloudOsEdition edition = cloudOs.getEdition();
+        final CloudOsGeoRegion region = cloudOs.getRegion();
+
+        this.cloud = cloudConfig.buildHostedCloud(status.getAdmin().getUuid(), name, edition, region);
     }
 
-    private String getFqdn() {
-        return cloud.getConfig().getFqdn(instance.getHost());
+    private String getFqdn() { return cloud.getConfig().getFqdn(instance.getHost()); }
+
+    private void updateState(CloudOs cloudOs, CloudOsState state) {
+        cloudOs.updateState(state);
+        cloudOsDAO.update(cloudOs);
     }
 
     @Override
@@ -106,7 +121,9 @@ public class CloudOsLauncher implements Runnable {
                     if (cloudOsIsRunning()) {
                         status.success("{setup.success}");
                         success = true;
+                        updateState(status.getCloudOs(), CloudOsState.live);
                         break;
+
                     } else {
                         final String fqdn = instance != null ? getFqdn() : "no-fqdn";
                         throw new IllegalStateException("launch completed OK but instance ("+ fqdn +") was not running!");
@@ -122,9 +139,13 @@ public class CloudOsLauncher implements Runnable {
 
             } finally {
                 if (!success && instance != null) {
+                    updateState(status.getCloudOs(), CloudOsState.destroying);
                     try {
                         if (cloud != null && !cloud.teardown(instance)) {
                             log.error("error tearing down instance that failed to come up properly (returned false)");
+                            updateState(status.getCloudOs(), CloudOsState.error);
+                        } else {
+                            updateState(status.getCloudOs(), CloudOsState.destroyed);
                         }
                     } catch (Exception e) {
                         log.error("error tearing down instance that failed to come up properly: " + e, e);
@@ -158,47 +179,36 @@ public class CloudOsLauncher implements Runnable {
         }
     }
 
-    private boolean resetCloudOs(Admin admin, CloudOsRequest request) {
-        CloudOs cloudOs = cloudOsDAO.findByName(request.getName());
-        if (cloudOs == null) {
-            cloudOs = new CloudOs();
-            cloudOs.setAdminUuid(admin.getUuid());
-            cloudOs.setName(request.getName());
-            cloudOs.initUcid();
+    private boolean resetCloudOs() {
 
+        final Admin admin = status.getAdmin();
+        final CloudOs cloudOs = status.getCloudOs();
+
+        CsInstance instance;
+        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) {
+            status.error("{setup.error.notOwner}", "Another user owns this cloud");
+            return false;
+        }
+
+        // if the instance is running, stop it and relaunch
+        status.update("{setup.instanceLookup}");
+        instance = cloudOs.getInstance();
+
+        if (instance != null) {
             try {
-                cloudOs = cloudOsDAO.create(cloudOs);
+                status.update("{setup.teardownPreviousInstance}");
+                updateState(cloudOs, CloudOsState.destroying);
+                cloud.teardown(instance);
+                updateState(cloudOs, CloudOsState.destroyed);
+
             } catch (Exception e) {
-                status.error("{setup.creatingCloudOs.error}", "Error saving new CloudOs to DB");
-                return false;
+                log.error("Error tearing down instance prior to relaunch (marching bravely forward!): " + e, e);
+                status.update("{setup.teardownPreviousInstance.nonFatalError}");
+                updateState(cloudOs, CloudOsState.error);
             }
-            status.setCloudOs(cloudOs);
-
         } else {
-            status.setCloudOs(cloudOs);
-
-            CsInstance instance;
-            if (!cloudOs.getAdminUuid().equals(admin.getUuid())) {
-                status.error("{setup.error.notOwner}", "Another user owns this cloud");
-                return false;
-            }
-
-            // if the instance is running, stop it and relaunch
-            status.update("{setup.instanceLookup}");
-            instance = cloudOs.getInstance();
-
-            if (instance != null) {
-                try {
-                    status.update("{setup.teardownPreviousInstance}");
-                    cloud.teardown(instance);
-
-                } catch (Exception e) {
-                    log.error("Error tearing down instance prior to relaunch (marching bravely forward!): " + e, e);
-                    status.update("{setup.teardownPreviousInstance.nonFatalError}");
-                }
-            } else {
-                log.warn("CloudOs exists in DB but has no instance information: " + cloudOs);
-            }
+            log.warn("CloudOs exists in DB but has no instance information: " + cloudOs);
+            updateState(cloudOs, CloudOsState.lost);
         }
         return true;
     }
@@ -207,18 +217,16 @@ public class CloudOsLauncher implements Runnable {
     // only a few things truly need to happen "in order", to be documented :)
     private void launch() {
 
-        final CloudOsRequest request = status.getRequest();
         final Admin admin = status.getAdmin();
+        CloudOs cloudOs = status.getCloudOs();
 
         // this will handle tearing down any existing instance
-        if (!resetCloudOs(admin, request)) {
+        if (!resetCloudOs()) {
             // problem
             return;
         }
 
-        CloudOs cloudOs = status.getCloudOs();
-
-        final String hostname = request.getName();
+        final String hostname = cloudOs.getName();
         final String salt = cloudConfig.getDataKey() + cloudConfig.getCloudUser();
         final String iamUser = CloudOs.getIAMuser(admin, hostname, salt);
         final String iamPath = CloudOs.getIAMpath(admin);
@@ -286,25 +294,20 @@ public class CloudOsLauncher implements Runnable {
             return;
         }
 
-        // start instance on digitalocean
+        // start instance
         status.update("{setup.startingMasterInstance}");
         final CsInstanceRequest instanceRequest = new CsInstanceRequest().setHost(hostname);
         try {
+            updateState(cloudOs, CloudOsState.starting);
             instance = cloud.newInstance(instanceRequest);
-        } catch (Exception e) {
-            status.error("{setup.error.startingMasterInstance.serverError}", "Error booting compute instance in cloud: "+e);
-            return;
-        }
 
-        // update with instance masterIp and mark as running
-        status.update("{setup.updatingCloudOsToMarkAsRunning}");
-        try {
-            cloudOs.setRunning(true);
             cloudOs.setInstanceJson(toJson(instance));
             cloudOs = cloudOsDAO.update(cloudOs);
+            updateState(cloudOs, CloudOsState.started);
 
         } catch (Exception e) {
-            status.error("{setup.error.updatingCloudOsToMarkAsRunning.serverError}", "Error updating cloudOs in DB");
+            status.error("{setup.error.startingMasterInstance.serverError}", "Error booting compute instance in cloud: "+e);
+            updateState(cloudOs, CloudOsState.error);
             return;
         }
 
@@ -400,22 +403,28 @@ public class CloudOsLauncher implements Runnable {
 
         // run chef-solo to configure the box
         status.update("{setup.cheffing}");
-        final File cloudOsChefDir = new File(cloudConfig.getCloudOsChefDir());
-        final CommandLine chefSolo = new CommandLine(new File(cloudOsChefDir, "deploy.sh"));
-        chefSolo.addArgument(hostname + "@" + publicIp);
+        updateState(cloudOs, CloudOsState.cheffing);
 
-        // setup system env for deploy.sh script
-        final Map<String, String> chefSoloEnv = new HashMap<>();
-        chefSoloEnv.put("INIT_FILES", initFilesDir.getAbsolutePath());
-
-        // do not use default json editor (won't be found), use the one installed here
-        chefSoloEnv.put("JSON_EDIT", "cstead json");
-
-        // cloudsteads callback to this server (the one that launched it) to manage DNS
-        chefSoloEnv.put("DISABLE_DNS", "true");
-
+        File cloudOsChefDir = null;
         CommandResult commandResult = null;
         try {
+            // todo: sanity check that the dir contains all appropriate cookbooks/databags
+            cloudOsChefDir = cloudConfig.getCloudOsStagingDir(cloudOs);
+
+            final CommandLine chefSolo = new CommandLine(new File(cloudOsChefDir, "deploy.sh"))
+                    .addArgument(hostname + "@" + publicIp)
+                    .addArgument(SOLO_JSON);
+
+            // setup system env for deploy.sh script
+            final Map<String, String> chefSoloEnv = new HashMap<>();
+            chefSoloEnv.put("INIT_FILES", initFilesDir.getAbsolutePath());
+
+            // do not use default json editor (won't be found), use the one installed here
+            chefSoloEnv.put("JSON_EDIT", "cstead json");
+
+            // cloudsteads callback to this server (the one that launched it) to manage DNS
+            chefSoloEnv.put("DISABLE_DNS", "true");
+
             // decrypt the private key and put it on disk somewhere, so that deploy.sh works without asking for a passphrase
             // we can make this a lot easier... what a PITA
             final String privateKey = instance.getKey();
@@ -425,11 +434,12 @@ public class CloudOsLauncher implements Runnable {
             } else {
                 // be careful, this is a plaintext key (low risk though, since after we set the thing up, we lock ourselves out -- though this is still a todo)
                 @Cleanup("delete") final File keyFile = File.createTempFile("cloudos", ".key");
-                CommandShell.chmod(keyFile, "600");
+                chmod(keyFile, "600");
                 toFile(keyFile.getAbsolutePath(), privateKey);
                 chefSoloEnv.put("SSH_KEY", keyFile.getAbsolutePath()); // add key to env
 
-                final Command command = new Command(chefSolo).setDir(cloudOsChefDir).setEnv(chefSoloEnv);
+                final CommandProgressFilter filter = getLaunchProgressFilter(cloudOsChefDir);
+                final Command command = new Command(chefSolo).setDir(cloudOsChefDir).setEnv(chefSoloEnv).setOut(filter);
                 commandResult = CommandShell.exec(command);
 
                 if (!commandResult.isZeroExitStatus()) {
@@ -441,16 +451,46 @@ public class CloudOsLauncher implements Runnable {
         } catch (Exception e) {
             status.error("{setup.error.cheffing.serverError}", "Error running chef-solo");
             log.error("Error running chef ("+e+"): stdout:\n"+ ((commandResult == null) ? null : commandResult.getStdout()) + "\n\nstderr:\n"+((commandResult == null) ? null : commandResult.getStderr()));
+            updateState(cloudOs, CloudOsState.error);
             return;
 
         } finally {
             try { FileUtils.deleteDirectory(initFilesDir); } catch (Exception e) {
                 log.warn("Error deleting initFilesDir ("+initFilesDir+"): "+e, e);
             }
+            if (cloudOsChefDir != null && cloudOsChefDir.exists()) {
+                try { FileUtils.deleteDirectory(cloudOsChefDir); } catch (Exception e) {
+                    log.warn("Error deleting cloudOsChefDir (" + cloudOsChefDir + "): " + e, e);
+                }
+            }
         }
 
         log.info("launch completed OK: "+hostname+"."+cloudConfig.getDomain());
+        updateState(cloudOs, CloudOsState.setup_complete);
         status.completed();
+    }
+
+    protected CommandProgressFilter getLaunchProgressFilter(File chefDir) throws Exception {
+        final CommandProgressFilter filter = new CommandProgressFilter()
+                .setCallback(new CloudOsLaunchProgressCallback(status))
+                .addIndicator("INFO: Chef-client pid", 1);
+
+        final ChefSolo solo = fromJson(FileUtil.toString(new File(chefDir, SOLO_JSON)), ChefSolo.class);
+        int numEntries = 0;
+        for (ChefSoloEntry entry : solo.getEntries()) {
+            if (entry.isRecipe("default") || entry.isRecipe("validate")) {
+                numEntries++;
+            }
+        }
+        int delta = 100 / numEntries;
+        int pct = delta;
+        for (ChefSoloEntry entry : solo.getEntries()) {
+            if (entry.isRecipe("default") || entry.isRecipe("validate")) {
+                filter.addIndicator(ChefHandler.getChefProgressPattern(entry), pct);
+                pct += delta;
+            }
+        }
+        return filter;
     }
 
     private boolean addAppStoreAccount(String hostname, String ucid) {

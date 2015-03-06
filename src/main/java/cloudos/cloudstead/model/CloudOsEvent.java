@@ -18,6 +18,7 @@ public class CloudOsEvent extends IdentifiableBase {
     @JsonIgnore public boolean isSuccess() { return messageKey != null && messageKey.contains(".success"); }
     @JsonIgnore public boolean isError () { return messageKey == null || messageKey.contains(".error."); }
 
-    @JsonIgnore public long getTimestamp () { return getCtime(); }
+    public long getTimestamp () { return getCtime(); }
+    public void setTimestamp (long time) { /*noop*/ }
 
 }

@@ -155,7 +155,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
 
         final TemplatedMail welcome = sender.getFirstMessage();
         apiDocs.addNote("Virtual 'click' on verification URL contained within welcome email to new admin account");
-        response = doGet(welcome.getParameters().get("activationUrl").toString());
+        response = doGet(welcome.getParameters().get("activationApiUrl").toString());
         assertEquals(200, response.status);
 
         apiDocs.addNote("lookup admin record in session");

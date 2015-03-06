@@ -10,6 +10,7 @@ import cloudos.model.auth.ChangePasswordRequest;
 import cloudos.model.auth.LoginRequest;
 import cloudos.resources.AccountsResourceBase;
 import com.qmino.miredot.annotations.ReturnType;
+import com.sun.jersey.api.core.HttpContext;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.mail.SimpleEmailMessage;
 import org.cobbzilla.mail.TemplatedMail;
@@ -22,7 +23,10 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+
+import java.util.Locale;
 
 import static cloudos.cloudstead.resources.ApiConstants.ADMINS_ENDPOINT;
 import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
@@ -84,12 +88,17 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
     @Path("/{name}")
     @ReturnType("cloudos.cloudstead.model.support.AdminResponse")
     public Response create(@PathParam("name") String name,
+                           @Context HttpContext context,
                            @Valid AdminRequest request) {
 
         // sanity check
         if (!name.equalsIgnoreCase(request.getEmail())) return ResourceUtil.invalid();
 
         Admin admin = new Admin().populate(request);
+
+        final Locale locale = context.getRequest().getLanguage();
+        admin.setLocale(locale != null ? locale.toString().replace("-", "_") : "en_US");
+
         admin.setHashedPassword(new HashedPassword(request.getPassword()));
         admin.setTwoFactor(true); // everyone gets two-factor turned on by default
         admin.setAuthIdInt(set2factor(request));
@@ -115,15 +124,17 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         // Send welcome email with verification code
         SimpleEmailMessage welcomeSender = configuration.getEmailSenderNames().get(T_WELCOME);
+        final String code = admin.getEmailVerificationCode();
         final TemplatedMail mail = new TemplatedMail()
                 .setTemplateName(T_WELCOME)
-                .setLocale("en_US") // todo: set this at first-time-setup
+                .setLocale(admin.getLocale()) // todo: collect this at registration or auto-detect from browser
                 .setFromName(welcomeSender.getFromName())
                 .setFromEmail(welcomeSender.getFromEmail())
                 .setToEmail(admin.getEmail())
                 .setToName(admin.getFullName())
                 .setParameter(TemplatedMailService.PARAM_ACCOUNT, admin)
-                .setParameter("activationUrl", configuration.getEmailVerificationUrl(admin.getEmailVerificationCode()));
+                .setParameter("activationApiUrl", configuration.getEmailVerificationUrl(code))
+                .setParameter("activationUrl", configuration.getPublicUriBase() + "/activate.html?key=" + code);
         try {
             mailService.getMailSender().deliverMessage(mail);
         } catch (Exception e) {

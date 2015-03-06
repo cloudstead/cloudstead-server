@@ -20,12 +20,16 @@ public class CloudOsDestroyer implements Runnable {
 
         final CloudOs cloudOs = status.getCloudOs();
         if (cloudOs == null) {
+            status.error("{destroy.error.notFound}", "No CloudOs record found");
+            throw new IllegalStateException("No CloudOs record found");
+        }
+        if (cloudOs.getInstance() == null) {
             status.error("{destroy.error.noInstance}", "No instance found");
             throw new IllegalStateException("No instance found");
         }
 
         final String name = cloudOs.getName();
-        final CsCloud cloud = configuration.getCloudConfig().buildHostedCloud(status.getAdmin().getUuid(), name);
+        final CsCloud cloud = configuration.getCloudConfig().buildHostedCloud(status.getAdmin().getUuid(), cloudOs);
 
         status.update("{destroy.tearingDownInstance}");
         try {

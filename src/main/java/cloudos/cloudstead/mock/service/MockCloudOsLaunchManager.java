@@ -33,11 +33,11 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
         public MockCloudOsLauncher(CloudOsStatus status) { this.status = status; }
 
         @Override public void run() {
-            CloudOs cloudOs = cloudOsDAO.findByName(status.getRequest().getName());
+            CloudOs cloudOs = cloudOsDAO.findByName(status.getCloudOs().getName());
             if (cloudOs == null) {
                 cloudOs = new CloudOs();
                 cloudOs.setAdminUuid(status.getAdmin().getUuid());
-                cloudOs.setName(status.getRequest().getName());
+                cloudOs.setName(status.getCloudOs().getName());
                 try { cloudOs = cloudOsDAO.create(cloudOs); } catch (Exception e) {
                     status.error("{setup.creatingCloudOs.error}", "Error saving new CloudOs to DB");
                     throw new IllegalStateException("error saving new cloudos to DB: "+e, e);

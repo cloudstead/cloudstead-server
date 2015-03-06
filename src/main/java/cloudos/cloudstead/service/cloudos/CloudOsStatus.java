@@ -1,16 +1,15 @@
 package cloudos.cloudstead.service.cloudos;
 
+import cloudos.cloudstead.dao.CloudOsEventDAO;
+import cloudos.cloudstead.model.Admin;
+import cloudos.cloudstead.model.CloudOs;
+import cloudos.cloudstead.model.CloudOsEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.wizard.validation.SimpleViolationException;
-import cloudos.cloudstead.dao.CloudOsEventDAO;
-import cloudos.cloudstead.model.Admin;
-import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.model.CloudOsEvent;
-import cloudos.cloudstead.model.support.CloudOsRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,6 @@ public class CloudOsStatus {
 
     @Getter private Admin admin;
     @Getter @Setter private CloudOs cloudOs;
-    @Getter private CloudOsRequest request;
 
     private CloudOsEventDAO eventDAO;
     @Getter @Setter private List<CloudOsEvent> history = new ArrayList<>();
@@ -46,12 +44,6 @@ public class CloudOsStatus {
     public CloudOsStatus(Admin admin, CloudOs cloudOs, CloudOsEventDAO eventDAO) {
         this.admin = admin;
         this.cloudOs = cloudOs;
-        this.eventDAO = eventDAO;
-    }
-
-    public CloudOsStatus(Admin admin, CloudOsRequest request, CloudOsEventDAO eventDAO) {
-        this.admin = admin;
-        this.request = request;
         this.eventDAO = eventDAO;
     }
 
