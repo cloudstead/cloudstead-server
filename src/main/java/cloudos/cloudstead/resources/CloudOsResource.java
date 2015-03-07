@@ -253,6 +253,8 @@ public class CloudOsResource {
         if (cloudOs == null) return ResourceUtil.notFound();
         if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
 
+        if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.launch.notInitial}");
+
         // validate that all required configuration options have a value
         final List<ConstraintViolationBean> violations = new ArrayList<>();
         final AppConfigurationMap configMap = getAppConfiguration(cloudOs, null);
