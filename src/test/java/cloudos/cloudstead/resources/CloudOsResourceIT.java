@@ -4,6 +4,7 @@ import cloudos.appstore.bundler.BundlerMain;
 import cloudos.appstore.bundler.BundlerOptions;
 import cloudos.appstore.model.app.AppManifest;
 import cloudos.appstore.model.app.config.AppConfigurationMap;
+import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.model.support.CloudOsRequest;
@@ -50,6 +51,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
     private final String rootySecret = RandomStringUtils.randomAlphanumeric(30);
     private String name;
     private CloudOs cloudOs;
+    private File stagingDir;
 
     @Override public Map<String, String> getServerEnvironment() {
         final Map<String, String> env = super.getServerEnvironment();
@@ -138,6 +140,10 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         assertEquals(name, cloudOs.getName());
         assertEquals(CloudOsState.initial, cloudOs.getState());
 
+        // the server will not return the stagingDir via REST, so we reach into the DB layer to grab it
+        stagingDir = getBean(CloudOsDAO.class).findByName(cloudOs.getName()).getStagingDirFile();
+        assertTrue(stagingDir.exists() && stagingDir.isDirectory());
+
         int numApps = cloudOs.getAllApps().size();
 
         // Make sure chef staging dir contains cookbooks for all apps
@@ -181,7 +187,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         assertEquals(200, response.status);
 
         // Ensure databags exist
-        assertTrue(new File(abs(getStagingDir()) + "/data_bags/base/admin.json").exists());
+        assertTrue(new File(abs(stagingDir) + "/data_bags/base/admin.json").exists());
 
         CloudOsStatus status = fromJson(response.json, CloudOsStatus.class);
         while (!status.isCompleted() && !status.getCloudOs().isRunning()) {
@@ -198,14 +204,10 @@ public class CloudOsResourceIT extends ApiResourceITBase {
     }
 
     private void assertCookbookDirsExist(CloudOs cloudOs) {
-        final File stagingDir = getStagingDir();
         for (String app : cloudOs.getAllApps()) {
             final File appDir = new File(abs(stagingDir) + "/cookbooks/" + app);
             assertTrue(appDir.exists() && appDir.isDirectory());
         }
     }
 
-    private File getStagingDir() {
-        return cloudOs.getStagingDir((CloudsteadConfiguration) server.getConfiguration());
-    }
 }
