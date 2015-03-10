@@ -3,10 +3,10 @@ package cloudos.cloudstead.main;
 import cloudos.cloudstead.model.support.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.model.support.CloudOsGeoRegion;
+import cloudos.cloudstead.model.support.CloudOsRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-import org.cobbzilla.wizard.api.CrudOperation;
 import org.kohsuke.args4j.Option;
 
 import static org.cobbzilla.util.string.StringUtil.empty;
@@ -17,7 +17,7 @@ public class CloudOsMainOptions extends CloudsteadMainOptions {
     public static final String OPT_OPERATION = "-o";
     public static final String LONGOPT_OPERATION = "--operation";
     @Option(name=OPT_OPERATION, aliases=LONGOPT_OPERATION, usage=USAGE_OPERATION)
-    @Getter @Setter private CrudOperation operation = CrudOperation.read;
+    @Getter @Setter private CloudOsOperation operation = CloudOsOperation.list;
 
     public static final String USAGE_NAME = "The name of the cloudstead. If omitted all cloudsteads will be listed.";
     public static final String OPT_NAME = "-n";
@@ -51,4 +51,20 @@ public class CloudOsMainOptions extends CloudsteadMainOptions {
     @Option(name=OPT_ADD_APPS, aliases=LONGOPT_ADD_APPS, usage=USAGE_ADD_APPS)
     @Getter @Setter private String additionalApps;
 
+    public static final String USAGE_CONFIG = "The configuration JSON for the cloudstead";
+    public static final String OPT_CONFIG = "-c";
+    public static final String LONGOPT_CONFIG = "--config";
+    @Option(name=OPT_CONFIG, aliases=LONGOPT_CONFIG, usage=USAGE_CONFIG)
+    @Getter @Setter private String config;
+
+    public boolean hasConfig () { return !empty(config); }
+
+    public CloudOsRequest getCloudOsRequest() {
+        return new CloudOsRequest()
+                .setName(getName())
+                .setEdition(getEdition())
+                .setRegion(getRegion())
+                .setAppBundle(getAppBundle())
+                .setAdditionalApps(getAdditionalApps());
+    }
 }
