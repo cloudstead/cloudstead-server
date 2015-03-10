@@ -60,7 +60,7 @@ public class CloudOs extends UniquelyNamedEntity {
 
     @JsonIgnore public List<String> getAdditionalAppsList () { return Arrays.asList(additionalApps.split("[,\\s]+")); }
 
-    @JsonIgnore public List<String> getAllApps() {
+    public List<String> getAllApps() {
         return empty(additionalApps)
                 ? appBundle.getApps()
                 : ListUtil.concat(appBundle.getApps(), getAdditionalAppsList());

@@ -50,11 +50,11 @@ public enum CloudOsAppBundle {
         };
 
         public static final String[] SMALL_BIZ_APPS = {
-                "limesurvey", "etherpad", "phplist", "kandan", "piwik"
+                "limesurvey", "wordpress", "etherpad", "phplist", "kandan", "piwik"
         };
 
         public static final String[] TECH_STARTUP_APPS = {
-                "gitlab", "kanban", "phabricator"
+                "gitlab", "kanban", "phabricator", "jira"
         };
     }
 }
