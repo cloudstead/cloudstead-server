@@ -248,7 +248,7 @@ public class CloudOsLauncher implements Runnable {
         status.update("{setup.cheffing}");
         updateState(cloudOs, CloudOsState.cheffing);
 
-        final File stagingDir = cloudOs.getStagingDir(configuration);
+        final File stagingDir = cloudOs.getStagingDirFile();
         CommandResult commandResult = null;
         try {
             final CommandLine chefSolo = new CommandLine(new File(stagingDir, "deploy.sh"))
