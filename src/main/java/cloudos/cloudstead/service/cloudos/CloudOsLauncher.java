@@ -178,9 +178,6 @@ public class CloudOsLauncher implements Runnable {
                 status.update("{setup.teardownPreviousInstance.nonFatalError}");
                 updateState(cloudOs, CloudOsState.error);
             }
-        } else {
-            log.warn("CloudOs exists in DB but has no instance information: " + cloudOs);
-            updateState(cloudOs, CloudOsState.lost);
         }
         return true;
     }
