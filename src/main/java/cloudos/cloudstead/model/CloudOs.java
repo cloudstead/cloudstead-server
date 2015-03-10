@@ -1,7 +1,6 @@
 package cloudos.cloudstead.model;
 
 import cloudos.cloudstead.model.support.*;
-import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.instance.CsInstance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -72,6 +71,11 @@ public class CloudOs extends UniquelyNamedEntity {
 
     @JsonIgnore public boolean isRunning() { return state == CloudOsState.live; }
 
+    @Column(length=1024, updatable=false, unique=true)
+    @JsonIgnore @Getter @Setter private String stagingDir;
+    @JsonIgnore public boolean hasStagingDir () { return !empty(stagingDir); }
+    @JsonIgnore public File getStagingDirFile () { return new File(stagingDir); }
+
     public void updateState (CloudOsState newState) {
         if (newState != state) {
             state = newState;
@@ -120,9 +124,5 @@ public class CloudOs extends UniquelyNamedEntity {
         setAppBundle(request.getAppBundle());
         setAdditionalApps(request.getAdditionalApps());
         initUcid();
-    }
-
-    public File getStagingDir(CloudsteadConfiguration configuration) {
-        return configuration.getCloudConfig().getChefStagingDir(this);
     }
 }

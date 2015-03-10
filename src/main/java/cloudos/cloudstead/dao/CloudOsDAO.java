@@ -10,6 +10,7 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.sendgrid.SendGrid;
 import org.cobbzilla.sendgrid.SendGridPermissions;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import static cloudos.appstore.model.app.config.AppConfiguration.getShasum;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.io.FileUtil.abs;
+import static org.cobbzilla.util.io.FileUtil.createTempDirOrDie;
 import static org.cobbzilla.util.io.FileUtil.toFile;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
@@ -67,10 +69,11 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final Admin admin = adminDAO.findByUuid(cloudOs.getAdminUuid());
         if (admin == null) die("preCreate: admin does not exist: "+cloudOs.getAdminUuid());
 
+        final CloudConfiguration cloudConfig = configuration.getCloudConfig();
+        final File stagingDir = createTempDirOrDie(cloudConfig.getChefStagingDir(), cloudOs.getName() + "_chef_");
+        cloudOs.setStagingDir(abs(stagingDir));
         cloudOs.setName(cloudOs.getName().toLowerCase());
 
-        final CloudConfiguration cloudConfig = configuration.getCloudConfig();
-        final File stagingDir = cloudOs.getStagingDir(configuration);
         final String ucid = cloudOs.getUcid();
 
         final String iamUser = setupAws(admin, cloudOs);
@@ -135,6 +138,22 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
     @Override public Object preUpdate(@Valid CloudOs entity) {
         entity.setName(entity.getName().toLowerCase());
         return super.preUpdate(entity);
+    }
+
+    @Override
+    public void delete(String uuid) {
+
+        final CloudOs cloudOs = findByUuid(uuid);
+        if (cloudOs == null) return;
+
+        final File stagingDir = cloudOs.getStagingDirFile();
+        if (stagingDir.exists()) {
+            if (!FileUtils.deleteQuietly(stagingDir)) {
+                log.error("Error deleting cloudos staging directory: "+abs(stagingDir));
+            }
+        }
+
+        super.delete(uuid);
     }
 
     protected static String salt(CloudConfiguration cloudConfig) { return cloudConfig.getDataKey() + cloudConfig.getCloudUser(); }
@@ -246,7 +265,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
             // we generate an API key here for the dnsServer
             final String dnsApiKey = dnsClient.createOrUpdateUser(hostname);
 
-            final File stagingDir = cloudOs.getStagingDir(configuration);
+            final File stagingDir = cloudOs.getStagingDirFile();
             final File initJson = new File(abs(stagingDir) + "/data_bags/cloudos/init.json");
             final CloudOsDatabag cloudOsDatabag = fromJson(FileUtil.toString(initJson), CloudOsDatabag.class);
             cloudOsDatabag.setDns(configuration.getCloudOsDns().getBaseUri(), cloudOs.getName(), dnsApiKey);
@@ -268,7 +287,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
                 .setPermissions(new SendGridPermissions().setEmail());
         configuration.getSendGrid().addOrEditUser(sendGridUser);
 
-        final File stagingDir = cloudOs.getStagingDir(configuration);
+        final File stagingDir = cloudOs.getStagingDirFile();
         final ConnectionInfo smtp_relay = new ConnectionInfo(SendGrid.SMTP_RELAY, SendGrid.SMTP_RELAY_PORT, sendGridUser.getUsername(), sendGridUser.getPassword());
         final EmailDatabag emailDatabag = new EmailDatabag().setSmtp_relay(smtp_relay).setVendor(new VendorDatabag());
         for (String config : EMAIL_CONFIGS) {
@@ -280,7 +299,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
     public void writeAdminDatabag(Admin admin, CloudOs cloudOs) throws Exception {
         // write admin databag -- determine where any auto-generated passwords will be sent
         final AdminDatabag adminDatabag = new AdminDatabag(admin.getFirstName(), admin.getEmail());
-        final File stagingDir = cloudOs.getStagingDir(configuration);
+        final File stagingDir = cloudOs.getStagingDirFile();
         toFile(new File(abs(stagingDir)+"/data_bags/base/admin.json"), toJson(adminDatabag));
     }
 }

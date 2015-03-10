@@ -19,7 +19,6 @@ import rooty.toots.chef.ChefDirSynchronizer;
 import java.io.File;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
-import static org.cobbzilla.util.io.FileUtil.mkdirOrDie;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 
 @Slf4j
@@ -59,10 +58,6 @@ public class CloudConfiguration implements AWSCredentials {
             chefSync.fire();
         }
         return chefDir;
-    }
-
-    public File getChefStagingDir(CloudOs cloudOs) {
-        return mkdirOrDie(new File(mkdirOrDie(chefStagingDir), sha256_hex(cloudOs.getName() + "_" + cloudOs.getAdminUuid())));
     }
 
     @Getter(lazy=true) private final AmazonIdentityManagementClient IAMclient = initIAMclient();

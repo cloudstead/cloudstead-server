@@ -19,7 +19,6 @@ import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cloudstead.service.cloudos.CloudsteadConfigValidationResolver;
 import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
@@ -33,8 +32,6 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
-import static org.cobbzilla.util.io.FileUtil.abs;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -253,7 +250,7 @@ public class CloudOsResource {
         // Only validate the app they have set config for
         final Map<String, List<ConstraintViolationBean>> violations = validateConfig(configMap);
         if (violations.isEmpty()) {
-            final File stagingDir = cloudOs.getStagingDir(configuration);
+            final File stagingDir = cloudOs.getStagingDirFile();
             final File databagsDir = new File(stagingDir, ChefSolo.DATABAGS_DIR);
             for (Map.Entry<String, AppConfiguration> entry : configMap.getAppConfigs().entrySet()) {
                 final String appName = entry.getKey();
@@ -370,20 +367,13 @@ public class CloudOsResource {
         cloudOs.setState(CloudOsState.deleting);
         cloudOsDAO.update(cloudOs);
 
-        final File stagingDir = cloudOs.getStagingDir(configuration);
-        if (stagingDir.exists()) {
-            if (!FileUtils.deleteQuietly(stagingDir)) {
-                log.error("Error deleting cloudos staging directory: "+abs(stagingDir));
-            }
-        }
-
         launchManager.teardown(admin, cloudOs);
 
         return Response.ok(Boolean.TRUE).build();
     }
 
     public AppConfigurationMap getAppConfiguration(CloudOs cloudOs, String locale) {
-        final File stagingDir = cloudOs.getStagingDir(configuration);
+        final File stagingDir = cloudOs.getStagingDirFile();
         final AppConfigurationMap configMap = new AppConfigurationMap();
         configMap.addAll(cloudOs.getAllApps(), stagingDir, locale);
         return configMap;
@@ -392,7 +382,7 @@ public class CloudOsResource {
     public boolean prepChefStagingDir(CloudOs cloudOs) {
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
         final File chefMaster = cloudConfig.getChefDir();
-        final File stagingDir = cloudOs.getStagingDir(configuration);
+        final File stagingDir = cloudOs.getStagingDirFile();
 
         try {
             ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir);
