@@ -25,7 +25,7 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
         RestResponse response;
 
         final boolean hasName = options.hasName();
-        if (!hasName && options.getOperation() != CloudOsOperation.list) {
+        if (!hasName && options.getOperation().requiresName()) {
             throw new UnsupportedOperationException("For operation "+options.getOperation()+", you must specify a name with "+CloudOsMainOptions.OPT_NAME+"/"+CloudOsMainOptions.LONGOPT_NAME);
         }
         final String name = options.getName();
@@ -36,10 +36,13 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                 out(api.get(CLOUDOS_ENDPOINT).json);
                 break;
 
+            case status:
+                out(api.get(uri+"/status").json);
+                break;
+
             case view:
                 if (hasName) {
                     out(api.get(uri).json);
-                    out(api.get(uri + "/status").json);
                 } else {
                     out(api.get(CLOUDOS_ENDPOINT).json);
                 }
