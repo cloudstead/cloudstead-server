@@ -198,9 +198,16 @@ public class CloudOsLauncher implements Runnable {
             return;
         }
 
-        final String hostname = cloudOs.getName();
+        try {
+            cloudOsDAO.writeAdminDatabag(admin, cloudOs);
+        } catch (Exception e) {
+            status.error("{setup.error.adminDatabag}", "Error writing admin databag: "+e);
+            updateState(cloudOs, CloudOsState.error);
+            return;
+        }
 
         // start instance
+        final String hostname = cloudOs.getName();
         status.update("{setup.startingMasterInstance}");
         final CsInstanceRequest instanceRequest = new CsInstanceRequest().setHost(hostname);
         try {

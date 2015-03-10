@@ -4,10 +4,7 @@ import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
-import cloudos.databag.BaseDatabag;
-import cloudos.databag.CloudOsDatabag;
-import cloudos.databag.EmailDatabag;
-import cloudos.databag.PortsDatabag;
+import cloudos.databag.*;
 import cloudos.dns.DnsClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.*;
@@ -122,11 +119,12 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
             settings.add(new VendorDatabagSetting(config, getShasum(cloudOsDatabag, config), blockSsh));
         }
 
-
         try {
             toFile(new File(abs(stagingDir) + "/data_bags/cloudos/base.json"), toJson(baseDatabag));
             toFile(new File(abs(stagingDir) + "/data_bags/cloudos/init.json"), toJson(cloudOsDatabag));
             toFile(new File(abs(stagingDir) + "/data_bags/cloudos/ports.json"), toJson(new PortsDatabag(3001)));
+            writeAdminDatabag(admin, cloudOs);
+
         } catch (Exception e) {
             die("preCreate: error writing databags: "+e, e);
         }
@@ -279,4 +277,10 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         toFile(new File(abs(stagingDir) + "/data_bags/email/init.json"), toJson(emailDatabag));
     }
 
+    public void writeAdminDatabag(Admin admin, CloudOs cloudOs) throws Exception {
+        // write admin databag -- determine where any auto-generated passwords will be sent
+        final AdminDatabag adminDatabag = new AdminDatabag(admin.getFirstName(), admin.getEmail());
+        final File stagingDir = cloudOs.getStagingDir(configuration);
+        toFile(new File(abs(stagingDir)+"/data_bags/base/admin.json"), toJson(adminDatabag));
+    }
 }

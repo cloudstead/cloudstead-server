@@ -180,6 +180,9 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         response = post(uri + "/launch", null);
         assertEquals(200, response.status);
 
+        // Ensure databags exist
+        assertTrue(new File(abs(getStagingDir()) + "/data_bags/base/admin.json").exists());
+
         CloudOsStatus status = fromJson(response.json, CloudOsStatus.class);
         while (!status.isCompleted() && !status.getCloudOs().isRunning()) {
             Sleep.sleep(SECONDS.toMillis(3));
@@ -195,10 +198,14 @@ public class CloudOsResourceIT extends ApiResourceITBase {
     }
 
     private void assertCookbookDirsExist(CloudOs cloudOs) {
-        final File stagingDir = cloudOs.getStagingDir((CloudsteadConfiguration) server.getConfiguration());
+        final File stagingDir = getStagingDir();
         for (String app : cloudOs.getAllApps()) {
             final File appDir = new File(abs(stagingDir) + "/cookbooks/" + app);
             assertTrue(appDir.exists() && appDir.isDirectory());
         }
+    }
+
+    private File getStagingDir() {
+        return cloudOs.getStagingDir((CloudsteadConfiguration) server.getConfiguration());
     }
 }
