@@ -1,6 +1,7 @@
 package cloudos.cloudstead.model;
 
 import cloudos.cloudstead.model.support.*;
+import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.instance.CsInstance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -19,6 +20,7 @@ import javax.persistence.Enumerated;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -118,5 +120,9 @@ public class CloudOs extends UniquelyNamedEntity {
         setAppBundle(request.getAppBundle());
         setAdditionalApps(request.getAdditionalApps());
         initUcid();
+    }
+
+    public File getStagingDir(CloudsteadConfiguration configuration) {
+        return configuration.getCloudConfig().getChefStagingDir(this);
     }
 }

@@ -16,69 +16,39 @@ import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
 import cloudos.cslib.compute.instance.CsInstanceRequest;
 import cloudos.cslib.compute.mock.MockCsInstance;
-import cloudos.databag.BaseDatabag;
-import cloudos.databag.CloudOsDatabag;
-import cloudos.databag.EmailDatabag;
-import cloudos.databag.PortsDatabag;
-import cloudos.dns.DnsClient;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.*;
-import com.google.common.io.Files;
 import lombok.Cleanup;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.cobbzilla.sendgrid.SendGrid;
-import org.cobbzilla.sendgrid.SendGridPermissions;
-import org.cobbzilla.sendgrid.SendGridUser;
-import org.cobbzilla.util.dns.DnsRecord;
-import org.cobbzilla.util.dns.DnsRecordMatch;
-import org.cobbzilla.util.dns.DnsType;
 import org.cobbzilla.util.http.ApiConnectionInfo;
 import org.cobbzilla.util.io.FileUtil;
-import org.cobbzilla.util.reflect.ReflectionUtil;
-import org.cobbzilla.util.security.ShaUtil;
-import org.cobbzilla.util.system.*;
+import org.cobbzilla.util.system.Command;
+import org.cobbzilla.util.system.CommandProgressFilter;
+import org.cobbzilla.util.system.CommandResult;
+import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.util.RestResponse;
 import rooty.toots.chef.ChefHandler;
 import rooty.toots.chef.ChefSolo;
 import rooty.toots.chef.ChefSoloEntry;
-import rooty.toots.vendor.VendorDatabag;
-import rooty.toots.vendor.VendorDatabagSetting;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.io.FileUtil.abs;
 import static org.cobbzilla.util.io.FileUtil.toFile;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
-import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 import static org.cobbzilla.util.system.CommandShell.chmod;
 import static rooty.toots.chef.ChefSolo.SOLO_JSON;
 
 @Slf4j
 public class CloudOsLauncher implements Runnable {
 
-    public static final int DEFAULT_TTL = (int) TimeUnit.HOURS.toSeconds(1);
     public static final int MAX_TRIES = 3;
-
-    public static final String[] INIT_CONFIGS = {
-            "aws_access_key", "aws_secret_key", "aws_iam_user", "s3_bucket", "authy.user"
-    };
-    public static final String[] EMAIL_CONFIGS = {
-            "smtp_relay.username", "smtp_relay.password", "smtp_relay.host", "smtp_relay.port"
-    };
-    private static final int DEFAULT_MX_RANK = 10;
-    public static final String CLOUDOS_CERT_NAME = "ssl-https";
 
     @Getter private CloudOsStatus status;
     private final CloudsteadConfiguration configuration;
@@ -102,9 +72,9 @@ public class CloudOsLauncher implements Runnable {
         this.cloud = cloudConfig.buildHostedCloud(status.getAdmin().getUuid(), name, edition, region);
     }
 
-    private String getFqdn() { return cloud.getConfig().getFqdn(instance.getHost()); }
+    protected String getFqdn() { return cloud.getConfig().getFqdn(instance.getHost()); }
 
-    private void updateState(CloudOs cloudOs, CloudOsState state) {
+    protected void updateState(CloudOs cloudOs, CloudOsState state) {
         cloudOs.updateState(state);
         cloudOsDAO.update(cloudOs);
     }
@@ -224,77 +194,11 @@ public class CloudOsLauncher implements Runnable {
 
         // this will handle tearing down any existing instance
         if (!resetCloudOs()) {
-            // problem
+            // problem, error status set in resetCloudOs
             return;
         }
 
         final String hostname = cloudOs.getName();
-        final String salt = cloudConfig.getDataKey() + cloudConfig.getCloudUser();
-        final String iamUser = CloudOs.getIAMuser(admin, hostname, salt);
-        final String iamPath = CloudOs.getIAMpath(admin);
-
-        // Does the user already exist?
-        boolean userExists = false;
-        status.update("{setup.creatingCloudAdminAccount}");
-        final AmazonIdentityManagementClient IAMclient = cloudConfig.getIAMclient();
-        try {
-            final GetUserResult getUserResult = IAMclient.getUser(new GetUserRequest().withUserName(iamUser));
-            if (getUserResult.getUser() != null) {
-                userExists = true;
-                if (getUserResult.getUser().getPath().equals(iamPath)) {
-                    // somehow the user was already created by this admin on a previous call. This is OK.
-                } else {
-                    // the user exists and that path indicates that a different admin created it, so it's an error
-                    status.error("{setup.error.creatingCloudAdminAccount.notUnique}", "Duplicate account error", hostname);
-                    return;
-                }
-            }
-        } catch (NoSuchEntityException e) {
-            // OK, the user does not exist, that's fine
-
-        } catch (Exception e) {
-            // any other problem is fatal
-            status.error("{setup.error.creatingCloudAdminAccount.checkingExistenceOfIAMuser}", "Error looking up IAM user");
-            return;
-        }
-
-        final CreateAccessKeyResult accessKey;
-        if (!userExists) {
-            // Create IAM user and add to group
-            try {
-                IAMclient.createUser(new CreateUserRequest(iamUser).withPath(iamPath));
-                IAMclient.addUserToGroup(new AddUserToGroupRequest(cloudConfig.getGroup(), iamUser));
-                accessKey = IAMclient.createAccessKey(new CreateAccessKeyRequest().withUserName(iamUser));
-            } catch (Exception e) {
-                status.error("{setup.error.creatingCloudAdminAccount.iamAdd.serverError}", "Error adding IAM user");
-                return;
-            }
-
-        } else {
-            try {
-                // nuke all other keys
-                final ListAccessKeysResult keyList = IAMclient.listAccessKeys(new ListAccessKeysRequest().withUserName(iamUser));
-                for (AccessKeyMetadata md : keyList.getAccessKeyMetadata()) {
-                    IAMclient.deleteAccessKey(new DeleteAccessKeyRequest().withUserName(iamUser).withAccessKeyId(md.getAccessKeyId()));
-                }
-                accessKey = IAMclient.createAccessKey(new CreateAccessKeyRequest().withUserName(iamUser));
-            } catch (Exception e) {
-                status.error("{setup.error.creatingCloudAdminAccount.iamKey.serverError}", "Error creating new IAM key");
-                return;
-            }
-        }
-
-        cloudOs.setS3accessKey(accessKey.getAccessKey().getAccessKeyId());
-        cloudOs.setS3secretKey(accessKey.getAccessKey().getSecretAccessKey());
-
-        // save things here, now that we have s3 keys
-        status.update("{setup.savingCloudAdminAccount}");
-        try {
-            cloudOs = cloudOsDAO.update(cloudOs);
-        } catch (Exception e) {
-            status.error("{setup.error.savingCloudAdminAccount.serverError}", "Error updating cloudOs in DB");
-            return;
-        }
 
         // start instance
         status.update("{setup.startingMasterInstance}");
@@ -317,7 +221,7 @@ public class CloudOsLauncher implements Runnable {
         status.update("{setup.creatingDnsRecord}");
         final String publicIp = instance.getPublicIp();
 
-        final String dnsApiKey = setupDns(publicIp, hostname, getFqdn());
+        final String dnsApiKey = cloudOsDAO.setupDns(publicIp, hostname, getFqdn(), cloudOs);
         if (dnsApiKey == null) {
             status.error("{setup.error.creatingDnsRecord.serverError}", "Error updating DNS entry");
             return;
@@ -329,73 +233,10 @@ public class CloudOsLauncher implements Runnable {
 
         // generate sendgrid credentials
         status.update("{setup.generatingSendgridCredentials}");
-        final SendGridUser sendGridUser = new SendGridUser()
-                .setName(CloudOs.getSendgridUser(admin, hostname, salt))
-                .setPassword(RandomStringUtils.randomAlphanumeric(20))
-                .setPermissions(new SendGridPermissions().setEmail());
         try {
-            configuration.getSendGrid().addOrEditUser(sendGridUser);
+            cloudOsDAO.setupSendGrid(admin, cloudOs);
         } catch (Exception e) {
-            status.error("{setup.error.generatingSendgridCredentials.apiError}", "Error adding/editing sendgrid credentials");
-            return;
-        }
-
-        // setup init-files for chef-solo run: hostname, ssl key+cert and cloud-init databag
-        status.update("{setup.buildingInitializationFile}");
-        final File initFilesDir = Files.createTempDir();
-        try {
-            // SSL key & cert
-            final File cloudOsCertDir = FileUtil.mkdirOrDie(new File(abs(initFilesDir) + "/certs/cloudos"));
-            Files.copy(new File(cloudConfig.getSslPem()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME+".pem"));
-            Files.copy(new File(cloudConfig.getSslKey()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME+".key"));
-
-            // lots of settings to define for the new instance, these go into the cloudos/init.json cloudOsDatabag
-            final List<VendorDatabagSetting> settings = new ArrayList<>();
-
-            final BaseDatabag baseDatabag = new BaseDatabag()
-                    .setHostname(hostname)
-                    .setParent_domain(cloudConfig.getDomain())
-                    .setSsl_cert_name(CLOUDOS_CERT_NAME);
-
-            final CloudOsDatabag cloudOsDatabag = new CloudOsDatabag()
-                    .setUcid(ucid)
-                    .setAws_access_key(cloudOs.getS3accessKey())
-                    .setAws_secret_key(cloudOs.getS3secretKey())
-                    .setAws_iam_user(iamUser)
-                    .setS3_bucket(cloudConfig.getBucket())
-                    .setRun_as("cloudos")
-                    .setServer_tarball(cloudConfig.getCloudOsServerTarball())
-                    .setRecovery_email(admin.getEmail())
-                    .setAdmin_initial_pass(admin.getHashedPassword().getHashedPassword()) // todo: allow cloudstead-specific password
-                    .setAuthy(configuration.getAuthy())
-                    .setDns(configuration.getCloudOsDns().getBaseUri(), hostname, dnsApiKey)
-                    .setAppstore(configuration.getAppStore().getBaseUri(), ucid)
-                    .setVendor(new VendorDatabag()
-                            .setService_key_endpoint(configuration.getServiceRequestEndpoint())
-                            .setSsl_key_sha(ShaUtil.sha256_file(cloudConfig.getSslKey()))
-                            .setSettings(settings));
-
-            for (String config : INIT_CONFIGS) {
-                // for now this is the only setting that must be changed before allowing ssh access
-                // (in addition to changing out the cert, see ServiceKeyHandler in rooty-toots for more info)
-                boolean blockSsh = "authy.user".equals(config);
-                settings.add(new VendorDatabagSetting(config, getShasum(cloudOsDatabag, config), blockSsh));
-            }
-
-            final ConnectionInfo smtp_relay = new ConnectionInfo(SendGrid.SMTP_RELAY, SendGrid.SMTP_RELAY_PORT, sendGridUser.getUsername(), sendGridUser.getPassword());
-            final EmailDatabag emailDatabag = new EmailDatabag().setSmtp_relay(smtp_relay).setVendor(new VendorDatabag());
-            for (String config : EMAIL_CONFIGS) {
-                emailDatabag.getVendor().addSetting(new VendorDatabagSetting(config, getShasum(emailDatabag, config)));
-            }
-
-            toFile(new File(abs(initFilesDir) + "/data_bags/cloudos/base.json"), toJson(baseDatabag));
-            toFile(new File(abs(initFilesDir) + "/data_bags/cloudos/init.json"), toJson(cloudOsDatabag));
-            toFile(new File(abs(initFilesDir) + "/data_bags/cloudos/ports.json"), toJson(new PortsDatabag(3001)));
-            toFile(new File(abs(initFilesDir) + "/data_bags/email/init.json"), toJson(emailDatabag));
-
-        } catch (Exception e) {
-            log.warn("Error building initialization file: "+e, e);
-            status.error("{setup.error.buildingInitializationFile.serverError}", "Error creating initialization files for new instance");
+            status.error("{setup.error.emailRelaySetup}", "Error setting up email relay");
             return;
         }
 
@@ -403,19 +244,16 @@ public class CloudOsLauncher implements Runnable {
         status.update("{setup.cheffing}");
         updateState(cloudOs, CloudOsState.cheffing);
 
-        File cloudOsChefDir = null;
+        final File stagingDir = cloudOs.getStagingDir(configuration);
         CommandResult commandResult = null;
         try {
-            // todo: sanity check that the dir contains all appropriate cookbooks/databags
-            cloudOsChefDir = cloudConfig.getChefStagingDir(cloudOs);
-
-            final CommandLine chefSolo = new CommandLine(new File(cloudOsChefDir, "deploy.sh"))
+            final CommandLine chefSolo = new CommandLine(new File(stagingDir, "deploy.sh"))
                     .addArgument(hostname + "@" + publicIp)
                     .addArgument(SOLO_JSON);
 
             // setup system env for deploy.sh script
             final Map<String, String> chefSoloEnv = new HashMap<>();
-            chefSoloEnv.put("INIT_FILES", abs(initFilesDir));
+            chefSoloEnv.put("INIT_FILES", abs(stagingDir));
 
             // do not use default json editor (won't be found), use the one installed here
             chefSoloEnv.put("JSON_EDIT", "cstead json");
@@ -436,13 +274,14 @@ public class CloudOsLauncher implements Runnable {
                 toFile(abs(keyFile), privateKey);
                 chefSoloEnv.put("SSH_KEY", abs(keyFile)); // add key to env
 
-                final CommandProgressFilter filter = getLaunchProgressFilter(cloudOsChefDir);
-                final Command command = new Command(chefSolo).setDir(cloudOsChefDir).setEnv(chefSoloEnv).setOut(filter);
+                final CommandProgressFilter filter = getLaunchProgressFilter(stagingDir);
+                final Command command = new Command(chefSolo).setDir(stagingDir).setEnv(chefSoloEnv).setOut(filter);
                 commandResult = CommandShell.exec(command);
 
                 if (!commandResult.isZeroExitStatus()) {
                     die("Error running chef-solo: " + commandResult.getException(), commandResult.getException());
                 }
+                updateState(cloudOs, CloudOsState.cheffed);
                 log.info("chef-solo result:\nexit=" + commandResult.getExitStatus() + "\nout=\n" + commandResult.getStdout() + "\nerr=\n" + commandResult.getStderr());
             }
 
@@ -453,12 +292,9 @@ public class CloudOsLauncher implements Runnable {
             return;
 
         } finally {
-            try { FileUtils.deleteDirectory(initFilesDir); } catch (Exception e) {
-                log.warn("Error deleting initFilesDir ("+initFilesDir+"): "+e, e);
-            }
-            if (cloudOsChefDir != null && cloudOsChefDir.exists()) {
-                try { FileUtils.deleteDirectory(cloudOsChefDir); } catch (Exception e) {
-                    log.warn("Error deleting chefDir (" + cloudOsChefDir + "): " + e, e);
+            if (stagingDir != null && stagingDir.exists()) {
+                try { FileUtils.deleteDirectory(stagingDir); } catch (Exception e) {
+                    log.warn("Error deleting chefDir (" + stagingDir + "): " + e, e);
                 }
             }
         }
@@ -530,54 +366,6 @@ public class CloudOsLauncher implements Runnable {
             return false;
         }
         return true;
-    }
-
-    private String getShasum(Object databag, String config) {
-        return sha256_hex(String.valueOf(ReflectionUtil.get(databag, config)));
-    }
-
-    private String setupDns(String publicIp, String hostname, String fqdn) {
-        final DnsClient dnsClient = configuration.getDnsClient();
-        try {
-            // find any previous entries for this cloudstead
-            final DnsRecordMatch subdomainMatcher = new DnsRecordMatch().setSubdomain(fqdn);
-            final List<DnsRecord> existing = dnsClient.list(subdomainMatcher);
-
-            if (!existing.isEmpty()) {
-                if (dnsClient.remove(subdomainMatcher) <= 0) {
-                    die("Error removing records, expected to remove some but didn't");
-                }
-            }
-
-            // basic hostname
-            dnsClient.write((DnsRecord) new DnsRecord()
-                    .setTtl(DEFAULT_TTL)
-                    .setType(DnsType.A)
-                    .setFqdn(fqdn)
-                    .setValue(publicIp));
-
-            // email routing
-            dnsClient.write((DnsRecord) new DnsRecord()
-                    .setTtl(DEFAULT_TTL)
-                    .setType(DnsType.A)
-                    .setFqdn("mx." + fqdn)
-                    .setValue(publicIp));
-
-            dnsClient.write((DnsRecord) new DnsRecord()
-                    .setTtl(DEFAULT_TTL)
-                    .setOption("rank", String.valueOf(DEFAULT_MX_RANK))
-                    .setType(DnsType.MX)
-                    .setFqdn(fqdn)
-                    .setValue("mx." + fqdn));
-
-            // cloudos can call back to dnsServer to define more names if needed (after installing apps),
-            // we generate an API key here for the dnsServer
-            return dnsClient.createOrUpdateUser(hostname);
-
-        } catch (Exception e) {
-            log.error("Error updating DNS: "+e, e);
-            return null;
-        }
     }
 
 }

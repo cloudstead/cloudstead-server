@@ -1,0 +1,21 @@
+{
+  "name": "simple-test-app",
+  "version": "0.1.0",
+  "style": "java_webapp",
+  "interactive": true,
+  "publisher": {
+    "maintainer": "Jonathan Cobb",
+    "maintainer_email": "jonathan@cloudstead.io",
+    "license": "https://www.gnu.org/licenses/agpl-3.0.txt",
+    "code_copyright": "Copyright 2015 Cloudstead, Inc.",
+    "packaging_copyright": "Copyright 2015 Cloudstead, Inc."
+  },
+
+  "config": [ {
+    "name": "init",
+    "items": [ "admin.name", "admin.password", "test_setting" ]
+  } ],
+
+  "web": { "type": "apache", "mode": "proxy_service", "mount": "bogus" }
+
+}

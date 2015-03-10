@@ -19,6 +19,7 @@ import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cloudstead.service.cloudos.CloudsteadConfigValidationResolver;
 import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +38,17 @@ import java.util.Map;
 @Path(ApiConstants.CLOUDOS_ENDPOINT)
 @Service @Slf4j
 public class CloudOsResource {
+
+    public static final CloudsteadConfigValidationResolver RESOLVER = CloudsteadConfigValidationResolver.INSTANCE;
+    public static final String[] LAUNCHTIME_APPS = {"cloudos", "email"};
+
+    public static Map<String, List<ConstraintViolationBean>> validateConfig(AppConfigurationMap configMap) {
+        return configMap.validate(RESOLVER, LAUNCHTIME_APPS);
+    }
+
+    public Response invalidConfig(AppConfigurationMap configMap) {
+        return Response.status(HttpStatusCodes.UNPROCESSABLE_ENTITY).entity(configMap).build();
+    }
 
     @Autowired private CloudOsDAO cloudOsDAO;
     @Autowired private SessionDAO sessionDAO;
@@ -120,7 +131,12 @@ public class CloudOsResource {
         cloudOs.populate(admin, request);
         cloudOs = cloudOsDAO.create(cloudOs);
 
-        if (prepChefStagingDir(cloudOs)) return Response.serverError().build();
+        try {
+            if (!prepChefStagingDir(cloudOs)) return Response.serverError().build();
+        } catch (Exception e) {
+            log.error("Error preparing chef staging dir: "+e, e);
+            return Response.serverError().build();
+        }
 
         return Response.ok(cloudOs).build();
     }
@@ -159,10 +175,7 @@ public class CloudOsResource {
 
         // app list has changed, update chef staging directory
         if (!sameApps) {
-            try {
-                prepChefStagingDir(cloudOs);
-            } catch (Exception e) {
-                log.error("Error preparing chef staging dir: " + e);
+            if (!prepChefStagingDir(cloudOs))  {
                 return Response.serverError().build();
             }
         }
@@ -193,6 +206,12 @@ public class CloudOsResource {
         final String locale = admin.getLocale();
         final AppConfigurationMap configMap = getAppConfiguration(cloudOs, locale);
 
+        // Do not show end-user config for launch-time apps
+        for (String app : LAUNCHTIME_APPS) configMap.removeConfig(app);
+
+        // Validate, so the end-user knows what config still need to be filled out
+        validateConfig(configMap);
+
         return Response.ok(configMap).build();
     }
 
@@ -201,7 +220,9 @@ public class CloudOsResource {
      * @param apiKey The session ID
      * @param name The name of the instance
      * @param configMap The configuration updates. Apps that are not present in this map will not be updated.
-     * @return The AppConfigurationMap, containing configs for all apps to be installed
+     * @return The AppConfigurationMap, containing configs for all apps to be installed.
+     * @statuscode 200 If the configuration was successfully written
+     * @statuscode 422 If the configuration had validation errors. Check the "violations" attribute of the response JSON, it will be a Map of AppName->ConstraintViolationBean[]
      */
     @POST
     @Path("/{name}/config")
@@ -218,20 +239,38 @@ public class CloudOsResource {
 
         if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.setConfig.notInitial}");
 
-        final File stagingDir = configuration.getCloudConfig().getChefStagingDir(cloudOs);
-        final File databagsDir = new File(stagingDir, ChefSolo.DATABAGS_DIR);
-        for (Map.Entry<String, AppConfiguration> entry : configMap.getAppConfigs().entrySet()) {
-            final File appDatabagDir = new File(databagsDir, entry.getKey());
-            final File manifestFile = new File(appDatabagDir, AppManifest.CLOUDOS_MANIFEST_JSON);
-            if (!manifestFile.exists()) return ResourceUtil.invalid("{err.cloudos.setConfig.missingManifest}");
-            AppConfiguration.setAppConfiguration(AppManifest.load(manifestFile), appDatabagDir, entry.getValue());
+        // Sanity check -- ensure we never allow end-user to set these (for now)
+        for (String app : LAUNCHTIME_APPS) {
+            if (configMap.getAppConfigs().containsKey(app)) {
+                log.warn("Cannot set config for launch-time app (omitting): "+app);
+                configMap.removeConfig(app);
+            }
         }
 
-        // refresh config
-        final String locale = admin.getLocale();
-        configMap = getAppConfiguration(cloudOs, locale);
+        // Only validate the app they have set config for
+        final Map<String, List<ConstraintViolationBean>> violations = validateConfig(configMap);
+        if (violations.isEmpty()) {
+            final File stagingDir = cloudOs.getStagingDir(configuration);
+            final File databagsDir = new File(stagingDir, ChefSolo.DATABAGS_DIR);
+            for (Map.Entry<String, AppConfiguration> entry : configMap.getAppConfigs().entrySet()) {
+                final String appName = entry.getKey();
+                final AppConfiguration config = entry.getValue();
 
-        return Response.ok(configMap).build();
+                final File appDatabagDir = new File(databagsDir, appName);
+                final File manifestFile = new File(appDatabagDir, AppManifest.CLOUDOS_MANIFEST_JSON);
+                if (!manifestFile.exists()) return ResourceUtil.invalid("{err.cloudos.setConfig.missingManifest}");
+                config.writeAppConfiguration(AppManifest.load(manifestFile), appDatabagDir);
+            }
+
+            // refresh config
+            final String locale = admin.getLocale();
+            configMap = getAppConfiguration(cloudOs, locale);
+            validateConfig(configMap);
+            return Response.ok(configMap).build();
+        } else {
+            return invalidConfig(configMap);
+        }
+
     }
 
     /**
@@ -239,6 +278,7 @@ public class CloudOsResource {
      * @param apiKey The session ID
      * @param name The name of the instance
      * @return A CloudOsStatus object showing the status of the launch
+     * @statuscode 422 If there were configuration errors that prevented the launch
      */
     @POST
     @Path("/{name}/launch")
@@ -256,13 +296,10 @@ public class CloudOsResource {
         if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.launch.notInitial}");
 
         // validate that all required configuration options have a value
-        final List<ConstraintViolationBean> violations = new ArrayList<>();
-        final AppConfigurationMap configMap = getAppConfiguration(cloudOs, null);
-        for (Map.Entry<String, AppConfiguration> entry : configMap.getAppConfigs().entrySet()) {
-            entry.getValue().validate(violations, CloudsteadConfigValidationResolver.INSTANCE);
-        }
-
-        if (!violations.isEmpty()) return ResourceUtil.invalid(violations);
+        // we skip 'cloudos' and 'email' apps since they are configured after the cloudstead has an IP address
+        final AppConfigurationMap configMap = getAppConfiguration(cloudOs, admin.getLocale());
+        final Map<String, List<ConstraintViolationBean>> violations = validateConfig(configMap);
+        if (!violations.isEmpty()) return invalidConfig(configMap);
 
         // this should return quickly with a status of pending
         final CloudOsStatus status = launchManager.launch(admin, cloudOs);
@@ -318,6 +355,15 @@ public class CloudOsResource {
         if (cloudOs == null) return ResourceUtil.notFound();
         if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
 
+        // nothing to destroy? OK then, everything is fine
+        if (cloudOs.getInstance() == null) {
+            cloudOs.setState(CloudOsState.deleting);
+            cloudOsDAO.delete(cloudOs.getUuid());
+            return Response.ok(Boolean.TRUE).build();
+        }
+
+        // todo: check cloudos.state -- can we delete from *any* state? or only certain ones?
+
         cloudOs.setState(CloudOsState.deleting);
         cloudOsDAO.update(cloudOs);
         launchManager.teardown(admin, cloudOs);
@@ -326,7 +372,7 @@ public class CloudOsResource {
     }
 
     public AppConfigurationMap getAppConfiguration(CloudOs cloudOs, String locale) {
-        final File stagingDir = configuration.getCloudConfig().getChefStagingDir(cloudOs);
+        final File stagingDir = cloudOs.getStagingDir(configuration);
         final AppConfigurationMap configMap = new AppConfigurationMap();
         configMap.addAll(cloudOs.getAllApps(), stagingDir, locale);
         return configMap;
@@ -335,14 +381,15 @@ public class CloudOsResource {
     public boolean prepChefStagingDir(CloudOs cloudOs) {
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
         final File chefMaster = cloudConfig.getChefDir();
-        final File stagingDir = cloudConfig.getChefStagingDir(cloudOs);
+        final File stagingDir = cloudOs.getStagingDir(configuration);
+
         try {
             ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir);
         } catch (Exception e) {
-            log.error("Error preparing chef staging dir: "+e);
-            return true;
+            log.error("prepChefStagingDir: Error preparing chef staging dir: "+e);
+            return false;
         }
-        return false;
+        return true;
     }
 
 }

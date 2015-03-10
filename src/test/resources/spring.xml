@@ -19,8 +19,18 @@
     <context:component-scan base-package="cloudos.dao"/>
     <context:component-scan base-package="cloudos.cloudstead.model"/>
     <context:component-scan base-package="cloudos.cloudstead.resources"/>
-    <context:component-scan base-package="cloudos.cloudstead.dao"/>
-    <context:component-scan base-package="cloudos.cloudstead.service"/>
+
+    <!-- replace CloudOsDAO so our tests do not really interact with 3rd-party services -->
+    <context:component-scan base-package="cloudos.cloudstead.dao">
+        <context:exclude-filter type="regex" expression="cloudos.cloudstead.dao.CloudOsDAO" />
+    </context:component-scan>
+    <bean id="cloudOsDAO" class="cloudos.cloudstead.dao.MockCloudOsDAO"/>
+
+    <!-- Use MockCloud for tests so we don't actually launch live instances -->
+    <context:component-scan base-package="cloudos.cloudstead.service">
+        <context:exclude-filter type="regex" expression="cloudos.cloudstead.service.CloudOsLaunchManager"/>
+    </context:component-scan>
+    <bean id="cloudOsLaunchManager" class="cloudos.cloudstead.mock.service.MockCloudOsLaunchManager"/>
 
     <bean id="uniqueValidator" class="org.cobbzilla.wizard.validation.UniqueValidator"/>
 

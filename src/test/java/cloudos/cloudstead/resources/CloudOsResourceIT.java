@@ -1,5 +1,8 @@
 package cloudos.cloudstead.resources;
 
+import cloudos.appstore.bundler.BundlerMain;
+import cloudos.appstore.bundler.BundlerOptions;
+import cloudos.appstore.model.app.AppManifest;
 import cloudos.appstore.model.app.config.AppConfigurationMap;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.AdminResponse;
@@ -11,13 +14,17 @@ import cloudos.cslib.compute.instance.CsInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
+import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.system.Sleep;
+import org.cobbzilla.wizard.server.RestServer;
 import org.cobbzilla.wizard.util.RestResponse;
+import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -25,9 +32,12 @@ import static cloudos.cloudstead.resources.ApiConstants.CLOUDOS_ENDPOINT;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.io.FileUtil.abs;
+import static org.cobbzilla.util.io.FileUtil.toFileOrDie;
+import static org.cobbzilla.util.io.StreamUtil.loadResourceAsStringOrDie;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.wizardtest.RandomUtil.randomEmail;
+import static org.cobbzilla.wizardtest.RandomUtil.randomName;
 import static org.junit.Assert.*;
 
 @Slf4j
@@ -46,6 +56,35 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         env.put("ROOTY_QUEUE_NAME", queueName);
         env.put("ROOTY_SECRET", rootySecret);
         return env;
+    }
+
+    @Override
+    public void beforeStart(RestServer<CloudsteadConfiguration> server) {
+        super.beforeStart(server);
+
+        final File appTemp = FileUtil.createTempDirOrDie("appTemp");
+        final File bundleDir = FileUtil.createTempDirOrDie("bundleDir");
+
+        // Write manifest and databags from resources to tempdir
+        final File manifestFile = new File(appTemp, AppManifest.CLOUDOS_MANIFEST_JSON);
+        final String manifestData = loadResourceAsStringOrDie("apps/test/" + AppManifest.CLOUDOS_MANIFEST_JSON);
+        toFileOrDie(manifestFile, manifestData);
+        for (String databag : new String[]{"init", "config-metadata"}) {
+            toFileOrDie(new File(abs(appTemp) + "/config/" + databag + ".json"), loadResourceAsStringOrDie("apps/test/config/" + databag + ".json"));
+        }
+
+        // Run the bundler on our test manifest
+        final BundlerMain main = new BundlerMain(new String[] {
+                BundlerOptions.OPT_MANIFEST, abs(manifestFile),
+                BundlerOptions.OPT_OUTPUT_DIR, abs(bundleDir)
+        });
+        main.runOrDie();
+
+        // todo: add a required fields to test-app's config, ensures we will have *some* config to fill out before launch
+
+        final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
+        final String chefSources = configuration.getCloudConfig().getChefSources();
+        configuration.getCloudConfig().setChefSources(chefSources+" "+abs(new File(bundleDir, "chef")));
     }
 
     @After public void teardown () throws Exception {
@@ -76,6 +115,8 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         RestResponse response;
         CloudOs[] instances;
         AppConfigurationMap appConfig;
+        Map<String, List<ConstraintViolationBean>> violations;
+        List<ConstraintViolationBean> vlist;
 
         apiDocs.startRecording(DOC_TARGET, "create a CloudOs instance");
 
@@ -107,27 +148,41 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         assertEquals(1, instances.length);
         assertEquals(name, instances[0].getName());
 
-        apiDocs.addNote("update CloudOs instance, add an app");
-        cloudOsRequest.setAdditionalApps("jira");
+        apiDocs.addNote("update CloudOs instance, add two more apps");
+        cloudOsRequest.setAdditionalApps("jira simple-test-app");
         cloudOs = fromJson(post(uri, toJson(cloudOsRequest)).json, CloudOs.class);
-        assertEquals(numApps + 1, cloudOs.getAllApps().size());
+        assertEquals(numApps + 2, cloudOs.getAllApps().size());
         assertCookbookDirsExist(cloudOs);
 
         apiDocs.addNote("try to launch the instance, should fail due to missing config");
         response = doPost(uri + "/launch", null);
         assertEquals(HttpStatusCodes.UNPROCESSABLE_ENTITY, response.status);
+        appConfig = fromJson(response.json, AppConfigurationMap.class);
+        violations = appConfig.getViolations();
+        assertEquals(1, violations.size());
+        vlist = violations.get("simple-test-app");
+        assertNotNull(vlist);
+        assertEquals(1, vlist.size());
+        assertEquals("{err.init.test_setting.empty}", vlist.get(0).getMessageTemplate());
 
         apiDocs.addNote("fetch configuration for the apps to be installed");
         appConfig = fromJson(get(uri + "/config").json, AppConfigurationMap.class);
-        // todo: make some assertions about this
+        assertNotNull(vlist);
+        assertEquals(1, vlist.size());
+        assertEquals("{err.init.test_setting.empty}", vlist.get(0).getMessageTemplate());
 
-        apiDocs.addNote("update configuration for the apps to be installed");
+        apiDocs.addNote("update configuration for the apps to be installed, shouldn't find any other violations");
+        appConfig.getConfig("simple-test-app").getCategory("init").set("test_setting", randomName());
         appConfig = fromJson(post(uri + "/config", toJson(appConfig)).json, AppConfigurationMap.class);
+        assertTrue(appConfig.getViolations().isEmpty());
 
         apiDocs.addNote("try again to launch the instance, should now work");
-        CloudOsStatus status = fromJson(post(uri + "/launch", null).json, CloudOsStatus.class);
-        while (!status.isCompleted()) {
-            Sleep.sleep(SECONDS.toMillis(30));
+        response = post(uri + "/launch", null);
+        assertEquals(200, response.status);
+
+        CloudOsStatus status = fromJson(response.json, CloudOsStatus.class);
+        while (!status.isCompleted() && !status.getCloudOs().isRunning()) {
+            Sleep.sleep(SECONDS.toMillis(3));
             apiDocs.addNote("check status of cloudos launch");
             status = fromJson(get(uri+"/status").json, CloudOsStatus.class);
         }
@@ -140,7 +195,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
     }
 
     private void assertCookbookDirsExist(CloudOs cloudOs) {
-        final File stagingDir = ((CloudsteadConfiguration) server.getConfiguration()).getCloudConfig().getChefStagingDir(cloudOs);
+        final File stagingDir = cloudOs.getStagingDir((CloudsteadConfiguration) server.getConfiguration());
         for (String app : cloudOs.getAllApps()) {
             final File appDir = new File(abs(stagingDir) + "/cookbooks/" + app);
             assertTrue(appDir.exists() && appDir.isDirectory());

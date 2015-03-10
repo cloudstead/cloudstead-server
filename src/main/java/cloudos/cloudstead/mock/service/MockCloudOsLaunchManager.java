@@ -1,12 +1,12 @@
 package cloudos.cloudstead.mock.service;
 
 import cloudos.cloudstead.model.CloudOs;
+import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 
-import java.util.concurrent.TimeUnit;
-
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.system.Sleep.sleep;
 
 public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
 
@@ -21,12 +21,9 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
         executor.execute(destroyer);
     }
 
-    protected static void sleep() { sleep(1); }
-
-    protected static void sleep(int seconds) {
-        try { Thread.sleep(TimeUnit.SECONDS.toMillis(seconds)); } catch (InterruptedException e) {
-            die("Interrupted while setting up: "+e, e);
-        }
+    protected void updateState(CloudOs cloudOs, CloudOsState state) {
+        cloudOs.updateState(state);
+        cloudOsDAO.update(cloudOs);
     }
 
     public class MockCloudOsLauncher implements Runnable {
@@ -48,26 +45,37 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
             }
 
             status.update("{setup.creatingCloudAdminAccount}");
-            sleep(10); status.update("{setup.savingCloudAdminAccount}");
-            sleep(15); status.update("{setup.startingMasterInstance}");
-            sleep(20); status.update("{setup.updatingCloudOsToMarkAsRunning}");
-            sleep(10); status.update("{setup.creatingDnsRecord}");
-            sleep(15); status.update("{setup.generatingSendgridCredentials}");
-            sleep(15); status.update("{setup.buildingInitializationFile}");
-            sleep(10); status.update("{setup.cheffing}");
-            sleep(60); status.completed();
+            sleep(); status.update("{setup.savingCloudAdminAccount}");
+            updateState(cloudOs, CloudOsState.starting);
+            sleep(); status.update("{setup.startingMasterInstance}");
+            updateState(cloudOs, CloudOsState.started);
+            sleep(); status.update("{setup.updatingCloudOsToMarkAsRunning}");
+            sleep(); status.update("{setup.creatingDnsRecord}");
+            sleep(); status.update("{setup.generatingSendgridCredentials}");
+            sleep(); status.update("{setup.buildingInitializationFile}");
+            updateState(cloudOs, CloudOsState.cheffing);
+            sleep(); status.update("{setup.cheffing}");
+            updateState(cloudOs, CloudOsState.cheffed);
+            sleep(); status.completed();
             status.success("{setup.success}");
+            updateState(cloudOs, CloudOsState.live);
         }
     }
 
-    public static class MockCloudOsDestroyer implements Runnable {
+    public class MockCloudOsDestroyer implements Runnable {
         private CloudOsStatus status;
         public MockCloudOsDestroyer(CloudOsStatus status) { this.status = status; }
 
         @Override public void run() {
+            updateState(status.getCloudOs(), CloudOsState.destroying);
             sleep(); status.update("{destroy.tearingDownInstance}");
+            updateState(status.getCloudOs(), CloudOsState.destroyed);
+
             sleep(); status.update("{destroy.removingDnsRecords}");
             sleep(); status.update("{destroy.deletingFromDB}");
+
+            updateState(status.getCloudOs(), CloudOsState.deleting);
+            cloudOsDAO.delete(status.getCloudOs().getUuid());
             sleep(); status.success("{destroy.success}");
         }
     }
