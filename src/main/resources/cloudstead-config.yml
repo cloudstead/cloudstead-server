@@ -84,6 +84,8 @@ cloudConfig:
   chefSources: {{CLOUDOS_CHEF_SOURCES}}
   chefStagingDir: {{CLOUDOS_CHEF_STAGING_DIR}}
 
+  maxLaunchRetries: {{CLOUDOS_MAX_LAUNCH_RETRIES}}
+
 emailTemplateRoot: {{EMAIL_TEMPLATE_ROOT}}
 
 emailSenderNames:

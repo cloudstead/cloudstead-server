@@ -48,6 +48,8 @@ public class CloudConfiguration implements AWSCredentials {
     @Getter @Setter private String chefSources;
     @Getter @Setter private File chefStagingDir;
 
+    @Getter @Setter private int maxLaunchRetries = 3;
+
     private File chefDir = null;
     private ChefDirSynchronizer chefSync = null;
 

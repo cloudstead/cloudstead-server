@@ -48,8 +48,6 @@ import static rooty.toots.chef.ChefSolo.SOLO_JSON;
 @Slf4j
 public class CloudOsLauncher implements Runnable {
 
-    public static final int MAX_TRIES = 3;
-
     @Getter private CloudOsStatus status;
     private final CloudsteadConfiguration configuration;
     private final CloudOsDAO cloudOsDAO;
@@ -82,7 +80,8 @@ public class CloudOsLauncher implements Runnable {
     @Override
     public void run() {
         boolean success = false;
-        for (int tries = 0; tries < MAX_TRIES; tries++) {
+        final int maxRetries = configuration.getCloudConfig().getMaxLaunchRetries();
+        for (int tries = 0; tries < maxRetries; tries++) {
             status.initRetry();
             try {
                 launch();
@@ -103,7 +102,7 @@ public class CloudOsLauncher implements Runnable {
                 }
 
             } catch (Exception e) {
-                if (tries == MAX_TRIES-1) {
+                if (tries == maxRetries-1) {
                     status.error("{setup.error.unexpected.final}", "An unexpected error occurred during setup, we are giving up");
                 } else {
                     status.error("{setup.error.unexpected.willRetry}", "An unexpected error occurred during setup, we will retry");
@@ -279,7 +278,11 @@ public class CloudOsLauncher implements Runnable {
                 chefSoloEnv.put("SSH_KEY", abs(keyFile)); // add key to env
 
                 final CommandProgressFilter filter = getLaunchProgressFilter(stagingDir);
-                final Command command = new Command(chefSolo).setDir(stagingDir).setEnv(chefSoloEnv).setOut(filter);
+                final Command command = new Command(chefSolo)
+                        .setDir(stagingDir)
+                        .setEnv(chefSoloEnv)
+                        .setOut(filter)
+                        .setCopyToStandard(true);
                 commandResult = CommandShell.exec(command);
 
                 if (!commandResult.isZeroExitStatus()) {
