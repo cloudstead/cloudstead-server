@@ -311,10 +311,25 @@ public class CloudOsLauncher implements Runnable {
         status.completed();
     }
 
+    public static final String[] CHEF_BOOTSTRAP_INDICATORS = {
+            "Reading package lists", "Preconfiguring packages", "Current default time zone",
+            "Running depmod.", "Updating certificates in /etc/ssl/certs",
+            "INFO: Chef-client pid"
+    };
     protected CommandProgressFilter getLaunchProgressFilter(File chefDir) throws Exception {
+
         final CommandProgressFilter filter = new CommandProgressFilter()
-                .setCallback(new CloudOsLaunchProgressCallback(status))
-                .addIndicator("INFO: Chef-client pid", 1);
+                .setCallback(new CloudOsLaunchProgressCallback(status));
+
+        final int chefBootstrapPct = 30;
+        final int chefRunPct = 100 - chefBootstrapPct;
+        int pct = 1;
+        int delta = chefBootstrapPct / CHEF_BOOTSTRAP_INDICATORS.length;
+
+        for (String indicator : CHEF_BOOTSTRAP_INDICATORS) {
+            filter.addIndicator(indicator, pct);
+            pct += delta;
+        }
 
         final ChefSolo solo = fromJson(FileUtil.toString(new File(chefDir, SOLO_JSON)), ChefSolo.class);
         int numEntries = 0;
@@ -323,8 +338,9 @@ public class CloudOsLauncher implements Runnable {
                 numEntries++;
             }
         }
-        int delta = 100 / numEntries;
-        int pct = delta;
+
+        delta = chefRunPct / numEntries;
+        pct = chefBootstrapPct;
         for (ChefSoloEntry entry : solo.getEntries()) {
             if (entry.isRecipe("default") || entry.isRecipe("validate")) {
                 filter.addIndicator(ChefHandler.getChefProgressPattern(entry), pct);

@@ -10,7 +10,7 @@ public class CloudOsLaunchProgressCallback implements CommandProgressCallback {
     private CloudOsStatus status;
 
     @Override public void updateProgress(CommandProgressMarker marker) {
-        status.update("{setup.cheffing.completed_"+marker.getPercent()+"_percent}");
+        status.update("{setup.cheffing.percent_done_"+marker.getPercent()+"}");
     }
 
 }
