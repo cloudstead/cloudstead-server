@@ -130,6 +130,7 @@ public class CloudOsLauncher implements Runnable {
         if (instance == null || !status.isCompleted()) return false;
         if (instance instanceof MockCsInstance) return true;
 
+        // todo: try this a few times before giving up
         final String url = "https://" + instance.getPublicIp() + "/";
         final CommandLine command = new CommandLine("curl")
                 .addArgument("--insecure") // since we are requested via the IP address, the cert will not match
