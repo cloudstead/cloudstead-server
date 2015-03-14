@@ -54,7 +54,7 @@ public class CloudOs extends UniquelyNamedEntity {
     @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsGeoRegion region;
 
-    @Size(max=1024, message="err.cloudos.additionalApps.length")
+    @Size(max=4096, message="err.cloudos.additionalApps.length")
     @Getter @Setter private String additionalApps;
 
     @JsonIgnore public List<String> getAdditionalAppsList () { return Arrays.asList(additionalApps.split("[,\\s]+")); }
