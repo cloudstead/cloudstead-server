@@ -259,12 +259,6 @@ public class CloudOsLauncher implements Runnable {
             final Map<String, String> chefSoloEnv = new HashMap<>();
             chefSoloEnv.put("INIT_FILES", abs(stagingDir));
 
-            // do not use default json editor (won't be found), use the one installed here
-            chefSoloEnv.put("JSON_EDIT", "cstead json");
-
-            // cloudsteads callback to this server (the one that launched it) to manage DNS
-            chefSoloEnv.put("DISABLE_DNS", "true");
-
             // decrypt the private key and put it on disk somewhere, so that deploy.sh works without asking for a passphrase
             // we can make this a lot easier... what a PITA
             final String privateKey = instance.getKey();

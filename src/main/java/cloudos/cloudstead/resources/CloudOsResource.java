@@ -18,6 +18,7 @@ import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cloudstead.service.cloudos.CloudsteadConfigValidationResolver;
 import com.qmino.miredot.annotations.ReturnType;
+import edu.emory.mathcs.backport.java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.wizard.resources.ResourceUtil;
@@ -379,13 +380,17 @@ public class CloudOsResource {
         return configMap;
     }
 
+    public static final String PRIORITY_APP = "cloudos";
+    public static final List<String> DEPENDENCIES = Arrays.asList(new String[] {
+            "base", "auth", "apache", "postgresql", "mysql", "java", "git", "email", "kestrel"
+    });
     public boolean prepChefStagingDir(CloudOs cloudOs) {
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
         final File chefMaster = cloudConfig.getChefDir();
         final File stagingDir = cloudOs.getStagingDirFile();
 
         try {
-            ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir);
+            ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir, PRIORITY_APP, DEPENDENCIES);
         } catch (Exception e) {
             log.error("prepChefStagingDir: Error preparing chef staging dir: "+e);
             return false;
