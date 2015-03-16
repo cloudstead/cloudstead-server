@@ -240,6 +240,7 @@ public class CloudOsLauncher implements Runnable {
         try {
             cloudOsDAO.setupSendGrid(admin, cloudOs);
         } catch (Exception e) {
+            log.error("Error setting up email relay: "+e, e);
             status.error("{setup.error.emailRelaySetup}", "Error setting up email relay");
             return;
         }
