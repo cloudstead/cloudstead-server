@@ -134,7 +134,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
                 .setToName(admin.getFullName())
                 .setParameter(TemplatedMailService.PARAM_ACCOUNT, admin)
                 .setParameter("activationApiUrl", configuration.getEmailVerificationUrl(code))
-                .setParameter("activationUrl", configuration.getPublicUriBase() + "/activate.html?key=" + code);
+                .setParameter("activationUrl", configuration.getPublicUriBase() + "/#/activate/" + code);
         try {
             mailService.getMailSender().deliverMessage(mail);
         } catch (Exception e) {
