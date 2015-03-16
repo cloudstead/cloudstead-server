@@ -20,7 +20,6 @@ import lombok.Cleanup;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.io.FileUtils;
 import org.cobbzilla.util.http.ApiConnectionInfo;
 import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.system.Command;
@@ -293,13 +292,6 @@ public class CloudOsLauncher implements Runnable {
             log.error("Error running chef ("+e+"): stdout:\n"+ ((commandResult == null) ? null : commandResult.getStdout()) + "\n\nstderr:\n"+((commandResult == null) ? null : commandResult.getStderr()));
             updateState(cloudOs, CloudOsState.error);
             return;
-
-        } finally {
-            if (stagingDir != null && stagingDir.exists()) {
-                try { FileUtils.deleteDirectory(stagingDir); } catch (Exception e) {
-                    log.warn("Error deleting chefDir (" + stagingDir + "): " + e, e);
-                }
-            }
         }
 
         log.info("launch completed OK: "+hostname+"."+cloudConfig.getDomain());
@@ -317,13 +309,13 @@ public class CloudOsLauncher implements Runnable {
         final CommandProgressFilter filter = new CommandProgressFilter()
                 .setCallback(new CloudOsLaunchProgressCallback(status));
 
-        final int chefBootstrapPct = 30;
-        final int chefRunPct = 100 - chefBootstrapPct;
-        int pct = 1;
-        int delta = chefBootstrapPct / CHEF_BOOTSTRAP_INDICATORS.length;
+        final float chefBootstrapPct = 30.0f;
+        final float chefRunPct = 100.0f - chefBootstrapPct;
+        float pct = 1.0f;
+        float delta = chefBootstrapPct / ((float) CHEF_BOOTSTRAP_INDICATORS.length);
 
         for (String indicator : CHEF_BOOTSTRAP_INDICATORS) {
-            filter.addIndicator(indicator, pct);
+            filter.addIndicator(indicator, (int) pct);
             pct += delta;
         }
 
@@ -335,11 +327,11 @@ public class CloudOsLauncher implements Runnable {
             }
         }
 
-        delta = chefRunPct / numEntries;
+        delta = chefRunPct / ((float) numEntries);
         pct = chefBootstrapPct;
         for (ChefSoloEntry entry : solo.getEntries()) {
             if (entry.isRecipe("default") || entry.isRecipe("validate")) {
-                filter.addIndicator(ChefHandler.getChefProgressPattern(entry), pct);
+                filter.addIndicator(ChefHandler.getChefProgressPattern(entry), (int) pct);
                 pct += delta;
             }
         }
