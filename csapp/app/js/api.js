@@ -297,28 +297,21 @@ Api = {
 		return this._post('/api/auth/reset_password', data);
 	},
 
-//    'change_password': function (oldPassword, newPassword) {
-//        api_token = sessionStorage.getItem('api_token');
-//        var ok = false;
-//        Ember.$.ajax({
-//            'type': 'POST',
-//            'url': API_ROOT + '/api/accounts/' + api_token + '/password',
-//            'contentType': 'application/json',
-//            'data': JSON.stringify({
-//                'oldPassword': oldPassword,
-//                'newPassword': newPassword
-//            }),
-//            'async': false,
-//            'success': function (account, status, jqXHR) {
-//                alert('password successfully changed');
-//                ok = true;
-//            },
-//            'error': function (jqXHR, status, error) {
-//                alert('error changing password: '+error);
-//                console.log('reg error: status='+status+', error='+error);
-//            }
-//        });
-//        return ok;
-//    }
-//
+	activate_account: function(account_token) {
+		// return this._get('/api/auth/activate/' + account_token);
+		show_loading();
+
+		var result;
+		Ember.$.ajax({
+			'type': 'GET',
+			'url': API_ROOT + '/api/auth/activate/' + account_token,
+			'contentType': 'application/json',
+			'async': false,
+			'complete': function(jqXHR, status, error) {
+				result = {statusCode: jqXHR.status};
+				hide_loading();
+			}
+		});
+		return result;
+	},
 };

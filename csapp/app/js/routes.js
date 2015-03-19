@@ -30,6 +30,7 @@ App.Router.map(function() {
 
 	this.resource('resetPassword', { path: '/reset_password/:token' });
 	this.resource('twoFactorVerification', { path: '/verification/:email' });
+	this.route('activate_account', { path: '/activate/:activation_token' });
 //	this.resource('settings');
 //	this.resource('app', { path: '/app/:app_name' });
 });
@@ -127,5 +128,17 @@ App.TwoFactorVerificationRoute = Ember.Route.extend({
 			deviceName: getCookie("deviceName"),
 			isRegister: true
 		};
+	}
+});
+
+App.ActivateAccountRoute = Ember.Route.extend({
+	model: function(params) {
+		return Api.activate_account(params.activation_token);
+	},
+
+	actions: {
+		transitionToIndex: function() {
+			this.transitionTo('index');
+		}
 	}
 });
