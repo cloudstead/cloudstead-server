@@ -289,7 +289,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
 
         final File stagingDir = cloudOs.getStagingDirFile();
         final ConnectionInfo smtp_relay = new ConnectionInfo(SendGrid.SMTP_RELAY, SendGrid.SMTP_RELAY_PORT, sendGridUser.getUsername(), sendGridUser.getPassword());
-        final EmailDatabag emailDatabag = new EmailDatabag().setSmtp_relay(smtp_relay).setVendor(new VendorDatabag());
+        final EmailDatabag emailDatabag = new EmailDatabag().setSmtpRelay(smtp_relay).setVendor(new VendorDatabag());
         for (String config : EMAIL_CONFIGS) {
             emailDatabag.getVendor().addSetting(new VendorDatabagSetting(config, getShasum(emailDatabag, config)));
         }
