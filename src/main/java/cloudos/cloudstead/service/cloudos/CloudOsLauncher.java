@@ -280,11 +280,11 @@ public class CloudOsLauncher implements Runnable {
                         .setCopyToStandard(true);
                 commandResult = CommandShell.exec(command);
 
-                if (!commandResult.isZeroExitStatus()) {
-                    die("Error running chef-solo: " + commandResult.getException(), commandResult.getException());
+                if (!commandResult.isZeroExitStatus() || commandResult.getStdout().contains("FATAL")) {
+                    die("Error running chef-solo: " + commandResult);
                 }
                 updateState(cloudOs, CloudOsState.cheffed);
-                log.info("chef-solo result:\nexit=" + commandResult.getExitStatus() + "\nout=\n" + commandResult.getStdout() + "\nerr=\n" + commandResult.getStderr());
+                log.info("chef-solo succeeded");
             }
 
         } catch (Exception e) {
