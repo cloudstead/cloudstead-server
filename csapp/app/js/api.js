@@ -212,8 +212,31 @@ Api = {
 		return result;
 	},
 
-	cloud_os_launch_status: function (name) {
+	launch_cloud_os: function (cloudos_name) {
 		show_loading();
+
+		var result = null;
+		Ember.$.ajax({
+			'type': 'POST',
+			'url': API_ROOT + '/api/cloudos/' + cloudos_name + '/launch',
+			'contentType': 'application/json',
+			'async': false,
+			'beforeSend': add_api_auth,
+			'success': function (data, status, jqXHR) {
+				result = data;
+			},
+			'error': function (jqXHR, status, error) {
+				console.log('new_cloud_os error: result='+result+', error='+error);
+				result = jqXHR.responseJSON[0];
+			},
+			'complete': function(jqXHR, status, error) {
+				hide_loading();
+			}
+		});
+		return result;
+	},
+
+	cloud_os_launch_status: function (name) {
 
 		var result = null;
 		Ember.$.ajax({
@@ -229,7 +252,6 @@ Api = {
 				console.log('cloud_os_launch_result error: result='+result+', error='+error);
 			},
 			'complete': function(jqXHR, status, error) {
-				hide_loading();
 			}
 		});
 		return result;

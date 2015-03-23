@@ -24,14 +24,23 @@
 						</tr>
 					</thead>
 					<tbody>
-						{{#each cloudosInstances}}
+						{{#each cloudosInstance in cloudosInstances }}
 							<tr>
-								<td>{{#link-to 'cloudOsStatus' name}}{{name}}{{/link-to}}</td>
-								<td>{{running}}</td>
+								<td>{{#link-to 'cloudOsStatus' cloudosInstance.name}}{{cloudosInstance.name}}{{/link-to}}</td>
 								<td>
-									<a href="#" {{action "deleteInstance" name}}>
-										<span class="icon-trash-o"></span> {{t sections.admin.delete}}
-									</a>
+									{{ cloudosInstance.state }}
+								</td>
+								<td>
+									{{#if cloudosInstance.isInInitialState }}
+										<a href="#" {{ action "doLaunchCloudOs" cloudosInstance.name }}>
+											<span class="icon-cloud"></span> {{t sections.admin.launch}}
+										</a>
+									{{/if}}
+									{{#unless cloudosInstance.isInDestroyingState }}
+										<a href="#" {{action "deleteInstance" cloudosInstance.name}}>
+											<span class="icon-trash-o"></span> {{t sections.admin.delete}}
+										</a>
+									{{/unless}}
 								</td>
 							</tr>
 						{{/each}}

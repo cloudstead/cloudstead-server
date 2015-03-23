@@ -81,7 +81,10 @@ App.AdminHomeRoute = App.ProtectedRoute.extend({
 	model: function () {
 		return {
 			cloudOsRequest: {
-				name: ''
+				name: '',
+				edition: 'starter',
+				appBundle: 'basic',
+				region: 'us_west'
 			}
 		};
 	}

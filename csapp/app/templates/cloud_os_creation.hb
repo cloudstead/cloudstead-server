@@ -4,7 +4,7 @@
 </div>
 <div class="row modal-content">
 	<div class="large-12 columns">
-		<p>{{t forms.cloudos.launch_string}} "{{ cloudOsRequest.name }}"</p>
+		<p>{{t forms.cloudos.launch_string}} "{{ name }}"</p>
 	</div>
 	<div class="large-10 columns">
 		<div class="progress">

@@ -1,17 +1,18 @@
 App.AdminHomeController = Ember.ObjectController.extend({
 	cloudosInstances: function(){
-		var result = Api.list_cloudos_instances();
-		try {
-			var uuid = result[0]["uuid"];
-			return Api.list_cloudos_instances();
-		}catch(e){
-			return null;
+		var instances = Api.list_cloudos_instances();
+
+		var omg = null;
+
+		if (!Ember.isEmpty(instances)) {
+			omg = App.CloudosInstance.createFromArray(instances);
 		}
+
+		return omg;
 
 	}.property(),
 	actions: {
-		doNewCloudOs: function () {
-
+		doNewCloudOs: function() {
 			var cloudOsRequest = this.get('cloudOsRequest');
 			var validate = this.validateName(cloudOsRequest.name);
 			if (validate.cloudOsName) {
@@ -25,12 +26,16 @@ App.AdminHomeController = Ember.ObjectController.extend({
 				return false;
 			}
 
-			var status = Api.new_cloud_os(cloudOsRequest);
-			if (!Ember.isNone(status.message)) {
-				alert(status.message);
-			}
-			else {
-				this.send('openModal','cloudOsCreation', this.get('model') );
+			Api.new_cloud_os(cloudOsRequest);
+			location.reload();
+		},
+
+		doLaunchCloudOs: function (instanceName) {
+			var trans = Em.I18n.translations.sections.admin.dialogs;
+			var confirm = confirm(trans.confirm_launch_pre_name + instanceName + trans.confirm_launch_post_name);
+
+			if (confirm){
+				this.send('openModal','cloudOsCreation', launched_cloudos.cloudOs );
 			}
 		},
 		deleteInstance: function(instanceName){
@@ -39,12 +44,12 @@ App.AdminHomeController = Ember.ObjectController.extend({
 			if (r === true) {
 				result = Api.delete_cloudos_instance(instanceName);
 
-					if (result) {
-						alert(trans.info_delete_pre_name + instanceName + trans.info_delete_post_name);
-						location.reload();
-					} else {
-						alert(trans.error_delete_pre_name + instanceName + trans.error_delete_post_name);
-					}
+				if (result) {
+					alert(trans.info_delete_pre_name + instanceName + trans.info_delete_post_name);
+					location.reload();
+				} else {
+					alert(trans.error_delete_pre_name + instanceName + trans.error_delete_post_name);
+				}
 
 			} else {
 					console.log('action canceled');
@@ -85,5 +90,7 @@ App.AdminHomeController = Ember.ObjectController.extend({
 		else{
 			return true;
 		}
-	}.property('cloudosInstances')
+	}.property('cloudosInstances'),
+
+
 });
