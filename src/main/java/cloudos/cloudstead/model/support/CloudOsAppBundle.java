@@ -1,6 +1,7 @@
 package cloudos.cloudstead.model.support;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +16,7 @@ public enum CloudOsAppBundle {
     tech_startup(Constants.TECH_STARTUP_APPS, small_biz);
 
     private String[] apps;
-    private CloudOsAppBundle parent;
+    @JsonIgnore private CloudOsAppBundle parent;
 
     CloudOsAppBundle(String[] apps, CloudOsAppBundle parent) {
         this.apps = apps;
@@ -32,7 +33,7 @@ public enum CloudOsAppBundle {
     }
 
     // always return a copy to avoid mutating the enum
-    public String[] getAppsArray () {
+    @JsonIgnore public String[] getAppsArray () {
         final List<String> appList = getApps();
         return appList.toArray(new String[appList.size()]);
     }

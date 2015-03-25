@@ -3,6 +3,7 @@ package cloudos.cloudstead.model.support;
 import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.digitalocean.DigitalOceanCloud;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
 import static cloudos.cslib.compute.jclouds.JcloudBase.PROVIDER_AWS_EC2;
@@ -20,7 +21,7 @@ public enum CloudOsEdition {
     maximus   (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "48gb", "ubuntu-14-04-x64"),
     supermax  (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "64gb", "ubuntu-14-04-x64");
 
-    @Getter private Class<? extends CsCloud> cloudClass;
+    @JsonIgnore @Getter private Class<? extends CsCloud> cloudClass;
     @Getter private String provider;
     @Getter private String instanceType;
     @Getter private String image;
