@@ -28,6 +28,13 @@
         "recipe[piwik]",
 
         // blog/site
-        "recipe[wordpress]"
+        "recipe[wordpress]",
+
+        // instrument apps with analytics
+        "recipe[piwik::validate]",
+
+        // validate other apps
+        "recipe[cloudstead::validate]", "recipe[cloudos-dns::validate]",
+        "recipe[cloudos-appstore::validate]", "recipe[wordpress::validate]"
     ]
 }
