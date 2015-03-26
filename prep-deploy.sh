@@ -11,6 +11,7 @@ CLOUDOS_BASE="$(cd ${BASE}/../cloudos && pwd)"
 
 mkdir -p ${DEPLOY}/cloudos-chef/cookbooks
 mkdir -p ${DEPLOY}/cloudos-chef/data_bags
+mkdir -p ${DEPLOY}/cloudos-chef/data_files
 CLOUDOS_CHEF=$(cd ${DEPLOY}/cloudos-chef && pwd)
 
 rsync -ac ${CLOUDOS_BASE}/cloudos-server/chef-repo/cookbooks/* ${CLOUDOS_CHEF}/cookbooks/ > /dev/null && \
