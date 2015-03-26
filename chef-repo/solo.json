@@ -1,45 +1,45 @@
 {
-    "run_list": [
-      // load libs first
-      "recipe[base::lib]", "recipe[apache::lib]",
-      "recipe[postgresql::lib]", "recipe[mysql::lib]",
-      "recipe[java::lib]",
+  "run_list": [
+    // load libs first
+    "recipe[base::lib]", "recipe[apache::lib]",
+    "recipe[postgresql::lib]", "recipe[mysql::lib]",
+    "recipe[java::lib]",
 
-      // the very basics
-        "recipe[base]",
+    // the very basics
+    "recipe[base]",
 
-        // proxies to cloudstead webapp
-        "recipe[apache]",
+    // proxies to cloudstead webapp
+    "recipe[apache]",
 
-        // persistence for cloudstead
-        "recipe[postgresql]",
+    // persistence for cloudstead
+    "recipe[postgresql]",
 
-        // persistence for web analytics
-        "recipe[mysql]",
+    // persistence for web analytics
+    "recipe[mysql]",
 
-        // for sending email
-        "recipe[email]",
+    // for sending email
+    "recipe[email]",
 
-        // for cloudos-dns and cloudstead
-        "recipe[java]",
+    // for cloudos-dns and cloudstead
+    "recipe[java]",
 
-        // the cloudstead webapp
-        "recipe[cloudstead]",
+    // the cloudstead webapp
+    "recipe[cloudstead]",
 
-        // DNS and appstore
-        "recipe[cloudos-dns]", "recipe[cloudos-appstore]",
+    // DNS and appstore
+    "recipe[cloudos-dns]", "recipe[cloudos-appstore]",
 
-        // web analytics
-        "recipe[piwik]",
+    // web analytics
+    "recipe[piwik]",
 
-        // blog/site
-        "recipe[wordpress]",
+    // blog/site
+    "recipe[wordpress]",
 
-        // instrument apps with analytics
-        "recipe[piwik::validate]",
+    // instrument apps with analytics
+    "recipe[piwik::validate]",
 
-        // validate other apps
-        "recipe[cloudstead::validate]", "recipe[cloudos-dns::validate]",
-        "recipe[cloudos-appstore::validate]", "recipe[wordpress::validate]"
-    ]
+    // validate other apps
+    "recipe[cloudstead::validate]", "recipe[cloudos-dns::validate]",
+    "recipe[cloudos-appstore::validate]", "recipe[wordpress::validate]"
+  ]
 }
