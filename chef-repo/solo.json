@@ -1,6 +1,11 @@
 {
     "run_list": [
-        // the very basics
+      // load libs first
+      "recipe[base::lib]", "recipe[apache::lib]",
+      "recipe[postgresql::lib]", "recipe[mysql::lib]",
+      "recipe[java::lib]",
+
+      // the very basics
         "recipe[base]",
 
         // proxies to cloudstead webapp
