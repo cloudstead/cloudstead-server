@@ -50,9 +50,9 @@ certs/cloudstead/ssl-https-wildcard.pem \
 "
 
 COOKBOOK_SOURCES=" \
-${CLOUDOS_BASE}/cloudos-lib/chef-repo/cookbooks \
-$(find ${CLOUDOS_BASE}/cloudos-apps/apps -type d -name cookbooks) \
 $(find ${INC_BASE}/cloudstead-apps/apps -type d -name cookbooks) \
+$(find ${CLOUDOS_BASE}/cloudos-apps/apps -type d -name cookbooks) \
+${CLOUDOS_BASE}/cloudos-lib/chef-repo/cookbooks \
 "
 
 ${DEPLOYER} ${host} ${INIT_FILES} "${REQUIRED}" "${COOKBOOK_SOURCES}"
