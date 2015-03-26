@@ -215,7 +215,11 @@ public class CloudOsLauncher implements Runnable {
             updateState(cloudOs, CloudOsState.started);
 
         } catch (Exception e) {
-            status.error("{setup.error.startingMasterInstance.serverError}", "Error booting compute instance in cloud: "+e);
+            if (e.getMessage().contains("Size is not available in this region")) {
+                status.error("{setup.error.startingMasterInstance.sizeUnavailableInRegion}", "The size requested is not currently available in the region requested");
+            } else {
+                status.error("{setup.error.startingMasterInstance.serverError}", "Error booting compute instance in cloud: " + e);
+            }
             updateState(cloudOs, CloudOsState.error);
             return;
         }
