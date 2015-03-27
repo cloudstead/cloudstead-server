@@ -122,7 +122,7 @@ public class CloudOsResource {
         if (!admin.isEmailVerified()) return ResourceUtil.invalid("{err.cloudos.create.unverifiedEmail}");
 
         // non-admins: cannot create more than max # of cloudsteads
-        if (!admin.isAdmin() && cloudOsDAO.findByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
+        if (!admin.isAdmin() && cloudOsDAO.findActiveByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
             return ResourceUtil.invalid("{err.cloudos.create.maxCloudsteads}");
         }
 

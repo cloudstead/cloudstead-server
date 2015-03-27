@@ -2,6 +2,7 @@ package cloudos.cloudstead.dao;
 
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
+import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.databag.*;
@@ -37,17 +38,20 @@ import java.util.concurrent.TimeUnit;
 
 import static cloudos.appstore.model.app.config.AppConfiguration.getShasum;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
-import static org.cobbzilla.util.io.FileUtil.abs;
-import static org.cobbzilla.util.io.FileUtil.createTempDirOrDie;
-import static org.cobbzilla.util.io.FileUtil.toFile;
+import static org.cobbzilla.util.io.FileUtil.*;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
+import static org.hibernate.criterion.Restrictions.*;
 
 @Repository @Slf4j
 public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
 
     public CloudOs findByName(String name) { return findByUniqueField("name", name.toLowerCase()); }
     public List<CloudOs> findByAdmin(String uuid) { return findByField("adminUuid", uuid); }
+
+    public List<CloudOs> findActiveByAdmin(String uuid) {
+        return list(criteria().add(and(eq("adminUuid", uuid), not(in("state", CloudOsState.INACTIVE)))));
+    }
 
     public static final String CLOUDOS_CERT_NAME = "ssl-https";
     public static final String[] INIT_CONFIGS = {
@@ -302,4 +306,5 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final File stagingDir = cloudOs.getStagingDirFile();
         toFile(new File(abs(stagingDir)+"/data_bags/base/admin.json"), toJson(adminDatabag));
     }
+
 }

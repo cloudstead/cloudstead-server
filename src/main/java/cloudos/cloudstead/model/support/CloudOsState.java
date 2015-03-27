@@ -8,4 +8,5 @@ public enum CloudOsState {
 
     @JsonCreator public CloudOsState create (String name) { return valueOf(name.toLowerCase()); }
 
+    public static CloudOsState[] INACTIVE = { initial, destroying, destroyed, deleting };
 }
