@@ -24,7 +24,7 @@ App.TwoFactorVerificationController = Ember.ObjectController.extend({
 		_validateSecondFactorResponse: function(response) {
 			if (response.status === 'success'){
 				if (response.api_token) {
-					this.transitionToRoute('adminHome');
+					this.transitionToRoute('dashboard');
 				}
 			}else{
 				// TODO display error messages, requires error message from API.

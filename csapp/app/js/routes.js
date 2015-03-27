@@ -26,11 +26,15 @@ App.Router.map(function() {
 	this.resource('cloudOsStatus', { path: '/cloudos/:cloudos_name' } );
 	this.resource('about');
 	this.resource('contact');
-	this.resource('adminDetails');
+	this.resource('adminDetails', { path: '/profile' });
 
 	this.resource('resetPassword', { path: '/reset_password/:token' });
 	this.resource('twoFactorVerification', { path: '/verification/:email' });
 	this.route('activate_account', { path: '/activate/:activation_token' });
+	this.route('dashboard');
+	this.route('new_cloudstead');
+	this.route('cloudstead_details', { path: '/cloudstead/:cloudstead_name' });
+
 //	this.resource('settings');
 //	this.resource('app', { path: '/app/:app_name' });
 });
@@ -44,6 +48,12 @@ App.ProtectedRoute = Ember.Route.extend({
 		}
 		else{
 			this.controllerFor('application').refreshAuthStatus();
+		}
+	},
+
+	actions: {
+		transitionToDashboard: function() {
+			this.transitionTo('dashboard');
 		}
 	}
 });
@@ -77,16 +87,103 @@ App.LoginRoute = Ember.Route.extend({
 	}
 });
 
-App.AdminHomeRoute = App.ProtectedRoute.extend({
+App.DashboardRoute = App.ProtectedRoute.extend({
+	model: function () {
+		return App.CloudosInstance.createFromArray(Api.list_cloudos_instances());
+	},
+
+	afterModel: function (model, transition) {
+		if (Ember.isEmpty(model)){
+			// render new cloudstead page
+			this.transitionTo('new_cloudstead');
+		} else if (model.content.length === 1) {
+			// render instance details page
+			this.transitionTo('cloudstead_details', model.get('firstObject.name'));
+		}
+	}
+});
+
+App.CloudsteadDetailsRoute = App.ProtectedRoute.extend({
+	model: function (params) {
+		return App.CloudosInstance.addNew(Api.cloud_os_details(params.cloudstead_name));
+	},
+
+	actions: {
+		transitionToDashboard: function() {
+			this.transitionTo('dashboard');
+		}
+	}
+});
+
+App.NewCloudsteadRoute = App.ProtectedRoute.extend({
+	cloudstead_tranlations: function(){
+		return Em.I18n.translations.cloudstead_info;
+	}.property(),
+
 	model: function () {
 		return {
-			cloudOsRequest: {
-				name: '',
-				edition: 'starter',
-				appBundle: 'basic',
-				region: 'us_west'
-			}
+			name: '',
+			edition: 'starter',
+			appBundle: 'basic',
+			region: 'us_west'
 		};
+	},
+
+	setupController: function(controller, model) {
+		this._super(controller, model);
+		this.populateRegions(controller, model);
+		this.populateEditions(controller, model);
+		this.populateBundles(controller, model);
+	},
+
+	populateRegions: function(controller, model) {
+		var self = this;
+		var regions = Api.get_cloudstead_regions();
+		console.log("regions: ", regions);
+
+		var reg = regions.map(function(region) {
+			return {
+				label: self.get('cloudstead_tranlations').regions[region],
+				value: region
+			};
+		});
+
+		console.log("regs: ", reg);
+
+		controller.set("regionList", reg);
+		model.region = reg[0];
+	},
+
+	populateEditions: function(controller, model) {
+		var self = this;
+		var editions = Api.get_cloudstead_editions();
+		console.log("editions: ", editions);
+
+		var eds = editions.map(function(edition) {
+			return {
+				label: self.get('cloudstead_tranlations').editions[edition],
+				value: edition
+			};
+		});
+
+		controller.set("editionList", eds);
+		model.edition = eds[0];
+	},
+
+	populateBundles: function(controller, model) {
+		var self = this;
+		var bundles = Api.get_cloudstead_bundles();
+		console.log("bundles: ", bundles);
+
+		var bdl = bundles.map(function(bundle) {
+			return {
+				label: self.get('cloudstead_tranlations').bundles[bundle],
+				value: bundle
+			};
+		});
+
+		controller.set("bundleList", bdl);
+		model.appBundle = bdl[0];
 	}
 });
 

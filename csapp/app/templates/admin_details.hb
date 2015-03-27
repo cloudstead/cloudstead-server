@@ -1,17 +1,5 @@
 <section class="deck">
 	<div class="row">
-		<dl class="tabs" data-tab>
-			<dd class="half-width-tab">
-				{{#link-to 'adminHome'}}
-					{{t sections.admin.your_cloudsteads}}
-				{{/link-to}}
-			</dd>
-			<dd class="active half-width-tab">
-				{{#link-to 'adminDetails' }}
-					{{t sections.admin.account_details}}
-				{{/link-to}}
-			</dd>
-		</dl>
 		<div class="tabs-content">
 			<div class="content active">
 				<form {{action 'updateAdminAccount' on="submit"}}>

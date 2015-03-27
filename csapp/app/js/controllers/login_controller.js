@@ -61,7 +61,7 @@ App.LoginController = App.CloudOSController.extend({
 		var previousTransition = this.get('previousTransition');
 
 		if (Ember.isNone(previousTransition)){
-			this.transitionToRoute('adminHome');
+			this.transitionToRoute('dashboard');
 		}
 		else{
 			this._retryPreviousTransition();

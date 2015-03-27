@@ -1,35 +1,6 @@
-App.AdminHomeController = Ember.ObjectController.extend({
-	cloudosInstances: function(){
-		var instances = Api.list_cloudos_instances();
+App.CloudsteadListController = Ember.ArrayController.extend({
 
-		var omg = null;
-
-		if (!Ember.isEmpty(instances)) {
-			omg = App.CloudosInstance.createFromArray(instances);
-		}
-
-		return omg;
-
-	}.property(),
 	actions: {
-		doNewCloudOs: function() {
-			var cloudOsRequest = this.get('cloudOsRequest');
-			var validate = this.validateName(cloudOsRequest.name);
-			if (validate.cloudOsName) {
-				this.set('requestMessages',
-						App.RequestMessagesObject.create({
-							json: {"status": 'error', "api_token" : null,
-								"errors":
-									{"cloudOsName": validate.cloudOsName}}
-						})
-					);
-				return false;
-			}
-
-			Api.new_cloud_os(cloudOsRequest);
-			location.reload();
-		},
-
 		doLaunchCloudOs: function (instanceName) {
 			var trans = Em.I18n.translations.sections.admin.dialogs;
 			var confirm = confirm(trans.confirm_launch_pre_name + instanceName + trans.confirm_launch_post_name);
@@ -91,6 +62,8 @@ App.AdminHomeController = Ember.ObjectController.extend({
 			return true;
 		}
 	}.property('cloudosInstances'),
+
+
 
 
 });

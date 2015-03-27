@@ -187,6 +187,19 @@ Api = {
 	update_admin_profile: function (data) {
 		return this._post('/api/admins/' + data.uuid, data);
 	},
+
+	get_cloudstead_regions: function() {
+		return this._get('/api/options/regions');
+	},
+
+	get_cloudstead_editions: function() {
+		return this._get('/api/options/editions');
+	},
+
+	get_cloudstead_bundles: function() {
+		return this._get('/api/options/bundles');
+	},
+
 	new_cloud_os: function (cloudOsRequest) {
 		show_loading();
 
@@ -274,6 +287,26 @@ Api = {
 			},
 			'complete': function(jqXHR, status, error) {
 				hide_loading();
+			}
+		});
+		return result;
+	},
+	cloud_os_details: function (name) {
+
+		var result = null;
+		Ember.$.ajax({
+			'type': 'GET',
+			'url': API_ROOT + '/api/cloudos/' + name,
+			'contentType': 'application/json',
+			'async': false,
+			'beforeSend': add_api_auth,
+			'success': function (data, status, jqXHR) {
+				result = data;
+			},
+			'error': function (jqXHR, status, error) {
+				console.log('cloud_os_details error: result='+result+', error='+error);
+			},
+			'complete': function(jqXHR, status, error) {
 			}
 		});
 		return result;
