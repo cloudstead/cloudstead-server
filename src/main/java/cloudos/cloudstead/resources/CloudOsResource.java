@@ -121,7 +121,7 @@ public class CloudOsResource {
         admin = adminDAO.findByUuid(admin.getUuid());
         if (!admin.isEmailVerified()) return ResourceUtil.invalid("{err.cloudos.create.unverifiedEmail}");
 
-        // non-admins: cannot create more than max # of cloudsteads
+        // non-admins: cannot have more than max # of active cloudsteads
         if (!admin.isAdmin() && cloudOsDAO.findActiveByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
             return ResourceUtil.invalid("{err.cloudos.create.maxCloudsteads}");
         }
@@ -384,13 +384,15 @@ public class CloudOsResource {
     public static final List<String> DEPENDENCIES = Arrays.asList(new String[] {
             "base", "auth", "apache", "postgresql", "mysql", "java", "git", "email", "kestrel"
     });
+    public static final List<String> DATA_FILES = Arrays.asList(new String[] { "geoip" });
+
     public boolean prepChefStagingDir(CloudOs cloudOs) {
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
         final File chefMaster = cloudConfig.getChefDir();
         final File stagingDir = cloudOs.getStagingDirFile();
 
         try {
-            ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir, PRIORITY_APP, DEPENDENCIES);
+            ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir, PRIORITY_APP, DEPENDENCIES, DATA_FILES);
         } catch (Exception e) {
             log.error("prepChefStagingDir: Error preparing chef staging dir: "+e);
             return false;
