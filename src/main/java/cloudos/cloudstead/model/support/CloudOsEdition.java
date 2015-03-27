@@ -41,7 +41,7 @@ public enum CloudOsEdition {
         switch (provider) {
             case PROVIDER_DIGITALOCEAN:
                 switch (region) {
-                    case us_east: return "nyc1";
+                    case us_east: return "nyc2";
                     case us_west: return "sfo1";
                     case eu: return "ams1";
                     case singapore: return "sgp1";
