@@ -73,7 +73,11 @@ App.ProtectedRoute = Ember.Route.extend({
 
 	actions: {
 		transitionToDashboard: function() {
-			this.transitionTo('dashboard');
+			if ((this.get('routeName') === 'dashboard')) {
+				this.refresh();
+			} else{
+				this.transitionTo('dashboard');
+			}
 		}
 	}
 });
