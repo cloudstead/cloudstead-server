@@ -9,19 +9,17 @@ App.CloudsteadInstanceMixin = Ember.Mixin.create({
 				this.send("showHeaderProgressbar", launched_cloudos.cloudOs);
 			}
 		},
-		deleteInstance: function(instanceName){
+		deleteInstance: function(instance){
 			var trans = Em.I18n.translations.sections.admin.dialogs;
-			var r = confirm( trans.confirm_delete_pre_name + instanceName + trans.confirm_delete_post_name);
+			var r = confirm( trans.confirm_delete_pre_name + instance.get('name') + trans.confirm_delete_post_name);
 			if (r === true) {
-				result = App.CloudosInstance.destroy(instanceName);
-
+				result = App.CloudosInstance.destroy(instance);
 				if (result) {
-					alert(trans.info_delete_pre_name + instanceName + trans.info_delete_post_name);
+					alert(trans.info_delete_pre_name + instance.get('name') + trans.info_delete_post_name);
 					this.send("transitionToDashboard");
 				} else {
-					alert(trans.error_delete_pre_name + instanceName + trans.error_delete_post_name);
+					alert(trans.error_delete_pre_name + instance.get('name') + trans.error_delete_post_name);
 				}
-
 			} else {
 					console.log('action canceled');
 			}

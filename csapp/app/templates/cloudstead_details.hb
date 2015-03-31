@@ -6,7 +6,7 @@
 				<button class="small" {{action "doLaunchCloudOs" name}} >{{ t cloudstead_info.actions.launch }}</button>
 			{{/if}}
 			{{#unless isInDestroyingState }}
-				<button class="small" {{action "deleteInstance" name}}>{{ t cloudstead_info.actions.destroy }}</button>
+				<button class="small" {{action "deleteInstance" this}}>{{ t cloudstead_info.actions.destroy }}</button>
 			{{/unless}}
 		</div>
 		<p>Edition: {{ edition }}</p>

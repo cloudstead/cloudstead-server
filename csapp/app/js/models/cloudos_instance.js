@@ -36,11 +36,10 @@ App.CloudosInstance.reopenClass({
 		});
 	},
 
-	destroy: function(instance_name) {
-		var instance_destroyed = Api.delete_cloudos_instance(instance_name);
-
+	destroy: function(instance) {
+		var instance_destroyed = Api.delete_cloudos_instance(instance.get('name'));
 		if (instance_destroyed){
-			App.CloudosInstance.removeInstance(this);
+			App.CloudosInstance.removeInstance(instance);
 		}
 
 		return instance_destroyed;

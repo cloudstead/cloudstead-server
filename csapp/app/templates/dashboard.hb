@@ -24,7 +24,7 @@
 										</a>
 									{{/if}}
 									{{#unless cloudosInstance.isInDestroyingState }}
-										<a href="#" {{action "deleteInstance" cloudosInstance.name}}>
+										<a href="#" {{action "deleteInstance" cloudosInstance}}>
 											<span class="icon-trash-o"></span> {{ t cloudstead_info.actions.destroy }}
 										</a>
 									{{/unless}}
