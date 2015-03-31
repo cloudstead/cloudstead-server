@@ -1,4 +1,10 @@
 App.ApplicationRoute = Ember.Route.extend({
+	beforeModel: function(transition) {
+		if (!Ember.isEmpty(sessionStorage.getItem('api_token'))){
+			this.transitionTo('dashboard');
+		}
+	},
+
 	actions:{
 		openModal: function(modalName, model){
 			this.controllerFor(modalName).set('model',model);
@@ -12,6 +18,21 @@ App.ApplicationRoute = Ember.Route.extend({
 				outlet: 'modal',
 				parentView: 'application'
 			});
+		},
+		showHeaderProgressbar: function(model) {
+			this.controllerFor('cloudOsCreation').set('model',model);
+			return this.render('installation_progress', {
+				into: 'application',
+				outlet: 'progressbar',
+				controller: 'cloudOsCreation',
+				view: 'cloudosLaunchProgress'
+			});
+		},
+		hideHeaderProgressbar: function() {
+			return this.disconnectOutlet({
+				outlet: 'progressbar',
+				parentView: 'application'
+			});
 		}
 	}
 });
@@ -20,7 +41,6 @@ App.IndexRoute = App.ApplicationRoute;
 
 App.Router.map(function() {
 	this.resource('registration');
-	this.resource('adminHome');
 	this.resource('login');
 	this.resource('logout');
 	this.resource('cloudOsStatus', { path: '/cloudos/:cloudos_name' } );
@@ -116,7 +136,7 @@ App.CloudsteadDetailsRoute = App.ProtectedRoute.extend({
 });
 
 App.NewCloudsteadRoute = App.ProtectedRoute.extend({
-	cloudstead_tranlations: function(){
+	cloudstead_translations: function(){
 		return Em.I18n.translations.cloudstead_info;
 	}.property(),
 
@@ -143,7 +163,7 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 
 		var reg = regions.map(function(region) {
 			return {
-				label: self.get('cloudstead_tranlations').regions[region],
+				label: self.get('cloudstead_translations').regions[region],
 				value: region
 			};
 		});
@@ -161,7 +181,7 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 
 		var eds = editions.map(function(edition) {
 			return {
-				label: self.get('cloudstead_tranlations').editions[edition],
+				label: self.get('cloudstead_translations').editions[edition],
 				value: edition
 			};
 		});
@@ -177,7 +197,7 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 
 		var bdl = bundles.map(function(bundle) {
 			return {
-				label: self.get('cloudstead_tranlations').bundles[bundle],
+				label: self.get('cloudstead_translations').bundles[bundle],
 				value: bundle
 			};
 		});

@@ -19,12 +19,12 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 		var result = Api.cloud_os_launch_status(cloudos_name);
 
 		if (!Ember.isNone(result) && !Ember.isNone(result.history)){
+			this.set('hasErrorMessage', false);
 			this.watchLaunchStatus(cloudos_name);
 		}
 		else{
 			alert("Error fetching status history");
-			this.send('closeModal');
-			location.reload();
+			this.send('hideHeaderProgressbar');
 		}
 
 		return result;
@@ -37,8 +37,10 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 		var current_percent = 0;
 		var current_phase = "";
 
+
 		var statusInterval = setInterval(function(){
 				result = App.CloudosLaunchStatus.create(Api.cloud_os_launch_status(cloudos_name));
+
 
 				if (result.hasNoError()){
 					last_status = result.lastStatus();
@@ -47,9 +49,9 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 
 						self.set('statusMessage', swapStatusMessage(result.lastStatusMessage()));
 						self.set("isInProgress", false);
+						self.send("hideHeaderProgressbar");
 						clearInterval(statusInterval);
 					}
-
 
 					if (result.isInChefPercetageStage()) {
 
@@ -68,6 +70,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 
 				} else {
 					self.send('setStatusMessage', result.lastStatusMessage());
+					self.set('hasErrorMessage', true);
 					self.set("isInProgress", false);
 					clearInterval(statusInterval);
 				}
@@ -83,5 +86,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 			return null;
 		}
 	}.property(),
-	isInProgress:true
+	isInProgress:true,
+
+	hasErrorMessage: false
 });

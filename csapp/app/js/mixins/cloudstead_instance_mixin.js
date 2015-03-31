@@ -6,14 +6,14 @@ App.CloudsteadInstanceMixin = Ember.Mixin.create({
 			if (confirm){
 				var launched_cloudos = Api.launch_cloud_os(instanceName);
 				console.log("launching: ", launched_cloudos);
-				this.send('openModal','cloudOsCreation', launched_cloudos.cloudOs );
+				this.send("showHeaderProgressbar", launched_cloudos.cloudOs);
 			}
 		},
 		deleteInstance: function(instanceName){
 			var trans = Em.I18n.translations.sections.admin.dialogs;
 			var r = confirm( trans.confirm_delete_pre_name + instanceName + trans.confirm_delete_post_name);
 			if (r === true) {
-				result = Api.delete_cloudos_instance(instanceName);
+				result = App.CloudosInstance.destroy(instanceName);
 
 				if (result) {
 					alert(trans.info_delete_pre_name + instanceName + trans.info_delete_post_name);

@@ -34,5 +34,19 @@ App.CloudosInstance.reopenClass({
 		return App.CloudosInstance.all.find(function(instance) {
 			return instance.get("name") === instance_name;
 		});
+	},
+
+	destroy: function(instance_name) {
+		var instance_destroyed = Api.delete_cloudos_instance(instance_name);
+
+		if (instance_destroyed){
+			App.CloudosInstance.removeInstance(this);
+		}
+
+		return instance_destroyed;
+	},
+
+	removeInstance: function(instance) {
+		App.CloudosInstance.all.removeObject(instance);
 	}
 });

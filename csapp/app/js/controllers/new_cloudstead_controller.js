@@ -59,7 +59,7 @@ App.NewCloudsteadController = Ember.ObjectController.extend({
 	bundleList: [],
 
 	selectedBundle: function() {
-		return this.get("bundle");
-	}.property('bundle'),
+		return this.get("appBundle");
+	}.property('appBundle'),
 
 });

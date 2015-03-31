@@ -127,3 +127,9 @@ label.right{
 .red_text {
 	color: #a00;
 }
+
+.top-bar-section .progress {
+	width: 150px;
+	margin: 10px;
+	cursor: pointer;
+}
