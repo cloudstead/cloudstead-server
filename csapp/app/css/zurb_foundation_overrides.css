@@ -1,0 +1,10 @@
+.button.secondary.tiny{
+	outline: none;
+}
+
+.dashboard .footer{
+	position: absolute;
+	bottom: 21px !important;
+	width: 100%;
+	z-index:1;
+}
