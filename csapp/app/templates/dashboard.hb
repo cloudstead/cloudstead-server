@@ -1,38 +1,33 @@
-<section class="deck">
+<section class="slide-canvas">
 	<div class="row">
-		<div class="tabs-content">
-			<div class="content active">
-				<table  width="100%">
-					<thead>
-						<tr>
-							<th>{{t sections.admin.name}}</th>
-							<th>{{t sections.admin.running}}</th>
-							<th>{{t sections.admin.control}}</th>
-						</tr>
-					</thead>
-					<tbody>
-						{{#each cloudosInstance in arrangedContent }}
-							<tr>
-								<td>{{#link-to 'cloudstead_details' cloudosInstance.name}}{{cloudosInstance.name}}{{/link-to}}</td>
-								<td>
-									{{ cloudosInstance.state }}
-								</td>
-								<td>
-									{{#if cloudosInstance.isInInitialState }}
-										<a href="#" {{ action "doLaunchCloudOs" cloudosInstance.name }}>
-											<span class="icon-cloud"></span> {{ t cloudstead_info.actions.launch }}
-										</a>
-									{{/if}}
-									{{#unless cloudosInstance.isInDestroyingState }}
-										<a href="#" {{action "deleteInstance" cloudosInstance}}>
-											<span class="icon-trash-o"></span> {{ t cloudstead_info.actions.destroy }}
-										</a>
-									{{/unless}}
-								</td>
-							</tr>
-						{{/each}}
-					</tbody>
-				</table>
+		<div class="large-8 large-centered columns">
+			<div class="dashboard-container">
+				<h2 class="delta light">{{t sections.admin.cloudsteads }}</h2>
+				{{#each cloudosInstance in arrangedContent }}
+					<article class="cloud-card">
+						{{#link-to 'cloudstead_details' cloudosInstance.name tagName="h3" class="epsilon"}}{{cloudosInstance.name}}{{/link-to}}
+						<div class="field">
+							<span class="field-name left">{{t forms.cloudos.region }}</span>
+							<span class="field-value right">{{cloudosInstance.region}}</span>
+						</div>
+						<div class="field">
+							<span class="field-name left">{{t forms.cloudos.edition }}</span>
+							<span class="field-value right">{{cloudosInstance.edition}}</span>
+						</div>
+						<div class="field">
+							<span class="field-name left">{{ t sections.admin.running }}</span>
+							<span class="field-value right">{{ cloudosInstance.state }}</span>
+						</div>
+						<div class="field no-border">
+							{{#if cloudosInstance.isInInitialState }}
+								<button class="small" {{ action "doLaunchCloudOs" cloudosInstance.name }}>{{ t cloudstead_info.actions.launch }}</button>
+							{{/if}}
+							{{#unless cloudosInstance.isInDestroyingState }}
+								<button class="alert small right" {{action "deleteInstance" cloudosInstance}}>{{ t cloudstead_info.actions.destroy }}</button>
+							{{/unless}}
+						</div>
+					</article>
+				{{/each}}
 			</div>
 		</div>
 	</div>
