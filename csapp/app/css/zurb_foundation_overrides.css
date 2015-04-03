@@ -9,7 +9,7 @@ body > .ember-view {
 
 .dashboard .footer{
 	position: absolute;
-	bottom: 0;
+	bottom: 21px;
 	width: 100%;
 	z-index:1;
 }
@@ -34,6 +34,6 @@ body > .ember-view {
 	left: 0px;
 }
 
-.pointerify{
+/*.pointerify{
 	cursor: pointer;
-}
+}*/
