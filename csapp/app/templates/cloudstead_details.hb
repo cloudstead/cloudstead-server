@@ -1,22 +1,33 @@
-<section class="deck">
+<section class="slide-canvas">
 	<div class="row">
-		<h3>Cloudstead {{ name }} details</h3>
-		<div class="row">
-			{{#if isInInitialState }}
-				<button class="small" {{action "doLaunchCloudOs" name}} >{{ t cloudstead_info.actions.launch }}</button>
-			{{/if}}
-			{{#unless isInDestroyingState }}
-				<button class="small" {{action "deleteInstance" this}}>{{ t cloudstead_info.actions.destroy }}</button>
-			{{/unless}}
+		<div class="large-8 large-centered columns">
+			<div class="dashboard-container">
+{{!-- 				<h2 class="delta light">{{ name }}</h2> --}}
+					<article class="cloud-card">
+						<h3>{{ name }}{{t app.domain }}</h3>
+						<div class="field">
+							<span class="field-name left">{{t forms.cloudos.region }}</span>
+							<span class="field-value right">{{region}}</span>
+						</div>
+						<div class="field">
+							<span class="field-name left">{{t forms.cloudos.edition }}</span>
+							<span class="field-value right">{{edition}}</span>
+						</div>
+						<div class="field">
+							<span class="field-name left">{{ t sections.admin.running }}</span>
+							<span class="field-value right">{{ state }}</span>
+						</div>
+						<div class="field no-border">
+							{{#if isInInitialState }}
+								<button class="small" {{ action "doLaunchCloudOs" name }}>{{ t cloudstead_info.actions.launch }}</button>
+							{{/if}}
+							{{#unless isInDestroyingState }}
+								<button class="alert small right" {{action "deleteInstance" this }}>{{ t cloudstead_info.actions.destroy }}</button>
+							{{/unless}}
+						</div>
+					</article>
+			</div>
 		</div>
-		<p>Edition: {{ edition }}</p>
-		<p>Region: {{ region }}</p>
-		<p>Bundle: {{ appBundle }}</p>
-		<ol>
-			Apps:
-			{{#each app in allApps}}
-				<li>{{ app }}</li>
-			{{/each}}
-		</ol>
 	</div>
 </section>
+

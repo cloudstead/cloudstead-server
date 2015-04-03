@@ -34,3 +34,6 @@ body > .ember-view {
 	left: 0px;
 }
 
+.pointerify{
+	cursor: pointer;
+}

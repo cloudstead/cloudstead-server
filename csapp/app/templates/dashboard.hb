@@ -5,7 +5,9 @@
 				<h2 class="delta light">{{t sections.admin.cloudsteads }}</h2>
 				{{#each cloudosInstance in arrangedContent }}
 					<article class="cloud-card">
-						{{#link-to 'cloudstead_details' cloudosInstance.name tagName="h3" class="epsilon"}}{{cloudosInstance.name}}{{/link-to}}
+						{{#link-to 'cloudstead_details' cloudosInstance.name tagName="h3" class="epsilon pointerify"}}
+							{{cloudosInstance.name}}{{t app.domain}}
+						{{/link-to}}
 						<div class="field">
 							<span class="field-name left">{{t forms.cloudos.region }}</span>
 							<span class="field-value right">{{cloudosInstance.region}}</span>
