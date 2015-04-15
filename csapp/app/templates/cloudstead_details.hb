@@ -1,8 +1,17 @@
 <section class="slide-canvas">
 	<div class="row">
 		<div class="large-8 large-centered columns">
+		
+{{!-- 		<div id="destroyAlert" data-alert="" class="alert-box alert radius margin-top">
+		    Are you sure you want to destroy this cloud?
+		    <!-- <a href="#" class="close">&times;</a> -->
+		    <div class="right">
+		      <button class="tiny">Yes</button>
+		      <button class="button-hollow tiny">Cancel</button>
+		    </div>
+		  </div> --}}
+
 			<div class="dashboard-container">
-{{!-- 				<h2 class="delta light">{{ name }}</h2> --}}
 					<article class="cloud-card">
 						<h3>{{ name }}{{t app.domain }}</h3>
 						<div class="field">

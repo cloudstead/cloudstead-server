@@ -28,7 +28,8 @@ module.exports = function(lineman) {
         "vendor/js/countries.js",
         "vendor/js/sinon-quint-1.0.0.js",
         "vendor/js/sinon-1.11.1.js",
-        "vendor/js/ember-autofocus.min.js"
+        "vendor/js/ember-autofocus.min.js",
+        "vendor/js/alertify.min.js"
       ]
     },
     img: {

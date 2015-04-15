@@ -10,19 +10,24 @@ App.CloudsteadInstanceMixin = Ember.Mixin.create({
 			}
 		},
 		deleteInstance: function(instance){
+			var self = this;
 			var trans = Em.I18n.translations.sections.admin.dialogs;
-			var r = confirm( trans.confirm_delete_pre_name + instance.get('name') + trans.confirm_delete_post_name);
-			if (r === true) {
+			alertify.defaults.theme.ok = "tiny";
+			alertify.defaults.theme.cancel = "button-hollow tiny";
+			alertify.defaults.glossary.title = 'Are you sure you want to destroy this cloud?';
+			//show as confirm
+			alertify.confirm(document.createElement('div'), function(){
 				result = App.CloudosInstance.destroy(instance);
 				if (result) {
-					alert(trans.info_delete_pre_name + instance.get('name') + trans.info_delete_post_name);
-					this.send("transitionToDashboard");
+					alertify.success(trans.info_delete_pre_name + instance.get('name') + trans.info_delete_post_name);
+					self.send("transitionToDashboard");
 				} else {
-					alert(trans.error_delete_pre_name + instance.get('name') + trans.error_delete_post_name);
+					alertify.error(trans.error_delete_pre_name + instance.get('name') + trans.error_delete_post_name);
 				}
-			} else {
-					console.log('action canceled');
-			}
+			// alertify.success('Accepted');
+			},function(){
+				//alertify.error('action canceled');
+			}).setting('labels', {'ok':'Yes', 'cancel': trans.forms.admin.cancel_button});
 		},
 		close: function() {
 			return this.send('closeModal');

@@ -1,0 +1,19 @@
+
+.alertify .ajs-header, .alertify .ajs-body, .alertify .ajs-footer{
+	background-color: #E44E9C;
+	border-color: #de2987;
+	color: #FFF;
+}
+
+.alertify .ajs-body{
+	min-height: 0px;
+	display: none;
+}
+
+.alertify .ajs-footer{
+	  padding: 6px;
+}
+
+.alertify.ajs-closable .ajs-commands button.ajs-close{
+	display:none;
+}
