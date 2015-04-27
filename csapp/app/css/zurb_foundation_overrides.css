@@ -34,6 +34,10 @@ body > .ember-view {
 	left: 0px;
 }
 
-/*.pointerify{
-	cursor: pointer;
-}*/
+.white-background{
+	background-color: #FFF;
+}
+
+.mobile_phone_country_code{
+	margin-bottom: 20px;
+}

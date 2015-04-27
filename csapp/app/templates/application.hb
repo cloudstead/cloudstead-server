@@ -33,6 +33,12 @@
 								</li>
 							</ul>
 						</section>
+					{{else}}
+						<section class="top-bar-section show-for-medium-up left">
+							<ul class="left">
+								<li>{{#link-to 'index' }}{{ t app.title }}{{/link-to}}</li>
+							</ul>
+						</section>					
 					{{/if}}
 				</nav>
 			</section>
@@ -45,6 +51,12 @@
 						<li>{{#link-to 'adminDetails' }}{{ t topbar.profile }}{{/link-to}}</li>
 						<li>{{#link-to 'new_cloudstead'}}{{ t topbar.new_cloudstead }}{{/link-to}}</li>
 						<li>{{#link-to 'logout'}}{{ t topbar.logout }}{{/link-to}}</li>
+					</ul>
+				</aside>
+			{{else}}
+				<aside class="left-off-canvas-menu">
+					<ul class="off-canvas-list">
+						<li>{{#link-to 'index' }}{{ t app.title }}{{/link-to}}</li>
 					</ul>
 				</aside>
 			{{/if}}

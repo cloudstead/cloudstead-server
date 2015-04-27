@@ -1,3 +1,10 @@
+Ember.Handlebars.registerHelper('transAttr', function (key) {
+  return Em.I18n.t(key);
+});
+
+
+
+
 App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 	hasTriggeredFocus: false,
 	actions: {
@@ -120,5 +127,5 @@ App.RegistrationController = App.CloudOSController.extend(App.CountriesMixin, {
 	mobilePhone: '',
 	tos: false,
 	password: '',
-	password2: ''
+	password2: '', 
 });
