@@ -92,6 +92,10 @@ Ember.Handlebars.helper('t-subst', function(view, options) {
 		return value ? message.replace("{1}", value) : opts.defaultValue;
 });
 
+Ember.Handlebars.registerHelper('transAttr', function (key) {
+  return Em.I18n.t(key);
+});
+
 //function get_username () {
 //    const account = Api.get_active_account();
 //    return account ? account.name : null;
