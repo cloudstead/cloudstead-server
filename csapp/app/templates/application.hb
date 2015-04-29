@@ -1,6 +1,7 @@
 <section class="off-canvas-wrap bg-dim" data-offcanvas="">
   <div class="inner-wrap">
 		{{#view App.NavbarView}}
+			{{#unless isHome}}
 			<section class="app-bar">
 				<nav class="top-bar" data-top-bar="">
 					<section class="tab-bar-section show-for-small-only">
@@ -38,7 +39,7 @@
 							<ul class="left">
 								<li>{{#link-to 'index' }}{{ t app.title }}{{/link-to}}</li>
 							</ul>
-						</section>					
+						</section>	
 					{{/if}}
 				</nav>
 			</section>
@@ -54,12 +55,15 @@
 					</ul>
 				</aside>
 			{{else}}
+			
 				<aside class="left-off-canvas-menu">
 					<ul class="off-canvas-list">
 						<li>{{#link-to 'index' }}{{ t app.title }}{{/link-to}}</li>
 					</ul>
 				</aside>
 			{{/if}}
+
+			{{/unless}}
 		{{/view}}
 
 		{{outlet}}

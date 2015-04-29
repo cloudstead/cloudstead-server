@@ -8,7 +8,14 @@ App.ApplicationController = Ember.ObjectController.extend({
 	//	}
 	authStatus: null,
 
+	//isHome: true,
+
 	refreshAuthStatus: function() {
 		this.set('authStatus', sessionStorage.getItem('api_token'));
-	}
+	},
+
+	isHome: function() {
+		return this.get('currentPath') === 'index';
+  }.property('currentPath')
+
 });
