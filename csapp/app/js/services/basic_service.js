@@ -76,6 +76,7 @@ BasicServiceCallbacks = function(){
 	};
 
 	this.success = function(credentialErrors) {
+		$('#signupModal').foundation('reveal', 'close');
 		console.log('success');
 	};
 };

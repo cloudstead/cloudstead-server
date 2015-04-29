@@ -124,6 +124,12 @@ App.DashboardRoute = App.ProtectedRoute.extend({
 			// render instance details page
 			this.transitionTo('cloudstead_details', model.get('firstObject.name'));
 		}
+	},
+	actions: {
+		didTransition: function() {
+
+			$('#signupModal').foundation('reveal', 'close');
+		}
 	}
 });
 
@@ -252,6 +258,12 @@ App.TwoFactorVerificationRoute = Ember.Route.extend({
 			deviceName: getCookie("deviceName"),
 			isRegister: true
 		};
+	},
+	actions: {
+		didTransition: function() {
+			console.log("didTransition");
+			$('#signupModal').foundation('reveal', 'close');
+		}
 	}
 });
 

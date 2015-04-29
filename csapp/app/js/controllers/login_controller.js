@@ -59,8 +59,6 @@ App.LoginController = App.CloudOSController.extend({
 	},
 
 	_transitionToNextRoute: function(){
-		$('#loginModal').foundation('reveal', 'close');
-
 		var previousTransition = this.get('previousTransition');
 
 		if (Ember.isNone(previousTransition)){
