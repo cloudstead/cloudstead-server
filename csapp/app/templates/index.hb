@@ -8,9 +8,9 @@
 			<li><a href="">How it Works</a></li>
 			<li><a href="">Developers</a></li>
 			<li>
-				{{#link-to "login" classNames="button button-hollow tiny"}}
-					{{t sections.index.signin_button}}
-				{{/link-to}}
+				<a href="#" class="button button-hollow tiny" data-reveal-id="loginModal">
+					{{t sections.index.signin_button}}				
+				</a>
 			</li>
 			<li>
 				{{#link-to "registration" classNames="button secondary tiny"}}
@@ -339,35 +339,38 @@
 	</div>
 </section>
 
+<!-- Login dialog -->
+
+<div id="loginModal" class="reveal-modal narrow" data-reveal="" aria-labelledby="modalTitle" aria-hidden="true" role="dialog" style="/* display: none; */ opacity: 1; /* visibility: hidden; */ /* top: -463px; */">
+  <div class="reveal-content">
+    <h2 id="modalTitle" class="light">{{t sections.login}}</h2>
+    <form class="text-left" {{action 'doLogin' on="submit"}}>
+
+	<label>
+		{{t forms.admin.email}}
+		{{#if requestMessages.error.email}}
+			{{ input type="text" value=email class="error email_input" placeholder=(transAttr 'forms.admin.email') }}
+			<span class="message error">{{requestMessages.error.email}}</span>
+		{{else}}
+			{{ input type="text" value=email class="email_input" placeholder=(transAttr 'forms.admin.email') }}
+		{{/if}}
+	</label>
+
+	<label>
+		{{t forms.admin.password}}
+		{{#if requestMessages.error.password}}
+			{{input type="password" value=password class="error password_input" placeholder=(transAttr 'forms.admin.password') }}
+			<span class="message error">{{requestMessages.error.password}}</span>
+		{{else}}
+			{{input type="password" value=password class="password_input" placeholder=(transAttr 'forms.admin.password')}}
+		{{/if}}
+	</label>
+
+	<a href="#" class="input-link"><small>{{t forms.admin.forgot_password}}</small></a>
 
 
-
-{{!-- <section class="deck">
-	<div class="row">
-		<div class="medium-12 columns text-center">
-			<div><img src="images/wp_header6.png"></div>
-		</div>
-	</div>
-</section>
-<section class="deck">
-	<div class="row">
-		<div class="large-2 medium-2 columns text-center">&nbsp;
-		</div>
-		<div class="large-3 medium-3 columns text-center">
-			{{#link-to "registration" classNames="button expand secondary signup_link"}}
-				{{t sections.index.signup_button}}
-			{{/link-to}}
-		</div>
-		<div class="large-2 medium-2 columns text-center topit">
-			OR
-		</div>
-		<div class="large-3 medium-3 columns text-center">
-			{{#link-to "login" classNames="button expand signin_link"}}
-				{{t sections.index.signin_button}}
-			{{/link-to}}
-		</div>
-		<div class="large-2 medium-2 columns text-center">&nbsp;
-		</div>
-	</div>
-</section>
- --}}
+	<button class="expand" {{action 'doLogin'}} >{{t sections.login}}</button>
+	</form>
+    <a class="close-reveal-modal" aria-label="Close">×</a>
+  </div>
+</div>

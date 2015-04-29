@@ -1,4 +1,5 @@
 App.LoginController = App.CloudOSController.extend({
+	content: {},
 	actions: {
 		doLogin: function() {
 			var loginService = new LoginService(this, this._loginData(), this._loginCallbacks());
@@ -58,6 +59,8 @@ App.LoginController = App.CloudOSController.extend({
 	},
 
 	_transitionToNextRoute: function(){
+		$('#loginModal').foundation('reveal', 'close');
+
 		var previousTransition = this.get('previousTransition');
 
 		if (Ember.isNone(previousTransition)){

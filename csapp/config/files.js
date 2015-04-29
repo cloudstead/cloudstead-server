@@ -14,6 +14,7 @@ module.exports = function(lineman) {
         "app/js/api.js",
         "app/js/mixins/**/*.js",
         "app/js/controllers/cloudos_controller.js",
+        "app/js/controllers/login_controller.js",
         "app/js/**/*.js"
       ],
       vendor: [

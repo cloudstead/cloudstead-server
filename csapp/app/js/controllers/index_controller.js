@@ -1,0 +1,1 @@
+App.IndexController = App.LoginController;

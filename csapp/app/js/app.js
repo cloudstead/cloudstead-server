@@ -1,8 +1,6 @@
 String.prototype.trim = String.prototype.trim || function trim() { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
 
 App = Ember.Application.create({
-	IS_HOME: false,
-	//LOG_TRANSITIONS_INTERNAL : true,
 	LOG_TRANSITIONS: true // for debugging, disable in prod
 });
 
