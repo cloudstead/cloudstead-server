@@ -1,4 +1,21 @@
 <section class="slide-canvas">
+
+	<div class="row hide" id="progress-bar-block">
+		<div class="large-8 large-centered columns">
+		<div data-alert="" class="alert-box info radius margin-top">
+			Please wait while your cloustead is building.
+			<a href="#" class="close">×</a>
+		</div>
+		<div class="dashboard-container">
+			<h1 class="delta light">Progress</h1>
+			<div class="progress">
+			  <span id="cs-progress-bar" class="meter" style="width: 0%"></span>
+			  <small id="cs-progress-text" class="status">0% complete</small>
+			</div>
+		</div>
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="large-8 large-centered columns">
 			<div class="dashboard-container">

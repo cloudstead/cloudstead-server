@@ -2,6 +2,7 @@ App.NewCloudsteadController = Ember.ObjectController.extend({
 
 	actions: {
 		doNewCloudOs: function() {
+			var self = this;
 			this.set("region", this.get("selectedRegion.value"));
 			this.set("edition", this.get("selectedEdition.value"));
 			this.set("appBundle", this.get("selectedBundle.value"));
@@ -17,8 +18,13 @@ App.NewCloudsteadController = Ember.ObjectController.extend({
 				return false;
 			}
 
-			Api.new_cloud_os(this.get("content"));
-			this.send('transitionToDashboard');
+
+			function redirectToDashbord(){
+				self.send('transitionToDashboard');
+			}
+
+			Api.new_cloud_os(this.get("content"), redirectToDashbord);
+
 		},
 	},
 

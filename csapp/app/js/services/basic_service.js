@@ -30,6 +30,7 @@ BasicNoResponse = function(){
 };
 
 BasicNoResponse.prototype.resolve = function(self) {
+	console.log("BasicNoResponse.prototype.resolve");
 	return null;
 };
 
@@ -44,6 +45,7 @@ BasicEmptyResponse = function(callback){
 };
 
 BasicEmptyResponse.prototype.resolve = function(self) {
+	console.log("BasicEmptyResponse.prototype.resolve");
 	return this.callback.call(self);
 };
 
@@ -61,6 +63,7 @@ BasicPayloadResponse = function(payload, callback){
 BasicPayloadResponse.prototype = new BasicEmptyResponse();
 
 BasicPayloadResponse.prototype.resolve = function(self) {
+	console.log("BasicPayloadResponse.prototype.resolve");
 	return this.callback.call(self, this.payload);
 };
 

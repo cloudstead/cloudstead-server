@@ -117,6 +117,8 @@ App.DashboardRoute = App.ProtectedRoute.extend({
 	},
 
 	afterModel: function (model, transition) {
+		$(document).foundation('reveal', 'close');
+
 		if (Ember.isEmpty(model)){
 			// render new cloudstead page
 			this.transitionTo('new_cloudstead');
@@ -127,8 +129,7 @@ App.DashboardRoute = App.ProtectedRoute.extend({
 	},
 	actions: {
 		didTransition: function() {
-
-			$('#signupModal').foundation('reveal', 'close');
+			$(document).foundation('reveal', 'close');
 		}
 	}
 });

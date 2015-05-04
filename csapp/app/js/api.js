@@ -15,6 +15,89 @@ function hide_loading(){
 	$('.loading_animation').addClass("hide");
 }
 
+var CloudsteadProgressbar = function(sel, context){
+	var self = this;
+
+	this.context = context;
+	this.selector = $(sel);
+	this.bar = $("#cs-progress-bar");
+	this.progressText = $("#cs-progress-text");
+	this.currentPercentage = 0; 
+	this.timeoutId = -1; 
+
+	this.start = function(){
+		console.log("started");
+		self.currentPercentage = 0; 
+		self.show();
+		self.doProgress();
+	};
+
+	this.doProgress = function(){
+
+		if(self.currentPercentage < 80){
+			self.timeoutId = setTimeout(function(){
+				console.log(self.currentPercentage, " % = 2s");
+				self.currentPercentage += 5;
+
+				self.renderValues(self.currentPercentage);
+
+				if(self.currentPercentage <= 100){
+					self.doProgress();
+				}
+			}, 2000);
+		}
+		else if (self.currentPercentage >= 80 && self.currentPercentage < 98){
+			self.timeoutId = setTimeout(function(){
+				console.log(self.currentPercentage, " % = 5s");
+				self.currentPercentage += 2;
+
+				self.renderValues(self.currentPercentage);
+
+				if(self.currentPercentage <= 100){
+					self.doProgress();
+				}
+			}, 5000);
+		}
+		else{
+			//DO NOTHING
+		}
+	};
+
+	this.done = function(callback){
+		self.currentPercentage = 100;
+		self.renderValues(self.currentPercentage);
+		clearTimeout(self.timeoutId);
+		setTimeout(function(){ 
+			self.hide();
+			alertify.success("New cloudstead created.");
+			if(callback){
+				callback();
+			}
+		}, 2000);
+	};
+
+	this.doneWithError = function(){
+		self.currentPercentage = 0;
+		self.renderValues(self.currentPercentage);
+		clearTimeout(self.timeoutId);	
+		self.hide();
+		alertify.error('Error on create new instance.');
+	};
+	
+	this.hide = function(){
+		self.selector.addClass('hide');
+	};
+
+	this.show = function(){
+		self.selector.removeClass('hide');
+	};
+
+	this.renderValues = function(percentage){
+		self.bar.css('width', percentage + "%");
+		self.progressText.html(percentage + "% complete");		
+	};
+};
+
 API_ROOT='/cloudstead';
 
 API_RESPONSE_STATUS = {
@@ -200,29 +283,26 @@ Api = {
 		return this._get('/api/options/bundles');
 	},
 
-	new_cloud_os: function (cloudOsRequest) {
-		show_loading();
-
-		var result = null;
+	new_cloud_os: function (cloudOsRequest, callback) {
+		var cloudsteadProgressbar = new CloudsteadProgressbar("#progress-bar-block");
+		cloudsteadProgressbar.start();
 		Ember.$.ajax({
 			'type': 'PUT',
 			'url': API_ROOT + '/api/cloudos/' + cloudOsRequest.name,
 			'contentType': 'application/json',
-			'async': false,
 			'beforeSend': add_api_auth,
 			'data': JSON.stringify(cloudOsRequest),
 			'success': function (data, status, jqXHR) {
-				result = data;
+				cloudsteadProgressbar.done(callback);
 			},
 			'error': function (jqXHR, status, error) {
-				console.log('new_cloud_os error: result='+result+', error='+error);
 				result = jqXHR.responseJSON[0];
+				cloudsteadProgressbar.doneWithError();
 			},
 			'complete': function(jqXHR, status, error) {
-				hide_loading();
+				
 			}
 		});
-		return result;
 	},
 
 	launch_cloud_os: function (cloudos_name) {
