@@ -370,7 +370,7 @@
 		{{/if}}
 	</label>
 
-	<a href="#" class="input-link"><small>{{t forms.admin.forgot_password}}</small></a>
+	<a href="#" class="input-link" {{action "doForgotPassword"}} ><small>{{t forms.admin.forgot_password}}</small></a>
 
 
 	<button class="expand" {{action 'doLogin'}} >{{t sections.login}}</button>
