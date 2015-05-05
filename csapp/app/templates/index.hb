@@ -370,8 +370,7 @@
 		{{/if}}
 	</label>
 
-	<a href="#" class="input-link" {{action "doForgotPassword"}} ><small>{{t forms.admin.forgot_password}}</small></a>
-
+	<a href="#" class="input-link"  data-reveal-id="forgotPasswordModal" ><small>{{t forms.admin.forgot_password}}</small></a>
 
 	<button class="expand" {{action 'doLogin'}} >{{t sections.login}}</button>
 	</form>
@@ -491,6 +490,31 @@
 		</p>
     </form> 
 
+    <a class="close-reveal-modal" aria-label="Close">×</a>
+  </div>
+</div>
+
+
+
+
+
+<div id="forgotPasswordModal" class="reveal-modal narrow" data-reveal="" aria-labelledby="modalTitle" aria-hidden="true" role="dialog" style="/* display: none; */ opacity: 1; /* visibility: hidden; */ /* top: -463px; */">
+  <div class="reveal-content">
+    <h2 id="modalTitle" class="light">{{t forms.admin.forgot_password}}</h2>
+    <form class="text-left" {{action 'doLogin' on="submit"}}>
+
+	<label>
+		{{t forms.admin.email}}
+		{{#if requestMessages.error.email}}
+			{{ input type="text" value=email class="error email_input" placeholder=(transAttr 'forms.admin.email') }}
+			<span class="message error">{{requestMessages.error.email}}</span>
+		{{else}}
+			{{ input type="text" value=email class="email_input" placeholder=(transAttr 'forms.admin.email') }}
+		{{/if}}
+	</label>
+
+	<button class="expand" {{action "doForgotPassword"}} > {{t forms.admin.request_reset_link }}</button>
+	</form>
     <a class="close-reveal-modal" aria-label="Close">×</a>
   </div>
 </div>

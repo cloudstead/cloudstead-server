@@ -33,6 +33,9 @@ App.ApplicationRoute = Ember.Route.extend({
 				outlet: 'progressbar',
 				parentView: 'application'
 			});
+		},
+		willTransition: function(){
+			$(document).foundation('reveal', 'close');
 		}
 	}
 });

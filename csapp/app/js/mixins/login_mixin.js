@@ -74,10 +74,8 @@ App.LoginMixin = Ember.Mixin.create({
 	},
 
 	_displayForgotPasswordNotification: function() {
-		this.set(
-			'notificationForgotPassword',
-			Ember.I18n.translations.notifications.forgot_password_email_sent
-		);
+		$(document).foundation('reveal', 'close');
+		alertify.success(Ember.I18n.translations.notifications.forgot_password_email_sent);
 	},
 
 	_retryPreviousTransition: function() {
