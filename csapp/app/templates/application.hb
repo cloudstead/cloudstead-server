@@ -18,7 +18,7 @@
 										{{ t topbar.new_cloudstead }}
 									{{/link-to}}
 								</li>
-								<li>
+								<li id="launch-progressbar-wrapper">
 									{{ outlet progressbar }}
 								</li>	
 							</ul>

@@ -41,3 +41,8 @@ body > .ember-view {
 .mobile_phone_country_code{
 	margin-bottom: 20px;
 }
+
+#launch-progressbar-wrapper{
+	width: 125px;
+	padding: 10px 0px 0px 10px;
+}

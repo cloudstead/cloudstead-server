@@ -1,13 +1,19 @@
 App.CloudsteadInstanceMixin = Ember.Mixin.create({
 	actions: {
 		doLaunchCloudOs: function (instanceName) {
+			var self = this;
 			var trans = Em.I18n.translations.sections.admin.dialogs;
-			var confirm = window.confirm(trans.confirm_launch_pre_name + instanceName + trans.confirm_launch_post_name);
-			if (confirm){
+			alertify.defaults.theme.ok = "tiny";
+			alertify.defaults.theme.cancel = "button-hollow tiny";
+			alertify.defaults.glossary.title = trans.confirm_launch_pre_name + instanceName + trans.confirm_launch_post_name;
+			//show as confirm
+			alertify.confirm(document.createElement('div'), function(){
 				var launched_cloudos = Api.launch_cloud_os(instanceName);
 				console.log("launching: ", launched_cloudos);
-				this.send("showHeaderProgressbar", launched_cloudos.cloudOs);
-			}
+				self.send("showHeaderProgressbar", launched_cloudos.cloudOs);
+			},function(){
+				//Handle cancel btn
+			}).setting('labels', {'ok':'Yes', 'cancel': trans.forms.admin.cancel_button});
 		},
 		deleteInstance: function(instance){
 			var self = this;
