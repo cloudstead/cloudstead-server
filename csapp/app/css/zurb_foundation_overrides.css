@@ -46,3 +46,19 @@ body > .ember-view {
 	width: 125px;
 	padding: 10px 0px 0px 10px;
 }
+
+
+.launch-loading-for-small{
+	float: right;
+	width: 150px;
+	margin-top: 10px;
+	margin-right: 10px;
+}
+
+.invisible{
+	visibility: hidden;
+}
+
+.visible{
+	visibility: visible
+}

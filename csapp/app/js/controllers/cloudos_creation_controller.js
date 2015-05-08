@@ -11,6 +11,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 
 		updateProgressBar: function(current_percent) {
 			$('#progressMeter').css('width', current_percent + '%');
+			$(".launch-loading-for-small > #progressMeter").css('width', current_percent + '%');
 		},
 
 	},
@@ -49,6 +50,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 
 						self.set('statusMessage', swapStatusMessage(result.lastStatusMessage()));
 						self.set("isInProgress", false);
+						$(".launch-loading-for-small").removeClass("visible").addClass('invisible');
 						self.send("hideHeaderProgressbar");
 						clearInterval(statusInterval);
 					}

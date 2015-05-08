@@ -5,9 +5,10 @@
 			<section class="app-bar">
 				<nav class="top-bar" data-top-bar="">
 					<section class="tab-bar-section show-for-small-only">
-						<a class="left-off-canvas-toggle menu-icon" href="#"><span class="icon-bars"></span></a>
+						<a class="left-off-canvas-toggle menu-icon" href="#"><span class="icon-bars"></span></a>			
 					</section>
 					{{#if authStatus}}
+
 						<section class="top-bar-section show-for-medium-up left">
 							<ul class="left">
 								<li>{{#link-to 'dashboard' }}{{ t topbar.dashboard }}{{/link-to}}</li>
@@ -34,6 +35,11 @@
 								</li>
 							</ul>
 						</section>
+
+						<div class="progress show-for-small-only launch-loading-for-small invisible">
+							<span id="progressMeter" class="meter" style="width:0%" xxx="1"></span>
+						</div>	
+
 					{{else}}
 						<section class="top-bar-section show-for-medium-up left">
 							<ul class="left">

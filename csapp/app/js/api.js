@@ -307,7 +307,7 @@ Api = {
 
 	launch_cloud_os: function (cloudos_name) {
 		show_loading();
-
+		$(".launch-loading-for-small").removeClass("invisible").addClass('visible');
 		var result = null;
 		Ember.$.ajax({
 			'type': 'POST',
@@ -319,6 +319,7 @@ Api = {
 				result = data;
 			},
 			'error': function (jqXHR, status, error) {
+				$(".launch-loading-for-small").removeClass("visible").addClass('invisible');
 				console.log('new_cloud_os error: result='+result+', error='+error);
 				result = jqXHR.responseJSON[0];
 			},
