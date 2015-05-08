@@ -74,6 +74,7 @@ App.CloudOsCreationController = Ember.ObjectController.extend({
 					self.send('setStatusMessage', result.lastStatusMessage());
 					self.set('hasErrorMessage', true);
 					self.set("isInProgress", false);
+					alertify.error(swapStatusMessage(result.lastStatusMessage()));
 					clearInterval(statusInterval);
 				}
 			}, 5000);
