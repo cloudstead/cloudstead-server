@@ -450,5 +450,5 @@ Api = {
 			}
 		});
 		return result;
-	},
+	}
 };

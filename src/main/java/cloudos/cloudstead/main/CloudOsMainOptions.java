@@ -2,7 +2,7 @@ package cloudos.cloudstead.main;
 
 import cloudos.cloudstead.model.support.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
-import cloudos.cloudstead.model.support.CloudOsGeoRegion;
+import cloudos.model.CsGeoRegion;
 import cloudos.cloudstead.model.support.CloudOsRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -30,8 +30,8 @@ public class CloudOsMainOptions extends CloudsteadMainOptions {
     public static final String USAGE_REGION = "The region for the cloudstead";
     public static final String OPT_REGION = "-r";
     public static final String LONGOPT_REGION = "--region";
-    @Option(name=OPT_REGION, aliases=LONGOPT_REGION, usage=USAGE_REGION)
-    @Getter @Setter private CloudOsGeoRegion region = CloudOsGeoRegion.us_west;
+    @Option(name=OPT_REGION, aliases=LONGOPT_REGION, usage=USAGE_REGION, required=true)
+    @Getter @Setter private CsGeoRegion region;
 
     public static final String USAGE_EDITION = "The edition for the cloudstead";
     public static final String OPT_EDITION = "-e";

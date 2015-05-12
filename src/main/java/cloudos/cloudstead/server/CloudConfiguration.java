@@ -2,11 +2,12 @@ package cloudos.cloudstead.server;
 
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.CloudOsEdition;
-import cloudos.cloudstead.model.support.CloudOsGeoRegion;
 import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.CsCloudConfig;
 import cloudos.cslib.compute.CsCloudFactory;
-import cloudos.cslib.compute.mock.MockCloud;
+import cloudos.cslib.compute.meta.CsCloudType;
+import cloudos.model.CsGeoRegion;
+import cloudos.model.CsPlatform;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -17,9 +18,12 @@ import org.cobbzilla.util.io.FileUtil;
 import rooty.toots.chef.ChefDirSynchronizer;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
+import static org.cobbzilla.util.string.StringUtil.empty;
 
 @Slf4j
 public class CloudConfiguration implements AWSCredentials {
@@ -32,10 +36,9 @@ public class CloudConfiguration implements AWSCredentials {
     @Getter @Setter private String aWSAccessKeyId;
     @Getter @Setter private String aWSSecretKey;
 
-    @Getter @Setter private String doClientId;
-    @Getter @Setter private String doApiKey;
+    @Getter @Setter private String storageUser;
 
-    @Getter @Setter private String cloudUser;
+    @Getter @Setter private CsCloudConfig[] providers;
 
     @Getter @Setter private String salt;
     @Getter @Setter private String dataKey;
@@ -69,10 +72,10 @@ public class CloudConfiguration implements AWSCredentials {
     private AmazonS3Client initS3client() { return new AmazonS3Client(this); }
 
     public CsCloud buildHostedCloud(String owner, CloudOs cloudOs) {
-        return buildHostedCloud(owner, cloudOs.getName(), cloudOs.getEdition(), cloudOs.getRegion());
+        return buildHostedCloud(owner, cloudOs.getName(), cloudOs.getEdition(), cloudOs.getCsRegion());
     }
 
-    public CsCloud buildHostedCloud(String owner, String name, CloudOsEdition edition, CloudOsGeoRegion region) {
+    public CsCloud buildHostedCloud(String owner, String name, CloudOsEdition edition, CsGeoRegion region) {
         try {
             final CsCloudConfig config = getHostedCloudConfig(owner, name, edition, region);
             return cloudFactory.buildCloud(config);
@@ -82,24 +85,42 @@ public class CloudConfiguration implements AWSCredentials {
         }
     }
 
-    public CsCloudConfig getHostedCloudConfig(String owner, String name, CloudOsEdition edition, CloudOsGeoRegion region) {
+    public CsCloudConfig getHostedCloudConfig(String owner, String name, CloudOsEdition edition, CsGeoRegion region) {
 
-        if (doClientId.equals("mock")) return new CsCloudConfig().setCloudClass(MockCloud.class.getName());
+        final CsCloudType cloudType = region.getCloudVendor();
 
-        final String groupPrefix = "huc-" + sha256_hex(owner + cloudUser + dataKey + name).substring(0, 10);
+        // lookup credentials in config yml using vendor name (jclouds provider name)
+        final CsCloudConfig provider = getProvider(cloudType.getName());
 
-        // todo: fetch cloud api keys based on edition.getProvider()...
-        return new CsCloudConfig()
-                .setAccountId(doClientId)
-                .setAccountSecret(doApiKey)
-                .setRegion(edition.getRegionName(region))
-                .setInstanceSize(edition.getInstanceType())
-                .setImage(edition.getImage())
-                .setGroupPrefix(groupPrefix)
-                .setProvider(edition.getProvider())
-                .setUser(name)
-                .setDomain(domain)
-                .setCloudClass(edition.getCloudClass().getName());
+        final String groupPrefix = "huc-" + sha256_hex(owner + storageUser + dataKey + name).substring(0, 10);
+
+        final CsCloudConfig cloudConfig = new CsCloudConfig();
+        cloudConfig.setType(cloudType);
+        cloudConfig.setAccountId(provider.getAccountId());
+        cloudConfig.setAccountSecret(provider.getAccountSecret());
+        cloudConfig.setRegion(region.getName());
+        cloudConfig.setInstanceSize(edition.getInstanceType(cloudType));
+        cloudConfig.setImage(region.getImage(CsPlatform.ubuntu_14_lts));
+        cloudConfig.setGroupPrefix(groupPrefix);
+        cloudConfig.setUser(name);
+        cloudConfig.setDomain(domain);
+        return cloudConfig;
+    }
+
+    private CsCloudConfig getProvider(String name) {
+        if (empty(providers)) die("No cloud providers defined");
+        for (CsCloudConfig provider : providers) {
+            if (provider.getType().getName().equals(name)) return provider;
+        }
+        return die("Provider not found: "+name);
+    }
+
+    public List<CsGeoRegion> getAllRegions() {
+        final List<CsGeoRegion> regions = new ArrayList<>();
+        for (CsCloudConfig provider : providers) {
+            regions.addAll(provider.getType().getRegions());
+        }
+        return regions;
     }
 
 }

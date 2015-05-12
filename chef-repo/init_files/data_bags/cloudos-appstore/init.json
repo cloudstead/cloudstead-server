@@ -1,3 +1,9 @@
 {
-    "id": "init"
+    "id": "init",
+
+    "sendgrid": {
+        "user": "sendgrid-api-user",
+        "password": "sendgrid-api-key"
+    }
+
 }

@@ -4,7 +4,10 @@ import cloudos.cloudstead.dao.SessionDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.support.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
-import cloudos.cloudstead.model.support.CloudOsGeoRegion;
+import cloudos.cloudstead.server.CloudsteadConfiguration;
+import cloudos.cslib.compute.CsCloudConfig;
+import cloudos.cslib.compute.meta.CsCloudTypeFactory;
+import cloudos.model.CsGeoRegion;
 import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.wizard.resources.ResourceUtil;
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -22,6 +27,7 @@ import javax.ws.rs.core.Response;
 public class InstanceOptionsResource {
 
     @Autowired private SessionDAO sessionDAO;
+    @Autowired private CloudsteadConfiguration configuration;
 
     /**
      * Get a list of all available app bundles
@@ -55,11 +61,12 @@ public class InstanceOptionsResource {
      */
     @GET
     @Path("/regions")
-    @ReturnType("java.util.List<cloudos.cloudstead.model.support.CloudOsEdition>")
+    @ReturnType("java.util.List<cloudos.model.CsGeoRegion>")
     public Response findAllRegions(@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
+
         final Admin admin = sessionDAO.find(apiKey);
         if (admin == null) return ResourceUtil.forbidden();
-        return Response.ok(CloudOsGeoRegion.values()).build();
+        return Response.ok(configuration.getCloudConfig().getAllRegions()).build();
     }
 
 }

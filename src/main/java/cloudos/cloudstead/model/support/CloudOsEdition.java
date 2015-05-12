@@ -1,63 +1,63 @@
 package cloudos.cloudstead.model.support;
 
 import cloudos.cslib.compute.CsCloud;
-import cloudos.cslib.compute.digitalocean.DigitalOceanCloud;
+import cloudos.cslib.compute.meta.CsCloudType;
+import cloudos.model.CsInstanceType;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ImmutableMap;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import static cloudos.cslib.compute.jclouds.JcloudBase.PROVIDER_AWS_EC2;
-import static cloudos.cslib.compute.jclouds.JcloudBase.PROVIDER_DIGITALOCEAN;
+import java.util.Map;
+
+import static cloudos.cslib.compute.meta.CsCloudTypeFactory.*;
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.string.StringUtil.empty;
 
-// todo: these should eventually be managed in the DB
+@AllArgsConstructor
 public enum CloudOsEdition {
 
-    starter   (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "2gb", "ubuntu-14-04-x64"),
-    master    (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "4gb", "ubuntu-14-04-x64"),
-    business  (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "8gb", "ubuntu-14-04-x64"),
-    king      (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "16gb", "ubuntu-14-04-x64"),
-    emperor   (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "32gb", "ubuntu-14-04-x64"),
-    maximus   (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "48gb", "ubuntu-14-04-x64"),
-    supermax  (DigitalOceanCloud.class, PROVIDER_DIGITALOCEAN, "64gb", "ubuntu-14-04-x64");
+    starter   ((Map) ImmutableMap.of(
+                    DO, DO.getInstanceType("2gb"),
+                    RS, RS.getInstanceType("placeholder"))),
 
-    @JsonIgnore @Getter private Class<? extends CsCloud> cloudClass;
-    @Getter private String provider;
-    @Getter private String instanceType;
-    @Getter private String image;
+    master    ((Map) ImmutableMap.of(
+                    EC2, EC2.getInstanceType("m3.medium"),
+                    DO, DO.getInstanceType("4gb"),
+                    RS, RS.getInstanceType("placeholder"))),
 
-    CloudOsEdition(Class<? extends CsCloud> cloudClass, String provider, String instanceType, String image) {
-        this.cloudClass = cloudClass;
-        this.provider = provider;
-        this.instanceType = instanceType;
-        this.image = image;
-    }
+    business   ((Map) ImmutableMap.of(
+                    EC2, EC2.getInstanceType("r3.large"),
+                    DO, DO.getInstanceType("8gb"),
+                    RS, RS.getInstanceType("placeholder"))),
 
-    @JsonCreator public static CloudOsEdition create (String val) {
-        return empty(val) ? null : CloudOsEdition.valueOf(val.toLowerCase());
-    }
+    king       ((Map) ImmutableMap.of(
+                    EC2, EC2.getInstanceType("r3.xlarge"),
+                    DO, DO.getInstanceType("16gb"),
+                    RS, RS.getInstanceType("placeholder"))),
 
-    public String getRegionName(CloudOsGeoRegion region) {
-        switch (provider) {
-            case PROVIDER_DIGITALOCEAN:
-                switch (region) {
-                    case us_east: return "nyc2";
-                    case us_west: return "sfo1";
-                    case eu: return "ams1";
-                    case singapore: return "sgp1";
-                    default: throw new IllegalArgumentException("Region "+region+" is not supported for provider "+provider);
-                }
+    emperor    ((Map) ImmutableMap.of(
+                    EC2, EC2.getInstanceType("r3.2xlarge"),
+                    DO, DO.getInstanceType("32gb"),
+                    RS, RS.getInstanceType("placeholder"))),
 
-            case PROVIDER_AWS_EC2:
-                switch (region) {
-                    case us_east: return "us-east-1";
-                    case us_west: return "us-west-1";
-                    case eu: return "eu-west-1";
-                    case singapore: return "ap-southeast-1";
-                    default: throw new IllegalArgumentException("Region "+region+" is not supported for provider "+provider);
-                }
+    maximus    ((Map) ImmutableMap.of(
+                    EC2, EC2.getInstanceType("r3.4xlarge"),
+                    DO, DO.getInstanceType("48gb"),
+                    RS, RS.getInstanceType("placeholder"))),
 
-            default: throw new IllegalArgumentException("getRegionName: unsupported provider: "+provider);
-        }
+    supermax   ((Map) ImmutableMap.of(
+                    EC2, EC2.getInstanceType("r3.8xlarge"),
+                    DO, DO.getInstanceType("64gb"),
+                    RS, RS.getInstanceType("placeholder")));
+
+    @Getter private Map<CsCloudType<? extends CsCloud>, CsInstanceType> instanceTypes;
+
+    @JsonCreator public static CloudOsEdition create (String val) { return empty(val) ? null : valueOf(val.toLowerCase()); }
+
+    public String getInstanceType(CsCloudType cloudVendor) {
+        final CsInstanceType type = instanceTypes.get(cloudVendor);
+        if (type != null) return type.getName();
+        return die("Vendor " + cloudVendor.getName() + " not supported on edition " + this);
     }
 }

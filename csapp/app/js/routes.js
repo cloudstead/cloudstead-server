@@ -149,6 +149,13 @@ App.CloudsteadDetailsRoute = App.ProtectedRoute.extend({
 	}
 });
 
+function getRegionLabel(trans, r) {
+	var country = trans.countries[r.country];
+	var location = (r.region === country) ? country : r.region + ", " + country;
+	var regionLabel = location + " (" + trans.cloud_vendors[r.vendor] + ")";
+	return regionLabel;
+}
+
 App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 	cloudstead_translations: function(){
 		return Em.I18n.translations.cloudstead_info;
@@ -159,7 +166,7 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 			name: '',
 			edition: 'starter',
 			appBundle: 'basic',
-			region: 'us_west'
+			region: '{ "name": "sfo1", "country": "US", "region": "San Francisco", "vendor": "DigitalOceanCloudType" }'
 		};
 	},
 
@@ -174,14 +181,13 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 		var self = this;
 		var regions = Api.get_cloudstead_regions();
 		console.log("regions: ", regions);
-
-		var reg = regions.map(function(region) {
+		var reg = regions.map(function(r) {
 			return {
-				label: self.get('cloudstead_translations').regions[region],
-				value: region
+				label: getRegionLabel(self.get('cloudstead_translations'), r),
+				value: JSON.stringify(r)
 			};
 		});
-
+		reg.sort(function (r1, r2) { return r1.label > r2.label; });
 		console.log("regs: ", reg);
 
 		controller.set("regionList", reg);

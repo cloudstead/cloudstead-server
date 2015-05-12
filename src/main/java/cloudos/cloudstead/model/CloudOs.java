@@ -1,7 +1,11 @@
 package cloudos.cloudstead.model;
 
-import cloudos.cloudstead.model.support.*;
+import cloudos.cloudstead.model.support.CloudOsAppBundle;
+import cloudos.cloudstead.model.support.CloudOsEdition;
+import cloudos.cloudstead.model.support.CloudOsRequest;
+import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cslib.compute.instance.CsInstance;
+import cloudos.model.CsGeoRegion;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,10 +16,7 @@ import org.cobbzilla.wizard.model.UniquelyNamedEntity;
 import org.cobbzilla.wizard.validation.IsUnique;
 import org.cobbzilla.wizard.validation.SimpleViolationException;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -25,6 +26,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.json.JsonUtil.fromJsonOrDie;
+import static org.cobbzilla.util.json.JsonUtil.toJsonOrDie;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 import static org.cobbzilla.util.string.StringUtil.empty;
 
@@ -51,8 +54,11 @@ public class CloudOs extends UniquelyNamedEntity {
     @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsAppBundle appBundle;
 
-    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
-    @Getter @Setter private CloudOsGeoRegion region;
+    @NotNull @Column(length=200, nullable=false)
+    @JsonIgnore @Getter @Setter private String region;
+
+    @Transient public CsGeoRegion getCsRegion () { return fromJsonOrDie(region, CsGeoRegion.class); }
+    public void setCsRegion (CsGeoRegion r) { region = toJsonOrDie(r); }
 
     @Size(max=4096, message="err.cloudos.additionalApps.length")
     @Getter @Setter private String additionalApps;
@@ -87,7 +93,7 @@ public class CloudOs extends UniquelyNamedEntity {
     @Getter @Setter private String ucid;
     public void initUcid () { if (empty(ucid)) this.ucid = UUID.randomUUID().toString(); }
 
-    @Size(max=2048, message="err.cloudos.instanceJson.tooLong")
+    @Size(max=16384, message="err.cloudos.instanceJson.tooLong")
     @Getter @Setter @JsonIgnore private String instanceJson;
 
     @JsonIgnore public CsInstance getInstance () {
@@ -120,7 +126,7 @@ public class CloudOs extends UniquelyNamedEntity {
         setAdminUuid(admin.getUuid());
         setName(request.getName());
         setEdition(request.getEdition());
-        setRegion(request.getRegion());
+        setCsRegion(request.getRegion());
         setAppBundle(request.getAppBundle());
         setAdditionalApps(request.getAdditionalApps());
         initUcid();

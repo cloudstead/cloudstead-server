@@ -12,7 +12,6 @@ import com.amazonaws.services.identitymanagement.model.*;
 import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.sendgrid.SendGrid;
 import org.cobbzilla.sendgrid.SendGridPermissions;
 import org.cobbzilla.sendgrid.SendGridUser;
@@ -37,6 +36,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static cloudos.appstore.model.app.config.AppConfiguration.getShasum;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.io.FileUtil.*;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
@@ -160,7 +161,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         super.delete(uuid);
     }
 
-    protected static String salt(CloudConfiguration cloudConfig) { return cloudConfig.getDataKey() + cloudConfig.getCloudUser(); }
+    protected static String salt(CloudConfiguration cloudConfig) { return cloudConfig.getDataKey() + cloudConfig.getStorageUser(); }
     protected static String salt(CloudsteadConfiguration configuration) { return salt(configuration.getCloudConfig()); }
 
     protected String setupAws(Admin admin, CloudOs cloudOs) {
@@ -287,7 +288,8 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
 
         final SendGridUser sendGridUser = new SendGridUser()
                 .setName(CloudOs.getSendgridUser(admin, cloudOs.getName(), salt(configuration)))
-                .setPassword(RandomStringUtils.randomAlphanumeric(20))
+                // ensure password contains both letters and numbers, or SendGrid will reject it
+                .setPassword(randomAlphabetic(10) + randomNumeric(10))
                 .setPermissions(new SendGridPermissions().setEmail());
         configuration.getSendGrid().addOrEditUser(sendGridUser);
 

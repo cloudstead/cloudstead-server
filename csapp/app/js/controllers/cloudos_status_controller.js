@@ -5,7 +5,7 @@ App.CloudOsStatusController = Ember.ObjectController.extend({
 				name: this.get('cloudOs.name'),
 				edition: this.get('cloudOs.edition'),
 				appBundle: this.get('cloudOs.appBundle'),
-				region: this.get('cloudOs.region')
+				region: getRegionLabel(self.get('cloudstead_translations'), this.get('cloudOs.region.name'))
 			};
 			var status = Api.new_cloud_os(cloudOsRequest);
 

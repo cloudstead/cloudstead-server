@@ -8,7 +8,6 @@ import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.CloudOsEdition;
-import cloudos.cloudstead.model.support.CloudOsGeoRegion;
 import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
@@ -16,6 +15,7 @@ import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
 import cloudos.cslib.compute.instance.CsInstanceRequest;
 import cloudos.cslib.compute.mock.MockCsInstance;
+import cloudos.model.CsGeoRegion;
 import lombok.Cleanup;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,7 @@ public class CloudOsLauncher implements Runnable {
         final CloudOs cloudOs = status.getCloudOs();
         final String name = cloudOs.getName();
         final CloudOsEdition edition = cloudOs.getEdition();
-        final CloudOsGeoRegion region = cloudOs.getRegion();
+        final CsGeoRegion region = cloudOs.getCsRegion();
 
         this.cloud = cloudConfig.buildHostedCloud(status.getAdmin().getUuid(), name, edition, region);
     }

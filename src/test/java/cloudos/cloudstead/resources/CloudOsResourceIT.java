@@ -11,7 +11,10 @@ import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
+import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
+import cloudos.cslib.compute.meta.CsCloudType;
+import cloudos.model.CsGeoRegion;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
@@ -131,7 +134,9 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         instances = fromJson(get(CLOUDOS_ENDPOINT).json, CloudOs[].class);
         assertEquals(0, instances.length);
 
-        final CloudOsRequest cloudOsRequest = new CloudOsRequest(name);
+        final CsCloudType<? extends CsCloud> cloudType = getConfiguration().getCloudConfig().getProviders()[0].getType();
+        final CsGeoRegion region = cloudType.getRegions().iterator().next();
+        final CloudOsRequest cloudOsRequest = new CloudOsRequest(name).setRegion(region);
 
         apiDocs.addNote("create a new CloudOs instance");
         response = doPut(uri, toJson(cloudOsRequest));

@@ -65,11 +65,21 @@ cloudConfig:
 
   # allows many servers (dev, staging, individual devs, etc) to share a single bucket
   # must be set
-  cloudUser: {{CLOUD_STORAGE_USER}}
+  storageUser: {{CLOUD_STORAGE_USER}}
 
-  # we spin up new hosted cloudstead instances in digitalocean
-  doClientId: {{DO_CLIENT_ID}}
-  doApiKey: {{DO_API_KEY}}
+  # we spin up new hosted cloudstead instances in one of these clouds
+  providers:
+    - provider: AwsCloudType
+      accountId: {{AWS_ACCESS_KEY_ID}}
+      accountSecret: {{AWS_SECRET_ACCESS_KEY}}
+
+    - provider: DigitalOceanCloudType
+      accountId: {{DO_CLIENT_ID}}
+      accountSecret: {{DO_API_KEY}}
+
+    - provider: RackspaceCloudType
+      accountId: {{RACKSPACE_CLIENT_ID}}
+      accountSecret: {{RACKSPACE_API_KEY}}
 
   # all cloudOs hosts will live within this domain
   domain: {{CLOUDOS_PARENT_DOMAIN}}

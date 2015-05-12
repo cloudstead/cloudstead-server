@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rooty.toots.chef.ChefSolo;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -110,7 +111,7 @@ public class CloudOsResource {
     @ReturnType("cloudos.cloudstead.model.CloudOs")
     public Response create (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name,
-                            CloudOsRequest request) {
+                            @Valid CloudOsRequest request) {
         Admin admin = sessionDAO.find(apiKey);
         if (admin == null) return ResourceUtil.forbidden();
 

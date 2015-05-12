@@ -1,6 +1,7 @@
 package cloudos.cloudstead.model.support;
 
 import cloudos.cloudstead.model.ReservedCloudOsNames;
+import cloudos.model.CsGeoRegion;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +12,6 @@ import org.cobbzilla.util.collection.ListUtil;
 import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.NotReservedWord;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
@@ -33,9 +33,14 @@ public class CloudOsRequest {
     @NotReservedWord(reserved=ReservedCloudOsNames.class, message="{err.cloudos.name.reserved}")
     @Getter @Setter private String name;
 
-    @NotNull @Getter @Setter private CloudOsEdition edition = CloudOsEdition.starter;
-    @NotNull @Getter @Setter private CloudOsAppBundle appBundle = CloudOsAppBundle.basic;
-    @NotNull @Getter @Setter private CloudOsGeoRegion region = CloudOsGeoRegion.us_west;
+    @HasValue(message = "err.cloudos.edition.required")
+    @Getter @Setter private CloudOsEdition edition = CloudOsEdition.starter;
+
+    @HasValue(message = "err.cloudos.appBundle.required")
+    @Getter @Setter private CloudOsAppBundle appBundle = CloudOsAppBundle.basic;
+
+    @HasValue(message = "err.cloudos.region.required")
+    @Getter @Setter private CsGeoRegion region = null;
     @Getter @Setter private String additionalApps;
 
     @JsonIgnore public List<String> getAdditionalAppsList () { return Arrays.asList(additionalApps.split("[,\\s]+")); }
