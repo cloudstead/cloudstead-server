@@ -22,6 +22,11 @@
         "reset_password": { "name": "no-reply", "email": "no-reply@example.com" }
     },
 
+    "admin": {
+        "email": "admin-email@example.com",
+        "hashed_password": "bcrypted-admin-password"
+    },
+
     "sendgrid": {
         "user": "sendgrid-api-user",
         "password": "sendgrid-api-key"

@@ -10,5 +10,6 @@ public class ApiConstants {
     public static final String INSTANCE_OPTIONS_ENDPOINT = "/options";
     public static final String SERVICEKEYS_ENDPOINT = "/service_request";
     public static final String SESSIONS_ENDPOINT = "/sessions";
+    public static final String SEARCH_ENDPOINT = "/search";
 
 }
