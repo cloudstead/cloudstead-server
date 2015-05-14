@@ -24,7 +24,7 @@
 
     "admin": {
         "email": "admin-email@example.com",
-        "hashed_password": "bcrypted-admin-password"
+        "password": "admin-password"
     },
 
     "sendgrid": {
