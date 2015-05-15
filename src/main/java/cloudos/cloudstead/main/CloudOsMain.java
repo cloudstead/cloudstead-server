@@ -13,8 +13,6 @@ import static org.cobbzilla.util.json.JsonUtil.toJson;
 
 public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
 
-    @Override protected CloudOsMainOptions initOptions() { return new CloudOsMainOptions(); }
-
     public static void main (String[] args) throws Exception { main(CloudOsMain.class, args); }
 
     @Override protected void run() throws Exception {

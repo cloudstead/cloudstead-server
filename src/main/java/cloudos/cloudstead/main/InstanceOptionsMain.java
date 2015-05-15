@@ -5,8 +5,6 @@ import org.cobbzilla.wizard.util.RestResponse;
 
 public class InstanceOptionsMain extends CloudsteadMainBase<InstanceOptionsMainOptions> {
 
-    @Override protected InstanceOptionsMainOptions initOptions() { return new InstanceOptionsMainOptions(); }
-
     public static void main (String[] args) { main(InstanceOptionsMain.class, args); }
 
     @Override protected void run() throws Exception {
