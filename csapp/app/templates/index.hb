@@ -9,21 +9,21 @@
 			<li><a href="">Developers</a></li>
 			<li>
 				<a href="#" class="button button-hollow tiny" data-reveal-id="loginModal">
-					{{t sections.index.signin_button}}				
+					{{t sections.index.signin_button}}
 				</a>
 			</li>
 			<li>
 			<a href="#" class="button secondary tiny" data-reveal-id="signupModal">
-				{{t sections.index.signup_button}}			
+				{{t sections.index.signup_button}}
 			</a>
-			
+
 {{!-- 				{{#link-to "registration" classNames="button secondary tiny"}}
 					{{t sections.index.signup_button}}
 				{{/link-to}} --}}
 			</li>
 		</ul>
     </nav>
-  </div>  
+  </div>
 </section>
 
 <section class="deck primary-container">
@@ -90,7 +90,7 @@
 									<span class="status icon-check" data-dropdown="drop1" data-options="align:right" aria-expanded="false"></span>
 								</a>
 								<span class="count">5</span>
-							</div>    
+							</div>
 							<ul id="drop1" class="f-dropdown" data-dropdown-content="">
 								<li><a href="#">100</a></li>
 								<li><a href="#">200</a></li>
@@ -109,7 +109,7 @@
 									<span class="status icon-plus" data-dropdown="drop2" data-options="align:right"></span>
 								</a>
 								<span class="count">5</span>
-							</div>  
+							</div>
 							<ul id="drop2" class="f-dropdown" data-dropdown-content="">
 								<li><a href="#">100</a></li>
 								<li><a href="#">200</a></li>
@@ -145,7 +145,7 @@
 								<a href="#">
 									<span class="icon icon-plus"></span>
 								</a>
-							</div>  
+							</div>
 							<ul id="drop4" class="f-dropdown" data-dropdown-content="">
 									<li><a href="#">100</a></li>
 									<li><a href="#">200</a></li>
@@ -196,7 +196,7 @@
     <span class="col">$10500</span>
   </li>
   <li class="cta-button">
-    
+
   </li>
 </ul>
 </div>
@@ -419,7 +419,7 @@
 			optionValuePath="content.code"
 			optionLabelPath="content.country"
 			selectionBinding="mobilePhoneCountry"
-			classNames="mobile_phone_country_code" }}	
+			classNames="mobile_phone_country_code" }}
 		<label class="label-hide">
 			{{t forms.admin.mobilePhone}}
 			{{#if requestMessages.error.mobilePhone}}
@@ -438,17 +438,8 @@
 				{{ input type="password" value=password classNames="password_input" placeholder=(transAttr 'forms.admin.password') }}
 			{{/if}}
 		</label>
-		<label class="label-hide">
-			{{t forms.admin.password2}}
-			{{#if requestMessages.error.password2}}
-				{{ input type="password" value=password2 classNames="error password_confirm_input" placeholder=(transAttr 'forms.admin.password2') }}
-				<span class="message error">{{requestMessages.error.password2}}</span>
-			{{else}}
-				{{ input type="password" value=password2 classNames="password_confirm_input"placeholder=(transAttr 'forms.admin.password2') }}
-			{{/if}}
-		</label>
 		<div class="field-container login-footer text-left">
-			<input type="checkbox" id="show-password"> 
+			<input type="checkbox" id="show-password" onchange="if ($('.password_input').attr('type')=='password') {$('.password_input').attr('type', 'text');}else{$('.password_input').attr('type', 'password');}">
 			<label for="show-password" class="label-checkbox">
 				<small>{{t forms.admin.show_password }}</small>
 			</label>
@@ -462,23 +453,6 @@
 				{{ input type="text" value=activationCode classNames="activation_code" placeholder=(transAttr 'forms.admin.activationCode') }}
 			{{/if}}
 		</label>
-		{{!-- <small class="note note-up">optional</small> --}}
-		<div class="field-container text-left">
-			{{#if requestMessages.error.tos}}
-				{{ input type="checkbox" checkedBinding="tos" classNames="error tos_checkbox" id="terms" }}
-				<span class="message error">{{requestMessages.error.tos}}</span>
-			{{else}}
-				{{ input type="checkbox" checkedBinding="tos" classNames="tos_checkbox" id="terms" }}
-			{{/if}}
-		   <label for="terms" class="label-checkbox">
-				<small>
-				{{t forms.admin.tos }}
-					<a target="_blank" href="http://www.cloudstead.io/terms-of-service/">
-						{{t sections.footer.terms_of_service }}
-					</a>
-				</small>
-		   </label>
-		</div>
 		<button class="expand" {{action 'doNewAccount'}}>{{t forms.admin.signup_button}}</button>
 		<p>
 			<small>
@@ -488,7 +462,7 @@
 				</a>
 			</small>
 		</p>
-    </form> 
+    </form>
 
     <a class="close-reveal-modal" aria-label="Close">×</a>
   </div>
