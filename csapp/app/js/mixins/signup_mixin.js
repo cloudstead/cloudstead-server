@@ -10,6 +10,7 @@ App.SignupMixin = Ember.Mixin.create({
 
 			this.set('password2', this.get('password'));
 			this.set('tos', true);
+			console.log(">>>>>> ", this.get("mobilePhoneCountry"));
 			this.set("mobilePhoneCountryCode", this.get("mobilePhoneCountry").code);
 
 			// triger focus event, alter flag and then re-call this action.
@@ -119,7 +120,7 @@ App.SignupMixin = Ember.Mixin.create({
 	firstName: '',
 	lastName: '',
 	email: '',
-	mobilePhoneCountryCode: '',
+	mobilePhoneCountryCode: '1',
 	mobilePhone: '',
 	tos: false,
 	password: '',
