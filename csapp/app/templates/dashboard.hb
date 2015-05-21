@@ -23,7 +23,7 @@
 						<div class="field no-border">
 							{{#link-to 'cloudstead_details' cloudosInstance.name class="button button-hollow dim small"}}
 								{{t forms.admin.edit }}
-							{{/link-to}}						
+							{{/link-to}}
 						</div>
 					</article>
 				{{/each}}

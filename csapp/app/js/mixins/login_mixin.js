@@ -55,6 +55,7 @@ App.LoginMixin = Ember.Mixin.create({
 	},
 
 	_handleLoginCredentialError: function(credentialErrors) {
+		console.log("credentialErrors: ", credentialErrors);
 		this._setRequestErrors(credentialErrors);
 	},
 
