@@ -8,8 +8,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static cloudos.cloudstead.resources.ApiConstants.INSTANCE_OPTIONS_ENDPOINT;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
-import static org.cobbzilla.util.string.StringUtil.empty;
 import static org.cobbzilla.wizardtest.RandomUtil.randomEmail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cobbzilla.util.collection.ListUtil;
+import org.cobbzilla.util.daemon.ZillaRuntime;
 import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.NotReservedWord;
 
@@ -17,7 +18,7 @@ import javax.validation.constraints.Size;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.cobbzilla.util.string.StringUtil.empty;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 @NoArgsConstructor @AllArgsConstructor @Accessors(chain=true)
 public class CloudOsRequest {

@@ -3,10 +3,11 @@ package cloudos.cloudstead.main;
 import cloudos.cloudstead.model.support.AdminRequest;
 import lombok.Getter;
 import lombok.Setter;
+import org.cobbzilla.util.daemon.ZillaRuntime;
 import org.cobbzilla.wizard.api.CrudOperation;
 import org.kohsuke.args4j.Option;
 
-import static org.cobbzilla.util.string.StringUtil.empty;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 public class CloudsteadAdminMainOptions extends CloudsteadMainOptions {
 

@@ -7,12 +7,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.cobbzilla.util.daemon.ZillaRuntime;
 
 import java.util.Map;
 
 import static cloudos.cslib.compute.meta.CsCloudTypeFactory.*;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
-import static org.cobbzilla.util.string.StringUtil.empty;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 @AllArgsConstructor
 public enum CloudOsEdition {

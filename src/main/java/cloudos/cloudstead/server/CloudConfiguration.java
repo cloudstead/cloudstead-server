@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
-import static org.cobbzilla.util.string.StringUtil.empty;
 
 @Slf4j
 public class CloudConfiguration implements AWSCredentials {

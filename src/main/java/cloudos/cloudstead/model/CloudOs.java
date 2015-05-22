@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.json.JsonUtil.fromJsonOrDie;
 import static org.cobbzilla.util.json.JsonUtil.toJsonOrDie;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
-import static org.cobbzilla.util.string.StringUtil.empty;
 
 @Entity
 @IsUnique(unique="name", daoBean="cloudOsDAO", message="{err.name.notUnique}")

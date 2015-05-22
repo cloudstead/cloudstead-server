@@ -2,14 +2,14 @@ package cloudos.cloudstead.main;
 
 import cloudos.cloudstead.model.support.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
-import cloudos.model.CsGeoRegion;
 import cloudos.cloudstead.model.support.CloudOsRequest;
+import cloudos.model.CsGeoRegion;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.kohsuke.args4j.Option;
 
-import static org.cobbzilla.util.string.StringUtil.empty;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 public class CloudOsMainOptions extends CloudsteadMainOptions {
 

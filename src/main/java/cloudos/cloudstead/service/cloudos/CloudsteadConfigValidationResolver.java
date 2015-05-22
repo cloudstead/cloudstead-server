@@ -2,7 +2,7 @@ package cloudos.cloudstead.service.cloudos;
 
 import cloudos.appstore.model.app.config.AppConfigValidationResolver;
 
-import static org.cobbzilla.util.string.StringUtil.empty;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 /**
  * This is the resolver used by AppConfiguration.validate before a cloudstead is launched.

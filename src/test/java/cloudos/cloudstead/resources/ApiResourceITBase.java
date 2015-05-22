@@ -1,5 +1,6 @@
 package cloudos.cloudstead.resources;
 
+import cloudos.appstore.test.AssetWebServer;
 import cloudos.appstore.test.MockAppStoreApiClient;
 import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
@@ -22,7 +23,9 @@ import org.cobbzilla.wizard.server.config.factory.ConfigurationSource;
 import org.cobbzilla.wizard.server.config.factory.StreamConfigurationSource;
 import org.cobbzilla.wizard.util.RestResponse;
 import org.cobbzilla.wizardtest.resources.ApiDocsResourceIT;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import java.io.File;
 import java.util.List;
@@ -50,6 +53,10 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
 
     protected File chefStagingDir;
 
+    protected static AssetWebServer webServer = new AssetWebServer();
+    @BeforeClass public static void startTestWebserver() throws Exception { webServer.start(); }
+    @AfterClass public static void stopTestWebserver() throws Exception { webServer.stop(); }
+
     @Override public void beforeStart(RestServer<CloudsteadConfiguration> server) {
 
         try {
@@ -59,7 +66,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
             final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
             configuration.setDnsClient(new MockDnsClient());
             configuration.setSendGrid(new MockSendGrid());
-            configuration.setAppStoreClient(new MockAppStoreApiClient());
+            configuration.setAppStoreClient(new MockAppStoreApiClient(webServer));
             configuration.getCloudConfig().setChefStagingDir(chefStagingDir);
 
         } catch (Exception e) {
