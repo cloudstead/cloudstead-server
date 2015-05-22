@@ -96,7 +96,7 @@ App.SignupMixin = Ember.Mixin.create({
 
 	_handleLoginCredentialError: function(validationErrors) {
 		// TODO implement this if needed.
-		console.log("LoginCredentialError => ", validationErrors)
+		console.log("LoginCredentialError => ", validationErrors);
 	},
 
 	_handleSuccessfulLogin: function(){
