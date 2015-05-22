@@ -10,6 +10,16 @@
         "name": "admin-name",
         "email": "admin-email",
         "password": "admin-password"
-    }
+    },
+
+    "initial_apps": [ {
+        "name": "some-app",
+        "bundleUrl": "http://hostname/path-to-app-bundle.tar.gz",
+        "bundleSha": "sha256-hash-of-tarball"
+    }, {
+        "name": "another-app",
+        "bundleUrl": "http://hostname/path-to-app-bundle.tar.gz",
+        "bundleSha": "sha256-hash-of-tarball"
+    } ]
 
 }
