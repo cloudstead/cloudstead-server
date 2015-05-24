@@ -21,7 +21,6 @@ import com.qmino.miredot.annotations.ReturnType;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.http.HttpStatusCodes;
-import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +33,8 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+
+import static org.cobbzilla.wizard.resources.ResourceUtil.*;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -69,7 +70,7 @@ public class CloudOsResource {
     public Response findAll (@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
 
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final List<CloudOs> found = cloudOsDAO.findByAdmin(admin.getUuid());
         return Response.ok(found).build();
@@ -90,11 +91,11 @@ public class CloudOsResource {
                           @PathParam("name") String name) {
 
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound(name);
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (cloudOs == null) return notFound(name);
+        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
         return Response.ok(cloudOs).build();
     }
@@ -113,21 +114,24 @@ public class CloudOsResource {
                             @PathParam("name") String name,
                             @Valid CloudOsRequest request) {
         Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         // sanity check
-        if (!name.equalsIgnoreCase(request.getName())) return ResourceUtil.invalid();
+        if (!name.equalsIgnoreCase(request.getName())) return invalid();
 
         // must be activated
         admin = adminDAO.findByUuid(admin.getUuid());
-        if (!admin.isEmailVerified()) return ResourceUtil.invalid("{err.cloudos.create.unverifiedEmail}");
+        if (!admin.isEmailVerified()) return invalid("{err.cloudos.create.unverifiedEmail}");
 
         // non-admins: cannot have more than max # of active cloudsteads
         if (!admin.isAdmin() && cloudOsDAO.findActiveByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
-            return ResourceUtil.invalid("{err.cloudos.create.maxCloudsteads}");
+            return invalid("{err.cloudos.create.maxCloudsteads}");
+        }
+        if (!request.getRegion().isValid()) {
+            return invalid("{err.cloudos.create.region.invalid}");
         }
 
-        if (cloudOsDAO.findByName(name) != null) return ResourceUtil.invalid("{err.cloudos.create.name.notUnique}");
+        if (cloudOsDAO.findByName(name) != null) return invalid("{err.cloudos.create.name.notUnique}");
 
         CloudOs cloudOs = new CloudOs();
         cloudOs.populate(admin, request);
@@ -157,15 +161,15 @@ public class CloudOsResource {
                             @PathParam("name") String name,
                             CloudOsRequest request) {
         Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound(name);
+        if (cloudOs == null) return notFound(name);
 
         // to continue, user must be superadmin, or owner of the cloudos
-        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
-        if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.update.notInitial}");
+        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.update.notInitial}");
 
         // determine if the list of apps has changed
         final List<String> requestApps = request.getAllApps();
@@ -197,13 +201,13 @@ public class CloudOsResource {
     public Response getConfig (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                                @PathParam("name") String name) {
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound();
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (cloudOs == null) return notFound();
+        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
-        if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.getConfig.notInitial}");
+        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.getConfig.notInitial}");
 
         final String locale = admin.getLocale();
         final AppConfigurationMap configMap = getAppConfiguration(cloudOs, locale);
@@ -233,13 +237,13 @@ public class CloudOsResource {
                                @PathParam("name") String name,
                                AppConfigurationMap configMap) {
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound();
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (cloudOs == null) return notFound();
+        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
-        if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.setConfig.notInitial}");
+        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.setConfig.notInitial}");
 
         // Sanity check -- ensure we never allow end-user to set these (for now)
         for (String app : LAUNCHTIME_APPS) {
@@ -260,7 +264,7 @@ public class CloudOsResource {
 
                 final File appDatabagDir = new File(databagsDir, appName);
                 final File manifestFile = new File(appDatabagDir, AppManifest.CLOUDOS_MANIFEST_JSON);
-                if (!manifestFile.exists()) return ResourceUtil.invalid("{err.cloudos.setConfig.missingManifest}");
+                if (!manifestFile.exists()) return invalid("{err.cloudos.setConfig.missingManifest}");
                 config.writeAppConfiguration(AppManifest.load(manifestFile), appDatabagDir);
             }
 
@@ -289,13 +293,13 @@ public class CloudOsResource {
                             @PathParam("name") String name) {
 
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound();
-        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (cloudOs == null) return notFound();
+        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
-        if (cloudOs.getState() != CloudOsState.initial) return ResourceUtil.invalid("{err.cloudos.launch.notInitial}");
+        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.launch.notInitial}");
 
         // validate that all required configuration options have a value
         // we skip 'cloudos' and 'email' apps since they are configured after the cloudstead has an IP address
@@ -324,11 +328,11 @@ public class CloudOsResource {
                            @PathParam("name") String name) {
 
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound();
-        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (cloudOs == null) return notFound();
+        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
         final List<CloudOsEvent> events = eventDAO.findByCloudOs(cloudOs.getUuid());
         CloudOsStatus status = new CloudOsStatus(admin, cloudOs);
@@ -351,11 +355,11 @@ public class CloudOsResource {
     public Response delete (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name) {
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
+        if (admin == null) return forbidden();
 
         final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return ResourceUtil.notFound();
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return ResourceUtil.forbidden();
+        if (cloudOs == null) return notFound();
+        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
 
         // nothing to destroy? OK then, everything is fine
         if (cloudOs.getInstance() == null) {

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.cobbzilla.util.daemon.ZillaRuntime;
 
 import java.util.Map;
 
@@ -52,7 +51,7 @@ public enum CloudOsEdition {
                     DO, DO.getInstanceType("64gb"),
                     RS, RS.getInstanceType("placeholder")));
 
-    @Getter private Map<CsCloudType<? extends CsCloud>, CsInstanceType> instanceTypes;
+    @Getter private final Map<CsCloudType<? extends CsCloud>, CsInstanceType> instanceTypes;
 
     @JsonCreator public static CloudOsEdition create (String val) { return empty(val) ? null : valueOf(val.toLowerCase()); }
 

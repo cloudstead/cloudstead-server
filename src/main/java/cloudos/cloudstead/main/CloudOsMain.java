@@ -7,6 +7,7 @@ import org.cobbzilla.util.system.Sleep;
 import org.cobbzilla.wizard.client.ApiClientBase;
 import org.cobbzilla.wizard.util.RestResponse;
 
+import static cloudos.cloudstead.main.CloudOsMainOptions.*;
 import static cloudos.cloudstead.resources.ApiConstants.CLOUDOS_ENDPOINT;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
@@ -23,9 +24,8 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
         RestResponse response;
 
         final boolean hasName = options.hasName();
-        if (!hasName && options.getOperation().requiresName()) {
-            throw new UnsupportedOperationException("For operation "+options.getOperation()+", you must specify a name with "+CloudOsMainOptions.OPT_NAME+"/"+CloudOsMainOptions.LONGOPT_NAME);
-        }
+        if (!hasName && options.getOperation().requiresName()) die(OPT_NAME+"/"+LONGOPT_NAME+" required for operation "+options.getOperation());
+
         final String name = options.getName();
         final String uri = CLOUDOS_ENDPOINT + "/" + name;
 
@@ -47,6 +47,8 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                 break;
 
             case create:
+                if (!options.hasProvider()) die(OPT_PROVIDER+"/"+LONGOPT_PROVIDER+" required for operation "+options.getOperation());
+                if (!options.hasRegion()) die(OPT_REGION+"/"+LONGOPT_REGION+" required for operation "+options.getOperation());
                 response = api.doPut(uri, toJson(options.getCloudOsRequest()));
                 out(response.json);
                 if (!response.isSuccess()) die("Error creating CloudOs, response status was "+response.status);

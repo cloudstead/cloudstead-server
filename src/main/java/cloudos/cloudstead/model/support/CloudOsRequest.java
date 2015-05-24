@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cobbzilla.util.collection.ListUtil;
-import org.cobbzilla.util.daemon.ZillaRuntime;
 import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.NotReservedWord;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
@@ -40,8 +40,9 @@ public class CloudOsRequest {
     @HasValue(message = "err.cloudos.appBundle.required")
     @Getter @Setter private CloudOsAppBundle appBundle = CloudOsAppBundle.basic;
 
-    @HasValue(message = "err.cloudos.region.required")
+    @Valid @HasValue(message = "err.cloudos.region.required")
     @Getter @Setter private CsGeoRegion region = null;
+
     @Getter @Setter private String additionalApps;
 
     @JsonIgnore public List<String> getAdditionalAppsList () { return Arrays.asList(additionalApps.split("[,\\s]+")); }

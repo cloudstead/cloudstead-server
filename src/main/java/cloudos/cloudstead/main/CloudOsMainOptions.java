@@ -3,8 +3,8 @@ package cloudos.cloudstead.main;
 import cloudos.cloudstead.model.support.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.model.support.CloudOsRequest;
+import cloudos.cslib.compute.meta.CsCloudTypeFactory;
 import cloudos.model.CsGeoRegion;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.kohsuke.args4j.Option;
@@ -24,14 +24,21 @@ public class CloudOsMainOptions extends CloudsteadMainOptions {
     public static final String LONGOPT_NAME = "--name";
     @Option(name=OPT_NAME, aliases=LONGOPT_NAME, usage=USAGE_NAME)
     @Getter @Setter private String name;
+    public boolean hasName () { return !empty(name); }
 
-    @JsonIgnore public boolean hasName () { return !empty(name); }
+    public static final String USAGE_PROVIDER = "The provider (PaaS vendor) for the cloudstead";
+    public static final String OPT_PROVIDER = "-p";
+    public static final String LONGOPT_PROVIDER = "--provider";
+    @Option(name=OPT_PROVIDER, aliases=LONGOPT_PROVIDER, usage=USAGE_PROVIDER)
+    @Getter @Setter private CsCloudTypeFactory.Type provider;
+    public boolean hasProvider () { return !empty(provider); }
 
-    public static final String USAGE_REGION = "The region for the cloudstead";
+    public static final String USAGE_REGION = "The provider-specific region for the cloudstead";
     public static final String OPT_REGION = "-r";
     public static final String LONGOPT_REGION = "--region";
-    @Option(name=OPT_REGION, aliases=LONGOPT_REGION, usage=USAGE_REGION, required=true)
-    @Getter @Setter private CsGeoRegion region;
+    @Option(name=OPT_REGION, aliases=LONGOPT_REGION, usage=USAGE_REGION)
+    @Getter @Setter private String region;
+    public boolean hasRegion () { return !empty(region); }
 
     public static final String USAGE_EDITION = "The edition for the cloudstead";
     public static final String OPT_EDITION = "-e";
@@ -63,8 +70,12 @@ public class CloudOsMainOptions extends CloudsteadMainOptions {
         return new CloudOsRequest()
                 .setName(getName())
                 .setEdition(getEdition())
-                .setRegion(getRegion())
+                .setRegion(getCsGeoRegion())
                 .setAppBundle(getAppBundle())
                 .setAdditionalApps(getAdditionalApps());
+    }
+
+    public CsGeoRegion getCsGeoRegion() {
+        return new CsGeoRegion().setCloudVendor(provider.getType()).setName(region);
     }
 }
