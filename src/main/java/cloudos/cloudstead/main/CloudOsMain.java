@@ -55,6 +55,8 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                 break;
 
             case update:
+                if (!options.hasProvider()) die(OPT_PROVIDER+"/"+LONGOPT_PROVIDER+" required for operation "+options.getOperation());
+                if (!options.hasRegion()) die(OPT_REGION+"/"+LONGOPT_REGION+" required for operation "+options.getOperation());
                 response = api.doPost(uri, toJson(options.getCloudOsRequest()));
                 out(response.json);
                 if (!response.isSuccess()) die("Error creating CloudOs, response status was "+response.status);
