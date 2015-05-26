@@ -142,7 +142,6 @@ public class CloudOsResource {
 
         CloudOs cloudOs = new CloudOs();
         cloudOs.populate(admin, request);
-        cloudOs = cloudOsDAO.create(cloudOs);
 
         try {
             if (!prepChefStagingDir(cloudOs)) return Response.serverError().build();
@@ -150,6 +149,8 @@ public class CloudOsResource {
             log.error("Error preparing chef staging dir: "+e, e);
             return Response.serverError().build();
         }
+
+        cloudOs = cloudOsDAO.create(cloudOs);
 
         return Response.ok(cloudOs).build();
     }
@@ -396,13 +397,16 @@ public class CloudOsResource {
 
     public boolean prepChefStagingDir(CloudOs cloudOs) {
 
-        final File stagingDir = cloudOs.getStagingDirFile();
-        mkdirOrDie(stagingDir);
+        final File stagingDir = cloudOs.initStagingDir(configuration.getCloudConfig().getChefStagingDir());
         try {
             final Map<AppLevel, List<String>> appsByLevel = new HashMap<>();
             for (String app : cloudOs.getAllApps()) {
                 // get the latest version from app store
                 final File bundleTarball = configuration.getAppStoreClient().getLatestAppBundle(app);
+                if (bundleTarball == null) {
+                    log.error("No bundle found for app: "+app);
+                    return false;
+                }
 
                 // unroll it, we'll rsync it to the target host later
                 final File tempDir = Tarball.unroll(bundleTarball);
@@ -446,7 +450,12 @@ public class CloudOsResource {
                 if (ChefSolo.recipeExists(stagingDir, app, "lib")) soloJson.add("recipe["+app+"::lib]");
             }
             for (String app : allApps) {
-                if (ChefSolo.recipeExists(stagingDir, app, "default")) soloJson.add("recipe[" + app + "]");
+                if (ChefSolo.recipeExists(stagingDir, app, "default")) {
+                    soloJson.add("recipe[" + app + "]");
+                } else {
+                    log.error("No default recipe found for app: "+app);
+                    return false;
+                }
             }
             for (String app : allApps) {
                 if (ChefSolo.recipeExists(stagingDir, app, "validate")) soloJson.add("recipe["+app+"::validate]");

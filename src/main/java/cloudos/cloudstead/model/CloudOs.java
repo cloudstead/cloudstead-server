@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
+import static org.cobbzilla.util.io.FileUtil.*;
 import static org.cobbzilla.util.json.JsonUtil.fromJsonOrDie;
 import static org.cobbzilla.util.json.JsonUtil.toJsonOrDie;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
@@ -130,5 +131,12 @@ public class CloudOs extends UniquelyNamedEntity {
         setAppBundle(request.getAppBundle());
         setAdditionalApps(request.getAdditionalApps());
         initUcid();
+    }
+
+    public File initStagingDir(File dir) {
+        if (!empty(stagingDir)) return getStagingDirFile();
+        final File stagingDirFile = mkdirOrDie(createTempDirOrDie(dir, getName() + "_chef_"));
+        stagingDir = abs(stagingDirFile);
+        return stagingDirFile;
     }
 }
