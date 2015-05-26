@@ -14,8 +14,6 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.cobbzilla.util.io.FileUtil;
-import rooty.toots.chef.ChefDirSynchronizer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,22 +46,10 @@ public class CloudConfiguration implements AWSCredentials {
     @Getter @Setter private String sslPem;
     @Getter @Setter private String sslKey;
 
-    @Getter @Setter private String chefSources;
+    @Getter @Setter private File chefMaster;
     @Getter @Setter private File chefStagingDir;
 
     @Getter @Setter private int maxLaunchRetries = 3;
-
-    private File chefDir = null;
-    private ChefDirSynchronizer chefSync = null;
-
-    public synchronized File getChefDir () {
-        if (chefDir == null) {
-            chefDir = FileUtil.createTempDirOrDie(CloudConfiguration.class.getName()+"_chef_");
-            chefSync = new ChefDirSynchronizer(chefSources, chefDir);
-            chefSync.fire();
-        }
-        return chefDir;
-    }
 
     @Getter(lazy=true) private final AmazonIdentityManagementClient IAMclient = initIAMclient();
     private AmazonIdentityManagementClient initIAMclient() { return new AmazonIdentityManagementClient(this); }

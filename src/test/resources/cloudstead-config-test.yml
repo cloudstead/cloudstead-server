@@ -88,8 +88,8 @@ cloudConfig:
   sslPem: {{SSL_PEM}}
   sslKey: {{SSL_KEY}}
 
-  # this is where the chef stuff lives, we use the deploy.sh script to provision the new instance
-  chefSources: {{CLOUDOS_CHEF_SOURCES}}
+  # chef master files, we use the deploy.sh script to provision the new instance
+  chefMaster: {{CLOUDOS_CHEF_MASTER}}
   chefStagingDir: {{CLOUDOS_CHEF_STAGING_DIR}}
 
 emailTemplateRoot: {{EMAIL_TEMPLATE_ROOT}}

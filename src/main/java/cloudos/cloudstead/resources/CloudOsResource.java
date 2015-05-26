@@ -1,5 +1,6 @@
 package cloudos.cloudstead.resources;
 
+import cloudos.appstore.model.app.AppLevel;
 import cloudos.appstore.model.app.AppManifest;
 import cloudos.appstore.model.app.config.AppConfiguration;
 import cloudos.appstore.model.app.config.AppConfigurationMap;
@@ -12,7 +13,6 @@ import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.CloudOsEvent;
 import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.model.support.CloudOsState;
-import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
@@ -20,7 +20,10 @@ import cloudos.cloudstead.service.cloudos.CloudsteadConfigValidationResolver;
 import com.qmino.miredot.annotations.ReturnType;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
+import org.cobbzilla.util.io.Tarball;
+import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,9 +34,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.cobbzilla.util.io.FileUtil.*;
+import static org.cobbzilla.util.system.CommandShell.chmod;
 import static org.cobbzilla.wizard.resources.ResourceUtil.*;
 
 @Consumes(MediaType.APPLICATION_JSON)
@@ -385,24 +392,71 @@ public class CloudOsResource {
         return configMap;
     }
 
-    public static final String PRIORITY_APP = "cloudos";
-    public static final List<String> DEPENDENCIES = Arrays.asList(new String[] {
-            "base", "auth", "apache", "postgresql", "mysql", "java", "git", "email", "kestrel"
-    });
     public static final List<String> DATA_FILES = Arrays.asList(new String[] { "geoip" });
 
     public boolean prepChefStagingDir(CloudOs cloudOs) {
-        final CloudConfiguration cloudConfig = configuration.getCloudConfig();
-        final File chefMaster = cloudConfig.getChefDir();
-        final File stagingDir = cloudOs.getStagingDirFile();
 
+        final File stagingDir = cloudOs.getStagingDirFile();
+        mkdirOrDie(stagingDir);
         try {
-            ChefSolo.prepareChefStagingDir(cloudOs.getAllApps(), chefMaster, stagingDir, PRIORITY_APP, DEPENDENCIES, DATA_FILES);
+            final Map<AppLevel, List<String>> appsByLevel = new HashMap<>();
+            for (String app : cloudOs.getAllApps()) {
+                // get the latest version from app store
+                final File bundleTarball = configuration.getAppStoreClient().getLatestAppBundle(app);
+
+                // unroll it, we'll rsync it to the target host later
+                final File tempDir = Tarball.unroll(bundleTarball);
+
+                // for now, rsync it to our staging directory
+                CommandShell.execScript("rsync -avc " + abs(tempDir) + "/chef/* " + abs(stagingDir) + "/");
+
+                // peek in the manifest to see what precedence this app should take in the run list
+                final AppManifest manifest = AppManifest.load(tempDir);
+                List<String> apps = appsByLevel.get(manifest.getLevel());
+                if (apps == null) {
+                    apps = new ArrayList<>(); appsByLevel.put(manifest.getLevel(), apps);
+                }
+                apps.add(app);
+            }
+
+            // Copy master files
+            final File chefMaster = configuration.getCloudConfig().getChefMaster();
+            for (File f : listFiles(chefMaster)) {
+                FileUtils.copyFileToDirectory(f, stagingDir);
+                if (f.canExecute()) chmod(new File(stagingDir, f.getName()), "a+rx");
+            }
+
+            // create data_files dir and copy files, if any
+            final File masterDatafiles  = new File(chefMaster, ChefSolo.DATAFILES_DIR);
+            final File stagingDatafiles = new File(stagingDir, ChefSolo.DATAFILES_DIR);
+            for (String path : DATA_FILES) {
+                CommandShell.exec("rsync -avzc "+abs(masterDatafiles)+"/"+path+" "+abs(stagingDatafiles));
+            }
+
+            // Order apps by level
+            final List<String> allApps = new ArrayList<>(appsByLevel.size());
+            for (AppLevel level : AppLevel.values()) {
+                final List<String> apps = appsByLevel.get(level);
+                if (apps != null) allApps.addAll(apps);
+            }
+
+            // Build chef solo.json using cookbooks in order of priority
+            final ChefSolo soloJson = new ChefSolo();
+            for (String app : allApps) {
+                if (ChefSolo.recipeExists(stagingDir, app, "lib")) soloJson.add("recipe["+app+"::lib]");
+            }
+            for (String app : allApps) {
+                if (ChefSolo.recipeExists(stagingDir, app, "default")) soloJson.add("recipe[" + app + "]");
+            }
+            for (String app : allApps) {
+                if (ChefSolo.recipeExists(stagingDir, app, "validate")) soloJson.add("recipe["+app+"::validate]");
+            }
+            soloJson.write(stagingDir);
+
         } catch (Exception e) {
             log.error("prepChefStagingDir: Error preparing chef staging dir: "+e);
             return false;
         }
         return true;
     }
-
 }

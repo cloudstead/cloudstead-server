@@ -43,6 +43,7 @@ data_bags/cloudos-dns/init.json \
 data_bags/cloudos-dns/ports.json \
 data_bags/cloudos-appstore/init.json \
 data_bags/cloudos-appstore/ports.json \
+data_bags/cloudos-appstore/apps.json \
 certs/cloudstead/ssl-https.key \
 certs/cloudstead/ssl-https.pem \
 certs/cloudstead/ssl-https-wildcard.key \
@@ -52,7 +53,6 @@ certs/cloudstead/ssl-https-wildcard.pem \
 COOKBOOK_SOURCES=" \
 $(find ${INC_BASE}/cloudstead-apps/apps -type d -name cookbooks) \
 $(find ${CLOUDOS_BASE}/cloudos-apps/apps -type d -name cookbooks) \
-${CLOUDOS_BASE}/cloudos-lib/chef-repo/cookbooks \
 "
 
 ${DEPLOYER} ${host} ${INIT_FILES} "${REQUIRED}" "${COOKBOOK_SOURCES}"

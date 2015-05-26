@@ -1,15 +1,11 @@
 package cloudos.cloudstead.resources;
 
-import cloudos.appstore.bundler.BundlerMain;
-import cloudos.appstore.bundler.BundlerOptions;
-import cloudos.appstore.model.app.AppManifest;
 import cloudos.appstore.model.app.config.AppConfigurationMap;
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.model.support.CloudOsState;
-import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
@@ -18,9 +14,7 @@ import cloudos.model.CsGeoRegion;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cobbzilla.util.http.HttpStatusCodes;
-import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.system.Sleep;
-import org.cobbzilla.wizard.server.RestServer;
 import org.cobbzilla.wizard.util.RestResponse;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.junit.After;
@@ -36,8 +30,6 @@ import static cloudos.cloudstead.resources.ApiConstants.CLOUDOS_ENDPOINT;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.io.FileUtil.abs;
-import static org.cobbzilla.util.io.FileUtil.toFileOrDie;
-import static org.cobbzilla.util.io.StreamUtil.loadResourceAsStringOrDie;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 import static org.cobbzilla.wizardtest.RandomUtil.randomEmail;
@@ -61,35 +53,6 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         env.put("ROOTY_QUEUE_NAME", queueName);
         env.put("ROOTY_SECRET", rootySecret);
         return env;
-    }
-
-    @Override
-    public void beforeStart(RestServer<CloudsteadConfiguration> server) {
-        super.beforeStart(server);
-
-        final File appTemp = FileUtil.createTempDirOrDie("appTemp");
-        final File bundleDir = FileUtil.createTempDirOrDie("bundleDir");
-
-        // Write manifest and databags from resources to tempdir
-        final File manifestFile = new File(appTemp, AppManifest.CLOUDOS_MANIFEST_JSON);
-        final String manifestData = loadResourceAsStringOrDie("apps/test/" + AppManifest.CLOUDOS_MANIFEST_JSON);
-        toFileOrDie(manifestFile, manifestData);
-        for (String databag : new String[]{"init", "config-metadata"}) {
-            toFileOrDie(new File(abs(appTemp) + "/config/" + databag + ".json"), loadResourceAsStringOrDie("apps/test/config/" + databag + ".json"));
-        }
-
-        // Run the bundler on our test manifest
-        final BundlerMain main = new BundlerMain(new String[] {
-                BundlerOptions.OPT_MANIFEST, abs(manifestFile),
-                BundlerOptions.OPT_OUTPUT_DIR, abs(bundleDir)
-        });
-        main.runOrDie();
-
-        // todo: add a required fields to test-app's config, ensures we will have *some* config to fill out before launch
-
-        final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
-        final String chefSources = configuration.getCloudConfig().getChefSources();
-        configuration.getCloudConfig().setChefSources(chefSources+" "+abs(new File(bundleDir, "chef")));
     }
 
     @After public void teardown () throws Exception {
@@ -209,6 +172,10 @@ public class CloudOsResourceIT extends ApiResourceITBase {
     }
 
     private void assertCookbookDirsExist(CloudOs cloudOs) {
+        // This check is disabled for now, since all apps now come from the appstore, and
+        // the MockAppStoreApiClient always returns the same tarball
+        // Re-enable when we can pre-populate our Mock appstore client with bundles for each app
+        if (true) return;
         for (String app : cloudOs.getAllApps()) {
             final File appDir = new File(abs(stagingDir) + "/cookbooks/" + app);
             assertTrue(appDir.exists() && appDir.isDirectory());
