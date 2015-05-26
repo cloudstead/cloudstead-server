@@ -87,14 +87,14 @@ App.SignupMixin = Ember.Mixin.create({
 		var loginCallbacks = new LoginCallbacks();
 
 		loginCallbacks.addFailedValidation(this._handleValidationError);
-		loginCallbacks.addError(this._handleLoginCredentialError);
+		loginCallbacks.addError(this._handleSignupLoginCredentialError);
 		loginCallbacks.addNeedsTwoFactor(this._showTwoFactorModal);
 		loginCallbacks.addSuccess(this._handleSuccessfulLogin);
 
 		return loginCallbacks;
 	},
 
-	_handleLoginCredentialError: function(validationErrors) {
+	_handleSignupLoginCredentialError: function(validationErrors) {
 		// TODO implement this if needed.
 		console.log("LoginCredentialError => ", validationErrors);
 	},
