@@ -101,7 +101,7 @@ public class CloudOs extends UniquelyNamedEntity {
         try {
             return instanceJson == null ? null : JsonUtil.fromJson(instanceJson, CsInstance.class);
         } catch (Exception e) {
-            return die("Invalid instanceJson: " + instanceJson);
+            return die("Invalid instanceJson: " + e, e);
         }
     }
 

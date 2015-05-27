@@ -39,7 +39,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.cobbzilla.util.io.FileUtil.*;
+import static org.cobbzilla.util.io.FileUtil.abs;
+import static org.cobbzilla.util.io.FileUtil.listFiles;
 import static org.cobbzilla.util.system.CommandShell.chmod;
 import static org.cobbzilla.wizard.resources.ResourceUtil.*;
 
@@ -144,7 +145,9 @@ public class CloudOsResource {
         cloudOs.populate(admin, request);
 
         try {
-            if (!prepChefStagingDir(cloudOs)) return Response.serverError().build();
+            if (!prepChefStagingDir(cloudOs)) {
+                return Response.serverError().build();
+            }
         } catch (Exception e) {
             log.error("Error preparing chef staging dir: "+e, e);
             return Response.serverError().build();
@@ -397,12 +400,12 @@ public class CloudOsResource {
 
     public boolean prepChefStagingDir(CloudOs cloudOs) {
 
-        final File stagingDir = cloudOs.initStagingDir(configuration.getCloudConfig().getChefStagingDir());
         try {
+            final File stagingDir = cloudOs.initStagingDir(configuration.getCloudConfig().getChefStagingDir());
             final Map<AppLevel, List<String>> appsByLevel = new HashMap<>();
             for (String app : cloudOs.getAllApps()) {
                 // get the latest version from app store
-                final File bundleTarball = configuration.getAppStoreClient().getLatestAppBundle(app);
+                final File bundleTarball = configuration.getLatestAppBundle(app);
                 if (bundleTarball == null) {
                     log.error("No bundle found for app: "+app);
                     return false;
@@ -453,8 +456,7 @@ public class CloudOsResource {
                 if (ChefSolo.recipeExists(stagingDir, app, "default")) {
                     soloJson.add("recipe[" + app + "]");
                 } else {
-                    log.error("No default recipe found for app: "+app);
-                    return false;
+                    log.warn("No default recipe found for app: "+app);
                 }
             }
             for (String app : allApps) {

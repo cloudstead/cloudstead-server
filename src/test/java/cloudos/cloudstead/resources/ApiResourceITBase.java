@@ -66,7 +66,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
             final CloudsteadConfiguration configuration = (CloudsteadConfiguration) serverHarness.getConfiguration();
             configuration.setDnsClient(new MockDnsClient());
             configuration.setSendGrid(new MockSendGrid());
-            configuration.setAppStoreClient(new MockAppStoreApiClient(webServer));
+            configuration.setAppStoreClient(new MockAppStoreApiClient(webServer, configuration.getAppStore()));
             configuration.getCloudConfig().setChefStagingDir(chefStagingDir);
 
         } catch (Exception e) {

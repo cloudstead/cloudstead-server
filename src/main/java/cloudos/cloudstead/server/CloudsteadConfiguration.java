@@ -22,6 +22,7 @@ import org.cobbzilla.wizard.server.config.RestServerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -101,5 +102,9 @@ public class CloudsteadConfiguration extends RestServerConfiguration
 
     public String getResetPasswordUrl(String key) {
         return new StringBuilder().append(getPublicUriBase()).append("/reset_password.html?key=").append(key).toString();
+    }
+
+    public File getLatestAppBundle(String app) throws Exception {
+        return getAppStoreClient().getLatestAppBundle(getAppStore().getUser(), app);
     }
 }
