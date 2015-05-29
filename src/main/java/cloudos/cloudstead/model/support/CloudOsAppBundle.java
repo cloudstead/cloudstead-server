@@ -51,7 +51,8 @@ public enum CloudOsAppBundle {
         };
 
         public static final String[] SMALL_BIZ_APPS = {
-                "limesurvey", "wordpress", "etherpad", "phplist", "kandan", "piwik"
+                "limesurvey", "wordpress", "etherpad", "phplist", "kandan",
+                "piwik", "dokuwiki"
         };
 
         public static final String[] TECH_STARTUP_APPS = {

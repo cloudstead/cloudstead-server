@@ -1,22 +1,26 @@
 cloudstead-server
 =================
 
-Implements the public website for cloudstead.io and the "launcher" app to launch cloudos instances in the cloudstead hosted environment.
+Implements the public website for cloudstead.io and the "launcher" app to launch and manage cloudos instances.
 
 ##### License
 For personal or non-commercial use, this code is available under the [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html).
 For commercial use, please contact cloudstead.io
 
+## Launching a cloudstead-server host:
 
 The absolute necessities:
 
-a target hostname
+  * a target host running Ubuntu 14.x, with:
+    * a valid DNS-reachable hostname
+    * a user account that you can log into via an SSH key (password-less)
+    * the above user account has password-less sudo privileges
 
-SSL Cert for the target hostname.
+  * A valid SSL certificate for the target hostname.
 
-Wildcard SSL Cert for cloudsteads launched from here. Launched cloudsteads will not allow ssh access until the cert is replaced.
+  * A Wildcard SSL certificate for cloudsteads launched from here. Launched cloudsteads will not allow ssh access until the cert is replaced.
 
-DNS: Dyn credentials or rooty config for managing your local dns. built in tinydns support.
+  * DNS: Dyn credentials or rooty config for managing your local dns. built in tinydns support.
 
 Cloud:
 AWS access/secret key
