@@ -1,7 +1,9 @@
 package cloudos.cloudstead.resources;
 
 import cloudos.cloudstead.dao.AdminDAO;
+import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.Admin;
+import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.auth.CloudsteadAuthResponse;
 import cloudos.cloudstead.model.support.AdminRequest;
 import cloudos.cloudstead.model.support.AdminResponse;
@@ -24,6 +26,7 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Locale;
 
 import static cloudos.cloudstead.resources.ApiConstants.ADMINS_ENDPOINT;
@@ -46,6 +49,9 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
     @Autowired private AdminDAO adminDAO;
     @Autowired private TemplatedMailService mailService;
     @Autowired private CloudsteadConfiguration configuration;
+
+    @Autowired private CloudOsDAO cloudOsDAO;
+    @Autowired private CloudOsResource cloudOsResource;
 
     @Override protected void afterSuccessfulLogin(LoginRequest login, Admin admin) throws Exception {}
 
@@ -244,6 +250,13 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         // you can only delete yourself (currently)
         final Admin caller = sessionDAO.find(apiKey);
         if (caller == null || !caller.getUuid().equals(uuid)) return forbidden();
+
+        // nuke all cloudos instances
+        final List<CloudOs> list = cloudOsDAO.findByAdmin(caller.getUuid());
+        for (CloudOs cos : list) {
+            final Response response = cloudOsResource.delete(apiKey, cos.getName());
+            if (response.getStatus() % 100 != 2) log.warn("delete: error deleting cloudos: "+cos.getName());
+        }
 
         remove2factor(caller);
         adminDAO.delete(uuid);
