@@ -25,6 +25,7 @@ import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.io.Tarball;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
+import org.cobbzilla.wizard.validation.SimpleViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rooty.toots.chef.ChefSolo;
@@ -142,13 +143,10 @@ public class CloudOsResource {
         // check for duplicate
         if (cloudOsDAO.findByName(ctx.cloudOs.getName()) != null) return invalid("{err.cloudos.create.name.notUnique}");
 
-        try {
-            if (!prepChefStagingDir(ctx.cloudOs)) return serverError();
-        } catch (Exception e) {
-            log.error("Error preparing chef staging dir: "+e, e);
-            return serverError();
-        }
+        // pull apps from app store, set up dir + files to launch instance
+        if (!prepChefStagingDir(ctx.cloudOs)) return serverError();
 
+        // save instance to DB and return OK
         return ok(cloudOsDAO.create(ctx.cloudOs));
     }
 
@@ -179,11 +177,7 @@ public class CloudOsResource {
         ctx.cloudOs = cloudOsDAO.update(ctx.cloudOs);
 
         // app list has changed, update chef staging directory
-        if (!sameApps) {
-            if (!prepChefStagingDir(ctx.cloudOs))  {
-                return serverError();
-            }
-        }
+        if (!sameApps && !prepChefStagingDir(ctx.cloudOs)) return serverError();
 
         return ok(ctx.cloudOs);
     }
@@ -373,8 +367,7 @@ public class CloudOsResource {
                 // get the latest version from app store
                 final File bundleTarball = configuration.getLatestAppBundle(app);
                 if (bundleTarball == null) {
-                    log.error("No bundle found for app: "+app);
-                    return false;
+                    throw new SimpleViolationException("err.cloudos.app.invalid", "no bundle could be located for app: "+app, app);
                 }
 
                 // unroll it, we'll rsync it to the target host later
