@@ -21,7 +21,6 @@ import com.qmino.miredot.annotations.ReturnType;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.io.Tarball;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
+import static org.cobbzilla.util.http.HttpStatusCodes.UNPROCESSABLE_ENTITY;
 import static org.cobbzilla.util.io.FileUtil.abs;
 import static org.cobbzilla.util.io.FileUtil.listFiles;
 import static org.cobbzilla.util.system.CommandShell.chmod;
@@ -59,9 +59,7 @@ public class CloudOsResource {
         return configMap.validate(RESOLVER, LAUNCHTIME_APPS);
     }
 
-    public Response invalidConfig(AppConfigurationMap configMap) {
-        return Response.status(HttpStatusCodes.UNPROCESSABLE_ENTITY).entity(configMap).build();
-    }
+    public Response invalidConfig(AppConfigurationMap configMap) { return status(UNPROCESSABLE_ENTITY, configMap); }
 
     @Autowired private CloudOsDAO cloudOsDAO;
     @Autowired private SessionDAO sessionDAO;
@@ -304,8 +302,8 @@ public class CloudOsResource {
     @GET
     @Path("/{name}/status")
     @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
-    public Response status(@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
-                           @PathParam("name") String name) {
+    public Response viewHistory(@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
+                                @PathParam("name") String name) {
         final CloudOsContext ctx = new CloudOsContext(apiKey, name);
         if (ctx.response != null) return ctx.response;
 
