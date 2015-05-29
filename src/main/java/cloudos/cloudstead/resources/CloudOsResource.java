@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.io.FileUtil.abs;
 import static org.cobbzilla.util.io.FileUtil.listFiles;
 import static org.cobbzilla.util.system.CommandShell.chmod;
@@ -77,11 +78,11 @@ public class CloudOsResource {
     @ReturnType("java.util.List<cloudos.cloudstead.model.CloudOs>")
     public Response findAll (@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
 
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, null);
+        if (ctx.response != null) return ctx.response;
 
-        final List<CloudOs> found = cloudOsDAO.findByAdmin(admin.getUuid());
-        return Response.ok(found).build();
+        final List<CloudOs> found = cloudOsDAO.findByAdmin(ctx.admin.getUuid());
+        return ok(found);
     }
 
     /**
@@ -98,14 +99,10 @@ public class CloudOsResource {
     public Response find (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                           @PathParam("name") String name) {
 
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
-        final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound(name);
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
-
-        return Response.ok(cloudOs).build();
+        return ok(ctx.cloudOs);
     }
 
     /**
@@ -121,41 +118,38 @@ public class CloudOsResource {
     public Response create (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name,
                             @Valid CloudOsRequest request) {
-        Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, null);
+        if (ctx.response != null) return ctx.response;
 
         // sanity check
         if (!name.equalsIgnoreCase(request.getName())) return invalid();
 
-        // must be activated
-        admin = adminDAO.findByUuid(admin.getUuid());
-        if (!admin.isEmailVerified()) return invalid("{err.cloudos.create.unverifiedEmail}");
+        // email must be verified
+        ctx.admin = adminDAO.findByUuid(ctx.admin.getUuid());
+        if (!ctx.admin.isEmailVerified()) return invalid("{err.cloudos.create.unverifiedEmail}");
 
         // non-admins: cannot have more than max # of active cloudsteads
-        if (!admin.isAdmin() && cloudOsDAO.findActiveByAdmin(admin.getUuid()).size() >= admin.getMaxCloudsteads()) {
+        if (!ctx.admin.isAdmin() && cloudOsDAO.findActiveByAdmin(ctx.admin.getUuid()).size() >= ctx.admin.getMaxCloudsteads()) {
             return invalid("{err.cloudos.create.maxCloudsteads}");
         }
-        if (!request.getRegion().isValid()) {
-            return invalid("{err.cloudos.create.region.invalid}");
-        }
 
-        if (cloudOsDAO.findByName(name) != null) return invalid("{err.cloudos.create.name.notUnique}");
+        // region names vary across cloud vendors. validate here
+        if (!request.getRegion().isValid()) return invalid("{err.cloudos.create.region.invalid}");
 
-        CloudOs cloudOs = new CloudOs();
-        cloudOs.populate(admin, request);
+        ctx.cloudOs = new CloudOs();
+        ctx.cloudOs.populate(ctx.admin, request);
+
+        // check for duplicate
+        if (cloudOsDAO.findByName(ctx.cloudOs.getName()) != null) return invalid("{err.cloudos.create.name.notUnique}");
 
         try {
-            if (!prepChefStagingDir(cloudOs)) {
-                return Response.serverError().build();
-            }
+            if (!prepChefStagingDir(ctx.cloudOs)) return serverError();
         } catch (Exception e) {
             log.error("Error preparing chef staging dir: "+e, e);
-            return Response.serverError().build();
+            return serverError();
         }
 
-        cloudOs = cloudOsDAO.create(cloudOs);
-
-        return Response.ok(cloudOs).build();
+        return ok(cloudOsDAO.create(ctx.cloudOs));
     }
 
     /**
@@ -171,33 +165,27 @@ public class CloudOsResource {
     public Response update (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name,
                             CloudOsRequest request) {
-        Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
-        CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound(name);
-
-        // to continue, user must be superadmin, or owner of the cloudos
-        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
-
-        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.update.notInitial}");
+        if (ctx.cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.update.notInitial}");
 
         // determine if the list of apps has changed
         final List<String> requestApps = request.getAllApps();
-        final List<String> currentApps = cloudOs.getAllApps();
+        final List<String> currentApps = ctx.cloudOs.getAllApps();
         final boolean sameApps = requestApps.containsAll(currentApps) && currentApps.containsAll(requestApps);
 
-        cloudOs.populate(admin, request);
-        cloudOs = cloudOsDAO.update(cloudOs);
+        ctx.cloudOs.populate(ctx.admin, request);
+        ctx.cloudOs = cloudOsDAO.update(ctx.cloudOs);
 
         // app list has changed, update chef staging directory
         if (!sameApps) {
-            if (!prepChefStagingDir(cloudOs))  {
-                return Response.serverError().build();
+            if (!prepChefStagingDir(ctx.cloudOs))  {
+                return serverError();
             }
         }
 
-        return Response.ok(cloudOs).build();
+        return ok(ctx.cloudOs);
     }
 
     /**
@@ -211,17 +199,13 @@ public class CloudOsResource {
     @ReturnType("cloudos.appstore.model.app.config.AppConfigurationMap")
     public Response getConfig (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                                @PathParam("name") String name) {
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
-        final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound();
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
+        if (ctx.cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.getConfig.notInitial}");
 
-        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.getConfig.notInitial}");
-
-        final String locale = admin.getLocale();
-        final AppConfigurationMap configMap = getAppConfiguration(cloudOs, locale);
+        final String locale = ctx.admin.getLocale();
+        final AppConfigurationMap configMap = getAppConfiguration(ctx.cloudOs, locale);
 
         // Do not show end-user config for launch-time apps
         for (String app : LAUNCHTIME_APPS) configMap.removeConfig(app);
@@ -229,7 +213,7 @@ public class CloudOsResource {
         // Validate, so the end-user knows what config still need to be filled out
         validateConfig(configMap);
 
-        return Response.ok(configMap).build();
+        return ok(configMap);
     }
 
     /**
@@ -247,14 +231,10 @@ public class CloudOsResource {
     public Response setConfig (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                                @PathParam("name") String name,
                                AppConfigurationMap configMap) {
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
-        final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound();
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
-
-        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.setConfig.notInitial}");
+        if (ctx.cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.setConfig.notInitial}");
 
         // Sanity check -- ensure we never allow end-user to set these (for now)
         for (String app : LAUNCHTIME_APPS) {
@@ -267,7 +247,7 @@ public class CloudOsResource {
         // Only validate the app they have set config for
         final Map<String, List<ConstraintViolationBean>> violations = validateConfig(configMap);
         if (violations.isEmpty()) {
-            final File stagingDir = cloudOs.getStagingDirFile();
+            final File stagingDir = ctx.cloudOs.getStagingDirFile();
             final File databagsDir = new File(stagingDir, ChefSolo.DATABAGS_DIR);
             for (Map.Entry<String, AppConfiguration> entry : configMap.getAppConfigs().entrySet()) {
                 final String appName = entry.getKey();
@@ -280,10 +260,10 @@ public class CloudOsResource {
             }
 
             // refresh config
-            final String locale = admin.getLocale();
-            configMap = getAppConfiguration(cloudOs, locale);
+            final String locale = ctx.admin.getLocale();
+            configMap = getAppConfiguration(ctx.cloudOs, locale);
             validateConfig(configMap);
-            return Response.ok(configMap).build();
+            return ok(configMap);
         } else {
             return invalidConfig(configMap);
         }
@@ -302,26 +282,21 @@ public class CloudOsResource {
     @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
     public Response launch (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name) {
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
-
-        final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound();
-        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
-
-        if (cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.launch.notInitial}");
+        if (ctx.cloudOs.getState() != CloudOsState.initial) return invalid("{err.cloudos.launch.notInitial}");
 
         // validate that all required configuration options have a value
         // we skip 'cloudos' and 'email' apps since they are configured after the cloudstead has an IP address
-        final AppConfigurationMap configMap = getAppConfiguration(cloudOs, admin.getLocale());
+        final AppConfigurationMap configMap = getAppConfiguration(ctx.cloudOs, ctx.admin.getLocale());
         final Map<String, List<ConstraintViolationBean>> violations = validateConfig(configMap);
         if (!violations.isEmpty()) return invalidConfig(configMap);
 
         // this should return quickly with a status of pending
-        final CloudOsStatus status = launchManager.launch(admin, cloudOs);
+        final CloudOsStatus status = launchManager.launch(ctx.admin, ctx.cloudOs);
 
-        return Response.ok(status).build();
+        return ok(status);
     }
 
     /**
@@ -337,19 +312,14 @@ public class CloudOsResource {
     @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
     public Response status(@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                            @PathParam("name") String name) {
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
-
-        final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound();
-        if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
-
-        final List<CloudOsEvent> events = eventDAO.findByCloudOs(cloudOs.getUuid());
-        CloudOsStatus status = new CloudOsStatus(admin, cloudOs);
+        final List<CloudOsEvent> events = eventDAO.findByCloudOs(ctx.cloudOs.getUuid());
+        CloudOsStatus status = new CloudOsStatus(ctx.admin, ctx.cloudOs);
         status.setHistory(events);
 
-        return Response.ok(status).build();
+        return ok(status);
     }
 
     /**
@@ -365,28 +335,24 @@ public class CloudOsResource {
     @ReturnType("java.lang.Boolean")
     public Response delete (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name) {
-        final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return forbidden();
-
-        final CloudOs cloudOs = cloudOsDAO.findByName(name);
-        if (cloudOs == null) return notFound();
-        if (!cloudOs.getAdminUuid().equals(admin.getUuid())) return forbidden();
+        final CloudOsContext ctx = new CloudOsContext(apiKey, name);
+        if (ctx.response != null) return ctx.response;
 
         // nothing to destroy? OK then, everything is fine
-        if (cloudOs.getInstance() == null) {
-            cloudOs.setState(CloudOsState.deleting);
-            cloudOsDAO.delete(cloudOs.getUuid());
-            return Response.ok(Boolean.TRUE).build();
+        if (ctx.cloudOs.getInstance() == null) {
+            ctx.cloudOs.setState(CloudOsState.deleting);
+            cloudOsDAO.delete(ctx.cloudOs.getUuid());
+            return ok(Boolean.TRUE);
         }
 
         // todo: check cloudos.state -- can we delete from *any* state? or only certain ones?
 
-        cloudOs.setState(CloudOsState.deleting);
-        cloudOsDAO.update(cloudOs);
+        ctx.cloudOs.setState(CloudOsState.deleting);
+        cloudOsDAO.update(ctx.cloudOs);
 
-        launchManager.teardown(admin, cloudOs);
+        launchManager.teardown(ctx.admin, ctx.cloudOs);
 
-        return Response.ok(Boolean.TRUE).build();
+        return ok(Boolean.TRUE);
     }
 
     public AppConfigurationMap getAppConfiguration(CloudOs cloudOs, String locale) {
@@ -469,5 +435,29 @@ public class CloudOsResource {
             return false;
         }
         return true;
+    }
+
+    private class CloudOsContext {
+        public Admin admin;
+        public CloudOs cloudOs;
+
+        public Response response = null;
+
+        public CloudOsContext(String apiKey, String name) {
+            admin = sessionDAO.find(apiKey);
+            if (admin == null) {
+                response = forbidden();
+
+            } else if (!empty(name)) {
+                cloudOs = cloudOsDAO.findByName(name);
+                if (cloudOs == null) {
+                    response = notFound(name);
+
+                } else if (!admin.isAdmin() && !cloudOs.getAdminUuid().equals(admin.getUuid())) {
+                    // must be admin or own the cloudos to operate upon it
+                    response = forbidden();
+                }
+            }
+        }
     }
 }

@@ -17,7 +17,6 @@ import org.cobbzilla.mail.TemplatedMail;
 import org.cobbzilla.mail.service.TemplatedMailService;
 import org.cobbzilla.wizard.cache.redis.ActivationCodeService;
 import org.cobbzilla.wizard.model.HashedPassword;
-import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +24,13 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
 import java.util.Locale;
 
 import static cloudos.cloudstead.resources.ApiConstants.ADMINS_ENDPOINT;
 import static cloudos.cloudstead.resources.ApiConstants.H_API_KEY;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.cobbzilla.mail.service.TemplatedMailService.T_WELCOME;
+import static org.cobbzilla.wizard.resources.ResourceUtil.*;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -68,14 +67,14 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
                           @PathParam("uuid") String uuid) {
 
         final Admin caller = sessionDAO.find(apiKey);
-        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.notFound();
+        if (caller == null || !caller.getUuid().equals(uuid)) return notFound();
 
         final Admin admin = adminDAO.findByUuid(uuid);
-        if (admin == null) return ResourceUtil.notFound();
+        if (admin == null) return notFound();
 
         sessionDAO.update(apiKey, admin); // just in case it changed underneath us, update session cache
 
-        return Response.ok(admin).build();
+        return ok(admin);
     }
 
     /**
@@ -92,7 +91,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
                            @Valid AdminRequest request) {
 
         // sanity check
-        if (!name.equalsIgnoreCase(request.getEmail())) return ResourceUtil.invalid();
+        if (!name.equalsIgnoreCase(request.getEmail())) return invalid();
 
         Admin admin = new Admin().populate(request);
 
@@ -107,7 +106,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         // ensure activation key is valid
         if (!acService.attempt(request.getActivationCode(), admin.getUuid())) {
-            return ResourceUtil.invalid("{err.activationCode.empty}");
+            return invalid("{err.activationCode.empty}");
         }
 
         admin = adminDAO.create(admin);
@@ -116,7 +115,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         sendInvitation(admin);
 
-        return Response.ok(adminResponse).build();
+        return ok(adminResponse);
     }
 
     public void sendInvitation(Admin admin) {
@@ -165,13 +164,13 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
                            @PathParam("uuid") String uuid,
                            @Valid AdminRequest request) {
 
-        if (!uuid.equals(request.getUuid())) return ResourceUtil.invalid();
+        if (!uuid.equals(request.getUuid())) return invalid();
 
         final Admin caller = sessionDAO.find(apiKey);
-        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
+        if (caller == null || !caller.getUuid().equals(uuid)) return forbidden();
 
         Admin admin = adminDAO.findByUuid(uuid);
-        if (admin == null) return ResourceUtil.notFound();
+        if (admin == null) return notFound();
 
         Integer authId = null;
         if (!request.isTwoFactor() && admin.isTwoFactor()) {
@@ -195,7 +194,7 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
         admin = adminDAO.update(admin);
         sessionDAO.update(apiKey, admin);
 
-        return Response.ok(admin).build();
+        return ok(admin);
     }
 
     /**
@@ -212,22 +211,22 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
                                    @PathParam("uuid") String uuid,
                                    @Valid ChangePasswordRequest request) {
 
-        if (!uuid.equals(request.getUuid())) return ResourceUtil.invalid();
+        if (!uuid.equals(request.getUuid())) return invalid();
 
         final Admin caller = sessionDAO.find(apiKey);
-        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
+        if (caller == null || !caller.getUuid().equals(uuid)) return forbidden();
 
         Admin admin = adminDAO.findByUuid(uuid);
-        if (admin == null) return ResourceUtil.notFound();
+        if (admin == null) return notFound();
 
         if (!admin.getHashedPassword().isCorrectPassword(request.getOldPassword())) {
-            return ResourceUtil.invalid("err.password.invalid");
+            return invalid("err.password.invalid");
         }
 
         adminDAO.setPassword(admin, request.getNewPassword());
         sessionDAO.update(apiKey, admin);
 
-        return Response.ok(admin).build();
+        return ok(admin);
     }
 
     /**
@@ -244,13 +243,13 @@ public class AdminsResource extends AccountsResourceBase<Admin, CloudsteadAuthRe
 
         // you can only delete yourself (currently)
         final Admin caller = sessionDAO.find(apiKey);
-        if (caller == null || !caller.getUuid().equals(uuid)) return ResourceUtil.forbidden();
+        if (caller == null || !caller.getUuid().equals(uuid)) return forbidden();
 
         remove2factor(caller);
         adminDAO.delete(uuid);
         sessionDAO.invalidate(apiKey);
 
-        return Response.ok().build();
+        return ok();
     }
 
 }
