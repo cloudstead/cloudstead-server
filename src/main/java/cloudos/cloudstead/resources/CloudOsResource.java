@@ -421,6 +421,10 @@ public class CloudOsResource {
             }
             soloJson.write(stagingDir);
 
+        } catch (SimpleViolationException e) {
+            // rethrow so caller gets a 422 instead of 500
+            throw e;
+
         } catch (Exception e) {
             log.error("prepChefStagingDir: Error preparing chef staging dir: "+e);
             return false;
