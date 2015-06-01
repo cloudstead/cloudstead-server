@@ -9,6 +9,11 @@ App.AdminDetailsController = App.CloudOSController.extend(App.CountriesMixin, {
 			updateService.perform();
 
 			//TODO - nicer messaging, update password part
+		},
+
+		deleteAdminAccount: function () {
+			console.log("this now need to perform credentials check, and delete account if credentials are good");
+			this._doLogin();
 		}
 	},
 
@@ -56,4 +61,49 @@ App.AdminDetailsController = App.CloudOSController.extend(App.CountriesMixin, {
 		this._resetRequestMessage();
 		alert('Account updated successfully.');
 	},
+
+	_doLogin: function() {
+		var self = this;
+		var loginService = new LoginService(self, self._loginData(), self._loginCallbacks());
+		loginService.perform();
+	},
+
+	_loginData: function() {
+		DeviceCookieGenerator.generate();
+
+		return new LoginData(
+			this.get('email'),
+			this.get('password'),
+			getCookie("deviceId"),
+			getCookie("deviceName")
+		);
+	},
+
+	_loginCallbacks: function() {
+		var loginCallbacks = new LoginCallbacks();
+
+		loginCallbacks.addFailedValidation(this._handleValidationError);
+		loginCallbacks.addError(this._handleLoginCredentialError);
+		loginCallbacks.addSuccess(this._successLogin);
+
+		return loginCallbacks;
+	},
+
+	_handleLoginCredentialError: function(credentialErrors) {
+		console.log("credentialErrors: ", credentialErrors);
+		this._setRequestErrors(credentialErrors);
+	},
+
+	_successLogin: function(){
+		var error_msg = locate(Em.I18n.translations, 'errors');
+		console.log("email and pass are good, try logout and transition to /");
+		var response = Api.delete_account();
+		console.log("response => ", response);
+		if(response.statusCode === 200){
+			this.transitionToRoute('/logout');
+		}
+		else{
+			alertify.error(error_msg.server_error);
+		}
+	}
 });

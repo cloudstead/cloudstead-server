@@ -450,5 +450,23 @@ Api = {
 			}
 		});
 		return result;
+	},
+
+	delete_account: function(){
+		show_loading();
+		var sessionData = JSON.parse(sessionStorage.active_admin);
+		console.log("try delete uuid: ", sessionData.uuid);
+		var result = {statusCode: 404};
+		Ember.$.ajax({
+			'type': 'DELETE',
+			'url': API_ROOT + '/admins/' + sessionData.uuid,
+			'contentType': 'application/json',
+			'async': false,
+			'complete': function(jqXHR, status, error) {
+				result = {statusCode: jqXHR.status};
+				hide_loading();
+			}
+		});
+		return result;
 	}
 };
