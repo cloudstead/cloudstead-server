@@ -19,7 +19,7 @@ public class InstanceOptionsResourceIT extends ApiResourceITBase {
     public static final String DOC_TARGET = "View instance options: editions, app bundles, and regions";
 
     @Before public void createAdmin () throws Exception {
-        if (getToken() == null) {
+        if (!hasToken()) {
             final AdminResponse adminResponse = registerAndActivateAdmin(randomEmail());
             setToken(adminResponse.getSession());
         }

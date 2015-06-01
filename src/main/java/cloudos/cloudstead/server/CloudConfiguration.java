@@ -73,7 +73,7 @@ public class CloudConfiguration implements AWSCredentials {
 
     public CsCloudConfig getHostedCloudConfig(String owner, String name, CloudOsEdition edition, CsGeoRegion region) {
 
-        final CsCloudType cloudType = region.getCloudVendor();
+        final CsCloudType<? extends CsCloud> cloudType = region.getCloudVendor();
 
         // lookup credentials in config yml using vendor name (jclouds provider name)
         final CsCloudConfig provider = getProvider(cloudType.getName());
@@ -96,7 +96,7 @@ public class CloudConfiguration implements AWSCredentials {
     private CsCloudConfig getProvider(String name) {
         if (empty(providers)) die("No cloud providers defined");
         for (CsCloudConfig provider : providers) {
-            if (provider.getType().getName().equals(name)) return provider;
+            if (provider.getType().getName().equals(name) && provider.hasAccountId()) return provider;
         }
         return die("Provider not found: "+name);
     }
@@ -104,7 +104,7 @@ public class CloudConfiguration implements AWSCredentials {
     public List<CsGeoRegion> getAllRegions() {
         final List<CsGeoRegion> regions = new ArrayList<>();
         for (CsCloudConfig provider : providers) {
-            regions.addAll(provider.getType().getRegions());
+            if (provider.hasAccountId()) regions.addAll(provider.getType().getRegions());
         }
         return regions;
     }

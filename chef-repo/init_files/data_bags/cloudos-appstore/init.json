@@ -4,11 +4,5 @@
     "sendgrid": {
         "user": "sendgrid-api-user",
         "password": "sendgrid-api-key"
-    },
-
-    "admin": {
-        "name": "admin-name",
-        "email": "admin-email",
-        "password": "admin-password"
     }
 }

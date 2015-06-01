@@ -5,20 +5,17 @@ import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.support.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
-import cloudos.cslib.compute.CsCloudConfig;
-import cloudos.cslib.compute.meta.CsCloudTypeFactory;
-import cloudos.model.CsGeoRegion;
 import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
-import org.cobbzilla.wizard.resources.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
+
+import static org.cobbzilla.wizard.resources.ResourceUtil.forbidden;
+import static org.cobbzilla.wizard.resources.ResourceUtil.ok;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,8 +35,8 @@ public class InstanceOptionsResource {
     @ReturnType("java.util.List<cloudos.cloudstead.model.support.CloudOsAppBundle>")
     public Response findAllAppBundles(@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
-        return Response.ok(CloudOsAppBundle.values()).build();
+        if (admin == null) return forbidden();
+        return ok(CloudOsAppBundle.values());
     }
 
     /**
@@ -51,8 +48,8 @@ public class InstanceOptionsResource {
     @ReturnType("java.util.List<cloudos.cloudstead.model.support.CloudOsEdition>")
     public Response findAllEditions(@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
-        return Response.ok(CloudOsEdition.values()).build();
+        if (admin == null) return forbidden();
+        return ok(CloudOsEdition.values());
     }
 
     /**
@@ -65,8 +62,8 @@ public class InstanceOptionsResource {
     public Response findAllRegions(@HeaderParam(ApiConstants.H_API_KEY) String apiKey) {
 
         final Admin admin = sessionDAO.find(apiKey);
-        if (admin == null) return ResourceUtil.forbidden();
-        return Response.ok(configuration.getCloudConfig().getAllRegions()).build();
+        if (admin == null) return forbidden();
+        return ok(configuration.getCloudConfig().getAllRegions());
     }
 
 }

@@ -75,8 +75,6 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         if (admin == null) die("preCreate: admin does not exist: "+cloudOs.getAdminUuid());
 
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
-        final File stagingDir = createTempDirOrDie(cloudConfig.getChefStagingDir(), cloudOs.getName() + "_chef_");
-        cloudOs.setStagingDir(abs(stagingDir));
         cloudOs.setName(cloudOs.getName().toLowerCase());
 
         final String ucid = cloudOs.getUcid();
@@ -84,6 +82,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final String iamUser = setupAws(admin, cloudOs);
 
         // SSL key & cert
+        final String stagingDir = cloudOs.getStagingDir();
         final File cloudOsCertDir = FileUtil.mkdirOrDie(new File(abs(stagingDir) + "/certs/cloudos"));
         try {
             Files.copy(new File(cloudConfig.getSslPem()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME + ".pem"));

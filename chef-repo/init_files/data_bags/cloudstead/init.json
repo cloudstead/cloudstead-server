@@ -47,10 +47,18 @@
         "password": "cloudos-dns-admin-password"
     },
 
-    "cloudos_appstore": {
-        "user": "cloudos-appstore-admin-user",
-        "password": "cloudos-appstore-admin-password",
-        "base_uri": "cloudos-appstore-url"
+    "appstore": {
+        "base_uri": "cloudos-appstore-url",
+        "public": {
+            "user": "appstore-public-user",
+            "password": "appstore-public-password",
+            "email": "public-email@example.com"
+        },
+        "cloudstead": {
+            "user": "appstore-cloudstead-user",
+            "password": "appstore-cloudstead-password",
+            "email": "cloudstead@example.com"
+        }
     },
 
     "activation": {

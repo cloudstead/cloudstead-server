@@ -1,0 +1,30 @@
+{
+  "id": "apps",
+
+  "public": [
+
+    { "name": "public-app-name",
+      "bundle_url": "http://app-bundle-url",
+      "bundle_sha": "sha256-of-bundle-url",
+      "visibility": "everyone" },
+
+    { "name": "another-public-app",
+      "bundle_url": "http://another-bundle-url",
+      "bundle_sha": "sha256-of-another-bundle-url",
+      "visibility": "everyone" }
+  ],
+
+  "cloudstead": [
+
+    { "name": "cloudstead-app-name",
+      "bundle_url": "http://hidden-app-bundle-url",
+      "bundle_sha": "sha256-of-hidden-bundle-url",
+      "visibility": "publisher" },
+
+    { "name": "another-cloudstead-app",
+      "bundle_url": "http://another-hidden-bundle-url",
+      "bundle_sha": "sha256-of-another-hidden-bundle-url",
+      "visibility": "publisher"  }
+  ]
+
+}

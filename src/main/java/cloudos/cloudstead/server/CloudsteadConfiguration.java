@@ -1,6 +1,7 @@
 package cloudos.cloudstead.server;
 
 import cloudos.appstore.client.AppStoreApiClient;
+import cloudos.appstore.model.support.ApiToken;
 import cloudos.cloudstead.resources.ApiConstants;
 import cloudos.cloudstead.resources.AuthResource;
 import cloudos.dns.DnsClient;
@@ -21,12 +22,19 @@ import org.cobbzilla.wizard.server.config.RestServerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 
 @Configuration @Slf4j
 public class CloudsteadConfiguration extends RestServerConfiguration
         implements HasDatabaseConfiguration, HasRedisConfiguration, HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration {
+
+    // expire 10 minutes before server will automatically expire it
+    private static final long EXPIRATION_SECONDS = ApiToken.EXPIRATION_SECONDS - TimeUnit.MINUTES.toSeconds(10);
 
     @Setter private DatabaseConfiguration database;
     @Bean public DatabaseConfiguration getDatabase() { return database; }
@@ -60,6 +68,17 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     @Setter private AppStoreApiClient appStoreClient;
     public AppStoreApiClient getAppStoreClient () {
         if (appStoreClient == null) appStoreClient = new AppStoreApiClient(appStore);
+        if (appStoreClient.getTokenAge()/1000 > EXPIRATION_SECONDS) {
+            try {
+                if (appStoreClient.hasToken()) {
+                    appStoreClient.refreshToken();
+                } else {
+                    appStoreClient.refreshToken(appStoreClient.getConnectionInfo().getUser(), appStoreClient.getConnectionInfo().getPassword());
+                }
+            } catch (Exception e) {
+                die("Error refreshing API token: "+e, e);
+            }
+        }
         return appStoreClient;
     }
 
@@ -83,5 +102,9 @@ public class CloudsteadConfiguration extends RestServerConfiguration
 
     public String getResetPasswordUrl(String key) {
         return new StringBuilder().append(getPublicUriBase()).append("/reset_password.html?key=").append(key).toString();
+    }
+
+    public File getLatestAppBundle(String app) throws Exception {
+        return getAppStoreClient().getLatestAppBundle(getAppStore().getUser(), app);
     }
 }
