@@ -19,9 +19,11 @@ import cloudos.cloudstead.service.cloudos.CloudOsStatus;
 import cloudos.cloudstead.service.cloudos.CloudsteadConfigValidationResolver;
 import com.qmino.miredot.annotations.ReturnType;
 import edu.emory.mathcs.backport.java.util.Arrays;
+import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.cobbzilla.util.io.Tarball;
+import org.cobbzilla.util.io.TempDir;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.cobbzilla.wizard.validation.SimpleViolationException;
@@ -363,13 +365,13 @@ public class CloudOsResource {
             final Map<AppLevel, List<String>> appsByLevel = new HashMap<>();
             for (String app : cloudOs.getAllApps()) {
                 // get the latest version from app store
-                final File bundleTarball = configuration.getLatestAppBundle(app);
+                @Cleanup("delete") final File bundleTarball = configuration.getLatestAppBundle(app);
                 if (bundleTarball == null) {
                     throw new SimpleViolationException("err.cloudos.app.invalid", "no bundle could be located for app: "+app, app);
                 }
 
                 // unroll it, we'll rsync it to the target host later
-                final File tempDir = Tarball.unroll(bundleTarball);
+                @Cleanup final TempDir tempDir = Tarball.unroll(bundleTarball);
 
                 // for now, rsync it to our staging directory
                 CommandShell.execScript("rsync -avc " + abs(tempDir) + "/chef/* " + abs(stagingDir) + "/");
