@@ -52,12 +52,14 @@
         "public": {
             "user": "appstore-public-user",
             "password": "appstore-public-password",
-            "email": "public-email@example.com"
+            "email": "public-email@example.com",
+            "apps": "http://cloudstead.io/downloads/apps.json"
         },
         "cloudstead": {
             "user": "appstore-cloudstead-user",
             "password": "appstore-cloudstead-password",
-            "email": "cloudstead@example.com"
+            "email": "cloudstead@example.com",
+            "apps": "http://cloudstead.io/downloads/apps.json"
         }
     },
 
