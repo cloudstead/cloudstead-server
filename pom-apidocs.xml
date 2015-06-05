@@ -198,6 +198,7 @@ All rights reserved.
         </resources>
 
         <plugins>
+            <!-- Generate API docs -->
             <plugin>
                 <groupId>com.qmino</groupId>
                 <artifactId>miredot-plugin</artifactId>
