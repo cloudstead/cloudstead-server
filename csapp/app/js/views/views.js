@@ -8,15 +8,15 @@ App.IndexView = Ember.View.extend({
     initFoundation: function () {
         Ember.$(document).foundation();
     }.on('didInsertElement'),
-	initEvents: function(){
-		// ON SIGN UP, ALL INPUT FIELDS NEED TO BE EMPTY
+	initEvents: function() {
+		// ON SIGN UP, ALL INPUT FIELDS NEED TO BE EMPTY AND WITHOUT ERROR LABELS
 		$(document).on('opened.fndtn.reveal', '#signupModal', function () {
+			$("#signupModal").find(".error").hide();
 			var modal = $(this);
-			$.each(modal.find("input"), function(index, item){
-				if($(item).attr('type') === "text" || $(item).attr('type') === "password"){
+			$.each(modal.find("input"), function (index, item) {
+				if ($(item).attr('type') === "text" || $(item).attr('type') === "password") {
 					$(item).val("");
 				}
-
 			});
 		});
 	}.on('didInsertElement')
