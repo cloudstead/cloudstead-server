@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-(c) Copyright 2014 cloudstead.io
+(c) Copyright 2014-2015 cloudstead.io
 All rights reserved.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -255,6 +255,7 @@ All rights reserved.
                 </executions>
             </plugin>
 
+            <!-- Generate API docs -->
             <plugin>
                 <groupId>com.qmino</groupId>
                 <artifactId>miredot-plugin</artifactId>
