@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
 import org.cobbzilla.util.http.ApiConnectionInfo;
-import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.system.Command;
 import org.cobbzilla.util.system.CommandProgressFilter;
 import org.cobbzilla.util.system.CommandResult;
@@ -323,7 +322,7 @@ public class CloudOsLauncher implements Runnable {
             pct += delta;
         }
 
-        final ChefSolo solo = fromJson(FileUtil.toString(new File(chefDir, SOLO_JSON)), ChefSolo.class);
+        final ChefSolo solo = fromJson(new File(chefDir, SOLO_JSON), ChefSolo.class);
         int numEntries = 0;
         for (ChefSoloEntry entry : solo.getEntries()) {
             if (entry.isRecipe("default") || entry.isRecipe("validate")) {

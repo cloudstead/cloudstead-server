@@ -271,7 +271,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
 
             final File stagingDir = cloudOs.getStagingDirFile();
             final File initJson = new File(abs(stagingDir) + "/data_bags/cloudos/init.json");
-            final CloudOsDatabag cloudOsDatabag = fromJson(FileUtil.toString(initJson), CloudOsDatabag.class);
+            final CloudOsDatabag cloudOsDatabag = fromJson(initJson, CloudOsDatabag.class);
             cloudOsDatabag.setDns(configuration.getCloudOsDns().getBaseUri(), cloudOs.getName(), dnsApiKey);
             toFile(initJson, toJson(cloudOsDatabag));
 
