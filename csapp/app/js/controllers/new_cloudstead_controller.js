@@ -18,9 +18,12 @@ App.NewCloudsteadController = Ember.ObjectController.extend({
 				return false;
 			}
 
-
 			function redirectToDashbord(){
 				self.send('transitionToDashboard');
+			}
+
+			if(typeof(Storage) !== "undefined") {
+				localStorage.setItem("favoriteRegion", this.get("selectedRegion.value"));
 			}
 
 			Api.new_cloud_os(this.get("content"), redirectToDashbord);

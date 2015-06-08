@@ -180,7 +180,6 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 	populateRegions: function(controller, model) {
 		var self = this;
 		var regions = Api.get_cloudstead_regions();
-		console.log("regions: ", regions);
 		var reg = regions.map(function(r) {
 			return {
 				label: getRegionLabel(self.get('cloudstead_translations'), r),
@@ -188,10 +187,32 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 			};
 		});
 		reg.sort(function (r1, r2) { return r1.label > r2.label; });
-		console.log("regs: ", reg);
 
 		controller.set("regionList", reg);
-		model.region = reg[0];
+
+		model.region = this._getSelectedRegion(reg);
+		controller.set("selectedRegion", model.region); // MUST DO BROOT FORCE SET OF REGION
+	},
+
+	_getSelectedRegion: function(reg){
+		var selectedIndex = -1;
+		if(typeof(Storage) !== "undefined") {
+			var favoriteRegion = localStorage.getItem("favoriteRegion");
+			var favRegion = jQuery.parseJSON(
+				'{"name":"sfo1", "country":"US","region":"San Francisco","vendor":"DigitalOceanCloudType"}'
+			); // DEFAULT SELECTION IN CASE THAT USER DIDN'T SELECTED REGION EARLIER
+			if( !Ember.isNone(favoriteRegion) ){
+				favRegion = jQuery.parseJSON( favoriteRegion );
+			}
+
+			$.each(reg, function(index, item){
+				var itemRegion = jQuery.parseJSON( item.value );
+				if(itemRegion["region"] === favRegion["region"] && itemRegion["vendor"] === favRegion["vendor"] ){
+					selectedIndex = index;
+				}
+			});
+		}
+		return selectedIndex === -1 ? reg[0] : reg[selectedIndex];
 	},
 
 	populateEditions: function(controller, model) {
@@ -248,9 +269,20 @@ App.LogoutRoute = Ember.Route.extend({
 	setupController: function(controller, model) {
 		// probably want to do a more selective removal of attributes, rather than wiping everything out
 		sessionStorage.clear();
-		localStorage.clear();
+		this._clearLocalStorage();
 		this.controllerFor('application').refreshAuthStatus();
 		this.transitionTo('index');
+	},
+
+	//SAVE ONLY DATA ABOUT REGION SET BY USER IN
+	_clearLocalStorage: function(){
+		if(typeof(Storage) !== "undefined") {
+			var favoriteRegion = localStorage.getItem("favoriteRegion");
+			localStorage.clear();
+			if(favoriteRegion !== undefined){
+				localStorage.setItem("favoriteRegion", favoriteRegion);
+			}
+		}
 	}
 });
 
