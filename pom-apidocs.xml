@@ -42,9 +42,10 @@ All rights reserved.
     </distributionManagement>
 
     <dependencies>
+    <dependencies>
         <dependency>
             <groupId>cloudstead</groupId>
-            <artifactId>appstore-client</artifactId>
+            <artifactId>appstore-common</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
@@ -166,6 +167,18 @@ All rights reserved.
             <groupId>cloudstead</groupId>
             <artifactId>appstore-test</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-http</artifactId>
+            <version>${jetty.version}</version>
             <scope>test</scope>
         </dependency>
 
