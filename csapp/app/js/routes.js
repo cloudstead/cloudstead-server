@@ -198,13 +198,12 @@ App.NewCloudsteadRoute = App.ProtectedRoute.extend({
 		var selectedIndex = -1;
 		if(typeof(Storage) !== "undefined") {
 			var favoriteRegion = localStorage.getItem("favoriteRegion");
-			var favRegion = jQuery.parseJSON(
+			var favRegion = JSON.parse(
 				'{"name":"sfo1", "country":"US","region":"San Francisco","vendor":"DigitalOceanCloudType"}'
 			); // DEFAULT SELECTION IN CASE THAT USER DIDN'T SELECTED REGION EARLIER
-			if( !Ember.isNone(favoriteRegion) ){
+			if( !Ember.isNone(favoriteRegion) && favoriteRegion !== "null"){
 				favRegion = jQuery.parseJSON( favoriteRegion );
 			}
-
 			$.each(reg, function(index, item){
 				var itemRegion = jQuery.parseJSON( item.value );
 				if(itemRegion["region"] === favRegion["region"] && itemRegion["vendor"] === favRegion["vendor"] ){
