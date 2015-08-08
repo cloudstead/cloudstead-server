@@ -3,7 +3,7 @@ package cloudos.cloudstead.service.cloudos;
 import cloudos.appstore.ApiConstants;
 import cloudos.appstore.client.AppStoreApiClient;
 import cloudos.appstore.model.AppStoreCloudAccount;
-import cloudos.appstore.model.support.ApiToken;
+import cloudos.model.auth.ApiToken;
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;

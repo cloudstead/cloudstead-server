@@ -1,7 +1,7 @@
 package cloudos.cloudstead.server;
 
 import cloudos.appstore.client.AppStoreApiClient;
-import cloudos.appstore.model.support.ApiToken;
+import cloudos.model.auth.ApiToken;
 import cloudos.cloudstead.resources.ApiConstants;
 import cloudos.cloudstead.resources.AuthResource;
 import cloudos.dns.DnsClient;
