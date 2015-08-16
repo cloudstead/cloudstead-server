@@ -38,7 +38,10 @@ database:
   password: {{DB_PASS}}
 
   hibernate:
-    entityPackages: [ cloudos.cloudstead.model, cloudos.model.auth ]
+    entityPackages:
+    - cloudos.cloudstead.model
+    - cloudos.model.auth
+    - cloudos.model.instance
     dialect: org.hibernate.dialect.PostgreSQLDialect
     showSql: true
     hbm2ddlAuto: validate
@@ -94,7 +97,7 @@ cloudConfig:
   chefMaster: {{CLOUDOS_CHEF_MASTER}}
   chefStagingDir: {{CLOUDOS_CHEF_STAGING_DIR}}
 
-  maxLaunchRetries: {{CLOUDOS_MAX_LAUNCH_RETRIES}}
+  maxLaunchTries: {{CLOUDOS_MAX_LAUNCH_TRIES}}
 
 emailTemplateRoot: {{EMAIL_TEMPLATE_ROOT}}
 

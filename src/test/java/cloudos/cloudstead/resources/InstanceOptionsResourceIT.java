@@ -1,7 +1,7 @@
 package cloudos.cloudstead.resources;
 
 import cloudos.cloudstead.model.support.AdminResponse;
-import cloudos.cloudstead.model.support.CloudOsAppBundle;
+import cloudos.model.instance.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.model.CsGeoRegion;
 import org.junit.Before;

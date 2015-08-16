@@ -36,7 +36,10 @@ database:
   password: {{DB_PASS}}
 
   hibernate:
-    entityPackages: [ cloudos.cloudstead.model, cloudos.model.auth ]
+    entityPackages:
+    - cloudos.cloudstead.model
+    - cloudos.model.auth
+    - cloudos.model.instance
     dialect: org.hibernate.dialect.PostgreSQLDialect
     showSql: true
     hbm2ddlAuto: create

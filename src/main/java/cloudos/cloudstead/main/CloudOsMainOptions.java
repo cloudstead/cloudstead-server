@@ -1,6 +1,6 @@
 package cloudos.cloudstead.main;
 
-import cloudos.cloudstead.model.support.CloudOsAppBundle;
+import cloudos.model.instance.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cslib.compute.meta.CsCloudTypeFactory;

@@ -1,25 +1,23 @@
-package cloudos.cloudstead.service.cloudos;
+package cloudos.cloudstead.service;
 
 import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.CsCloud;
-import lombok.AllArgsConstructor;
+import cloudos.model.instance.CloudOsState;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.dns.DnsRecordMatch;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 
-@AllArgsConstructor @Slf4j
-public class CloudOsDestroyer implements Runnable {
+@Slf4j
+public class CloudOsDestroyTask extends CloudsteadTask {
 
-    private CloudOsStatus status;
-    private CloudsteadConfiguration configuration;
-    private CloudOsDAO cloudOsDAO;
+    public CloudOsDestroyTask(CloudOsStatus status, CloudsteadConfiguration configuration, CloudOsDAO cloudOsDAO) {
+        super(status, configuration, cloudOsDAO);
+    }
 
-    @Override
-    public void run() {
+    public CloudsteadTaskResult call() throws Exception {
 
         final CloudOs cloudOs = status.getCloudOs();
         if (cloudOs == null) {
@@ -66,5 +64,8 @@ public class CloudOsDestroyer implements Runnable {
         }
 
         status.success("{destroy.success}");
+
+        return result;
     }
+
 }

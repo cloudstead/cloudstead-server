@@ -2,7 +2,7 @@ package cloudos.cloudstead.dao;
 
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.model.support.CloudOsState;
+import cloudos.model.instance.CloudOsState;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.databag.*;
@@ -169,8 +169,8 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final String salt = salt(cloudConfig);
         final String hostname = cloudOs.getName();
 
-        final String iamUser = CloudOs.getIAMuser(admin, hostname, salt);
-        final String iamPath = CloudOs.getIAMpath(admin);
+        final String iamUser = cloudOs.getIAMuser(admin, hostname, salt);
+        final String iamPath = cloudOs.getIAMpath(admin);
 
         // Does the user already exist?
         boolean userExists = false;
@@ -286,7 +286,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
     public void setupSendGrid(Admin admin, CloudOs cloudOs) throws Exception {
 
         final SendGridUser sendGridUser = new SendGridUser()
-                .setName(CloudOs.getSendgridUser(admin, cloudOs.getName(), salt(configuration)))
+                .setName(cloudOs.getSendgridUser(admin, cloudOs.getName(), salt(configuration)))
                 // ensure password contains both letters and numbers, or SendGrid will reject it
                 .setPassword(randomAlphabetic(10) + randomNumeric(10))
                 .setPermissions(new SendGridPermissions().setEmail());

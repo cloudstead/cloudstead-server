@@ -1,4 +1,4 @@
-package cloudos.cloudstead.service.cloudos;
+package cloudos.cloudstead.service;
 
 import cloudos.appstore.model.app.config.AppConfigValidationResolver;
 

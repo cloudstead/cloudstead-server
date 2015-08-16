@@ -1,7 +1,7 @@
 package cloudos.cloudstead.main;
 
 import cloudos.appstore.model.app.config.AppConfigurationMap;
-import cloudos.cloudstead.service.cloudos.CloudOsStatus;
+import cloudos.cloudstead.service.CloudOsStatus;
 import org.cobbzilla.util.json.JsonUtil;
 import org.cobbzilla.util.system.Sleep;
 import org.cobbzilla.wizard.client.ApiClientBase;

@@ -1,17 +1,14 @@
-package cloudos.cloudstead.service.cloudos;
+package cloudos.cloudstead.service;
 
 import cloudos.cloudstead.dao.AdminDAO;
 import cloudos.cloudstead.dao.CloudOsDAO;
-import cloudos.cloudstead.dao.CloudOsEventDAO;
+import cloudos.dao.CloudOsEventDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @Service @Slf4j
 public class CloudOsLaunchManager {
@@ -20,8 +17,7 @@ public class CloudOsLaunchManager {
     @Autowired protected AdminDAO adminDAO;
     @Autowired protected CloudOsEventDAO eventDAO;
     @Autowired protected CloudsteadConfiguration configuration;
-
-    protected Executor executor = Executors.newFixedThreadPool(10);
+    @Autowired protected TaskService taskService;
 
     public CloudOsStatus launch(Admin admin, CloudOs cloudOs) {
 
@@ -35,8 +31,7 @@ public class CloudOsLaunchManager {
     }
 
     protected CloudOsStatus launch(CloudOsStatus status) {
-        final CloudOsLauncher launcher = new CloudOsLauncher(status, configuration, cloudOsDAO);
-        executor.execute(launcher);
+        taskService.execute(new CloudOsLaunchTask(status, configuration, cloudOsDAO));
         return status;
     }
 
@@ -46,7 +41,7 @@ public class CloudOsLaunchManager {
     }
 
     protected void teardown(CloudOsStatus status) {
-        final CloudOsDestroyer destroyer = new CloudOsDestroyer(status, configuration, cloudOsDAO);
-        executor.execute(destroyer);
+        final CloudOsDestroyTask destroyer = new CloudOsDestroyTask(status, configuration, cloudOsDAO);
+        taskService.execute(destroyer);
     }
 }

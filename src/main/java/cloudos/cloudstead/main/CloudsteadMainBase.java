@@ -16,7 +16,7 @@ public abstract class CloudsteadMainBase<OPT extends CloudsteadMainOptions> exte
         return new LoginRequest().setName(options.getAccount()).setPassword(options.getPassword());
     }
 
-    @Override protected String getLoginUri() { return ApiConstants.ADMINS_ENDPOINT; }
+    @Override protected String getLoginUri(String account) { return ApiConstants.ADMINS_ENDPOINT; }
 
     @Override protected String getSessionId(RestResponse response) throws Exception {
         CloudsteadAuthResponse authResponse = fromJson(response.json, CloudsteadAuthResponse.class);

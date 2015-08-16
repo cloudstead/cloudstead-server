@@ -1,142 +1,70 @@
 package cloudos.cloudstead.model;
 
-import cloudos.cloudstead.model.support.CloudOsAppBundle;
+import cloudos.model.instance.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.model.support.CloudOsRequest;
-import cloudos.cloudstead.model.support.CloudOsState;
-import cloudos.cslib.compute.instance.CsInstance;
-import cloudos.model.CsGeoRegion;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import cloudos.model.AccountBase;
+import cloudos.model.instance.CloudOsBase;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.cobbzilla.util.collection.ListUtil;
-import org.cobbzilla.util.json.JsonUtil;
-import org.cobbzilla.wizard.model.UniquelyNamedEntity;
+import org.cobbzilla.wizard.model.Identifiable;
 import org.cobbzilla.wizard.validation.IsUnique;
-import org.cobbzilla.wizard.validation.SimpleViolationException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
-import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
-import static org.cobbzilla.util.io.FileUtil.*;
-import static org.cobbzilla.util.json.JsonUtil.fromJsonOrDie;
-import static org.cobbzilla.util.json.JsonUtil.toJsonOrDie;
 import static org.cobbzilla.util.security.ShaUtil.sha256_hex;
 
 @Entity
 @IsUnique(unique="name", daoBean="cloudOsDAO", message="{err.name.notUnique}")
-@ToString(of={"adminUuid", "name", "state", "instanceJson"})
-public class CloudOs extends UniquelyNamedEntity {
+public class CloudOs extends CloudOsBase {
 
-    @Getter @Setter private String adminUuid;
+    @Override protected boolean isReserved(String n) { return ReservedCloudOsNames.isReserved(n); }
 
-    // Name has a lot of restrictions: must have a value; min 3/max 30 alphanumeric chars; cannot be reserved word
-    @Size(max=30, message="err.cloudos.name.length")
-    @Pattern(regexp = "[A-Za-z0-9]{3,}", message = "err.cloudos.name.invalid")
-    @Column(updatable=false, unique=true, length=30)
-    public String getName () { return name == null ? null : name.toLowerCase(); }
-    public CloudOs setName (String n) {
-        if (ReservedCloudOsNames.isReserved(n)) throw new SimpleViolationException("err.cloudos.name.reserved");
-        name = (n == null) ? null : n.toLowerCase(); return this;
-    }
-
-    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
+    @NotNull(message="err.cloudos.edition.required")
+    @Enumerated(value=EnumType.STRING)
+    @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsEdition edition;
 
-    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
+    @Override public String getInstanceType() {
+        // instance type depends on the 'edition'
+        return edition.getInstanceType(getCsRegion().getCloudVendor());
+    }
+
+    @NotNull(message="err.cloudos.appBundle.required")
+    @Enumerated(value=EnumType.STRING)
+    @Column(length=30, nullable=false)
     @Getter @Setter private CloudOsAppBundle appBundle;
 
-    @NotNull @Column(length=200, nullable=false)
-    @JsonIgnore @Getter @Setter private String region;
-
-    @Transient public CsGeoRegion getCsRegion () { return fromJsonOrDie(region, CsGeoRegion.class); }
-    public void setCsRegion (CsGeoRegion r) { region = toJsonOrDie(r); }
-
-    @Size(max=4096, message="err.cloudos.additionalApps.length")
-    @Getter @Setter private String additionalApps;
-
-    @JsonIgnore public List<String> getAdditionalAppsList () { return Arrays.asList(additionalApps.split("[,\\s]+")); }
-
-    public List<String> getAllApps() {
-        return empty(additionalApps)
+    @Override public List<String> getAllApps() {
+        return empty(getApps())
                 ? appBundle.getApps()
-                : ListUtil.concat(appBundle.getApps(), getAdditionalAppsList());
+                : ListUtil.concat(appBundle.getApps(), super.getAllApps());
     }
 
-    @NotNull @Enumerated(value=EnumType.STRING) @Column(length=30, nullable=false)
-    @Getter @Setter private CloudOsState state = CloudOsState.initial;
-    @Getter @Setter private long lastStateChange;
-
-    @JsonIgnore public boolean isRunning() { return state == CloudOsState.live; }
-
-    @Column(length=1024, updatable=false, unique=true)
-    @JsonIgnore @Getter @Setter private String stagingDir;
-    @JsonIgnore public boolean hasStagingDir () { return !empty(stagingDir); }
-    @JsonIgnore public File getStagingDirFile () { return new File(stagingDir); }
-
-    public void updateState (CloudOsState newState) {
-        if (newState != state) {
-            state = newState;
-            lastStateChange = System.currentTimeMillis();
-        }
-    }
-
-    @Column(nullable=false, updatable=false, unique=true, length=100)
-    @Getter @Setter private String ucid;
-    public void initUcid () { if (empty(ucid)) this.ucid = UUID.randomUUID().toString(); }
-
-    @Size(max=16384, message="err.cloudos.instanceJson.tooLong")
-    @Getter @Setter @JsonIgnore private String instanceJson;
-
-    @JsonIgnore public CsInstance getInstance () {
-        try {
-            return instanceJson == null ? null : JsonUtil.fromJson(instanceJson, CsInstance.class);
-        } catch (Exception e) {
-            return die("Invalid instanceJson: " + e, e);
-        }
-    }
-
-    // for backing up instance configuration and data to S3
-    // all backups are encrypted on the instance with the end-user's master password
-    // so while cloudstead can read the data, it will be indecipherable to us
-    @Getter @Setter @JsonIgnore private String s3accessKey;
-    @Getter @Setter @JsonIgnore private String s3secretKey;
-
-    public static String getIAMpath(Admin admin) {
+    @Override public String getIAMpath(Identifiable admin) {
         return "/cloudos/" + admin.getUuid().replace("-", "") + "/";
     }
 
-    public static String getIAMuser(Admin admin, String hostname, String salt) {
+    @Override public String getIAMuser(Identifiable admin, String hostname, String salt) {
         return admin.getUuid().replace("-", "") + "_" + sha256_hex(hostname + salt).substring(0, 10);
     }
 
-    public static String getSendgridUser(Admin admin, String hostname, String salt) {
+    public String getSendgridUser(Identifiable admin, String hostname, String salt) {
         return getIAMuser(admin, hostname, salt).replace("_", "");
     }
 
-    public void populate(Admin admin, CloudOsRequest request) {
+    public void populate(AccountBase admin, CloudOsRequest request) {
         setAdminUuid(admin.getUuid());
         setName(request.getName());
         setEdition(request.getEdition());
         setCsRegion(request.getRegion());
         setAppBundle(request.getAppBundle());
-        setAdditionalApps(request.getAdditionalApps());
+        setApps(request.getAdditionalApps());
+        setInstanceType(request.getEdition().getInstanceType(getCsRegion().getCloudVendor()));
         initUcid();
-    }
-
-    public File initStagingDir(File dir) {
-        if (!empty(stagingDir)) return getStagingDirFile();
-        final File stagingDirFile = mkdirOrDie(createTempDirOrDie(dir, getName() + "_chef_"));
-        stagingDir = abs(stagingDirFile);
-        return stagingDirFile;
     }
 }

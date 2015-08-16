@@ -49,7 +49,7 @@ public class CloudConfiguration implements AWSCredentials {
     @Getter @Setter private File chefMaster;
     @Getter @Setter private File chefStagingDir;
 
-    @Getter @Setter private int maxLaunchRetries = 3;
+    @Getter @Setter private int maxLaunchTries = 3;
 
     @Getter(lazy=true) private final AmazonIdentityManagementClient IAMclient = initIAMclient();
     private AmazonIdentityManagementClient initIAMclient() { return new AmazonIdentityManagementClient(this); }
@@ -79,13 +79,15 @@ public class CloudConfiguration implements AWSCredentials {
         final CsCloudConfig provider = getProvider(cloudType.getName());
 
         final String groupPrefix = "huc-" + sha256_hex(owner + storageUser + dataKey + name).substring(0, 10);
+        final String instanceType = edition.getInstanceType(cloudType);
+        if (instanceType == null) die("cloud "+cloudType.getName()+" does not support edition "+edition.name());
 
         final CsCloudConfig cloudConfig = new CsCloudConfig();
         cloudConfig.setType(cloudType);
         cloudConfig.setAccountId(provider.getAccountId());
         cloudConfig.setAccountSecret(provider.getAccountSecret());
         cloudConfig.setRegion(region.getName());
-        cloudConfig.setInstanceSize(edition.getInstanceType(cloudType));
+        cloudConfig.setInstanceSize(instanceType);
         cloudConfig.setImage(region.getImage(CsPlatform.ubuntu_14_lts));
         cloudConfig.setGroupPrefix(groupPrefix);
         cloudConfig.setUser(name);
@@ -93,7 +95,7 @@ public class CloudConfiguration implements AWSCredentials {
         return cloudConfig;
     }
 
-    private CsCloudConfig getProvider(String name) {
+    public CsCloudConfig getProvider(String name) {
         if (empty(providers)) die("No cloud providers defined");
         for (CsCloudConfig provider : providers) {
             if (provider.getType().getName().equals(name) && provider.hasAccountId()) return provider;

@@ -1,5 +1,6 @@
 package cloudos.cloudstead.server;
 
+import cloudos.deploy.AppBundleResolver;
 import cloudos.appstore.client.AppStoreApiClient;
 import cloudos.model.auth.ApiToken;
 import cloudos.cloudstead.resources.ApiConstants;
@@ -31,7 +32,9 @@ import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 
 @Configuration @Slf4j
 public class CloudsteadConfiguration extends RestServerConfiguration
-        implements HasDatabaseConfiguration, HasRedisConfiguration, HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration {
+        implements HasDatabaseConfiguration, HasRedisConfiguration,
+        HasTwoFactorAuthConfiguration, TemplatedMailSenderConfiguration,
+        AppBundleResolver {
 
     // expire 10 minutes before server will automatically expire it
     private static final long EXPIRATION_SECONDS = ApiToken.EXPIRATION_SECONDS - TimeUnit.MINUTES.toSeconds(10);
@@ -107,4 +110,6 @@ public class CloudsteadConfiguration extends RestServerConfiguration
     public File getLatestAppBundle(String app) throws Exception {
         return getAppStoreClient().getLatestAppBundle(getAppStore().getUser(), app);
     }
+
+    @Override public File getAppBundle(String name) throws Exception { return getLatestAppBundle(name); }
 }

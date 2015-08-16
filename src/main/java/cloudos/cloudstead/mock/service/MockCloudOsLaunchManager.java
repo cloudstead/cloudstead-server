@@ -1,9 +1,8 @@
 package cloudos.cloudstead.mock.service;
 
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.model.support.CloudOsState;
-import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
-import cloudos.cloudstead.service.cloudos.CloudOsStatus;
+import cloudos.cloudstead.service.*;
+import cloudos.model.instance.CloudOsState;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.system.Sleep.sleep;
@@ -12,13 +11,23 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
 
     @Override protected CloudOsStatus launch(CloudOsStatus status) {
         final MockCloudOsLauncher launcher = new MockCloudOsLauncher(status);
-        executor.execute(launcher);
+        taskService.execute(new CloudOsLaunchTask(status, null, null) {
+            @Override public CloudsteadTaskResult call() throws Exception {
+                launcher.run();
+                return result;
+            }
+        });
         return status;
     }
 
     @Override protected void teardown(CloudOsStatus status) {
         final MockCloudOsDestroyer destroyer = new MockCloudOsDestroyer(status);
-        executor.execute(destroyer);
+        taskService.execute(new CloudOsDestroyTask(status, null, null) {
+            @Override public CloudsteadTaskResult call() throws Exception {
+                destroyer.run();
+                return result;
+            }
+        });
     }
 
     protected void updateState(CloudOs cloudOs, CloudOsState state) {

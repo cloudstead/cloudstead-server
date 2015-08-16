@@ -2,7 +2,7 @@ package cloudos.cloudstead.resources;
 
 import cloudos.cloudstead.dao.SessionDAO;
 import cloudos.cloudstead.model.Admin;
-import cloudos.cloudstead.model.support.CloudOsAppBundle;
+import cloudos.model.instance.CloudOsAppBundle;
 import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import com.qmino.miredot.annotations.ReturnType;

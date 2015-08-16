@@ -5,8 +5,9 @@ import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.model.support.CloudOsRequest;
-import cloudos.cloudstead.model.support.CloudOsState;
-import cloudos.cloudstead.service.cloudos.CloudOsStatus;
+import cloudos.cslib.compute.digitalocean.DigitalOceanCloudType;
+import cloudos.model.instance.CloudOsState;
+import cloudos.cloudstead.service.CloudOsStatus;
 import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
 import cloudos.cslib.compute.meta.CsCloudType;
@@ -97,7 +98,7 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         instances = fromJson(get(CLOUDOS_ENDPOINT).json, CloudOs[].class);
         assertEquals(0, instances.length);
 
-        final CsCloudType<? extends CsCloud> cloudType = getConfiguration().getCloudConfig().getProviders()[0].getType();
+        final CsCloudType<? extends CsCloud> cloudType = getConfiguration().getCloudConfig().getProvider(DigitalOceanCloudType.TYPE.getName()).getType();
         final CsGeoRegion region = cloudType.getRegions().iterator().next();
         final CloudOsRequest cloudOsRequest = new CloudOsRequest(name).setRegion(region);
 

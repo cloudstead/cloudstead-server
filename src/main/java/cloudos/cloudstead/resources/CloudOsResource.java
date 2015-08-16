@@ -1,32 +1,25 @@
 package cloudos.cloudstead.resources;
 
-import cloudos.appstore.model.app.AppLevel;
 import cloudos.appstore.model.app.AppManifest;
 import cloudos.appstore.model.app.config.AppConfiguration;
 import cloudos.appstore.model.app.config.AppConfigurationMap;
 import cloudos.cloudstead.dao.AdminDAO;
 import cloudos.cloudstead.dao.CloudOsDAO;
-import cloudos.cloudstead.dao.CloudOsEventDAO;
 import cloudos.cloudstead.dao.SessionDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.model.CloudOsEvent;
 import cloudos.cloudstead.model.support.CloudOsRequest;
-import cloudos.cloudstead.model.support.CloudOsState;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
-import cloudos.cloudstead.service.cloudos.CloudOsLaunchManager;
-import cloudos.cloudstead.service.cloudos.CloudOsStatus;
-import cloudos.cloudstead.service.cloudos.CloudsteadConfigValidationResolver;
+import cloudos.cloudstead.service.CloudOsLaunchManager;
+import cloudos.cloudstead.service.CloudOsStatus;
+import cloudos.cloudstead.service.CloudsteadConfigValidationResolver;
+import cloudos.dao.CloudOsEventDAO;
+import cloudos.deploy.CloudOsChefDeployer;
+import cloudos.model.instance.CloudOsEvent;
+import cloudos.model.instance.CloudOsState;
 import com.qmino.miredot.annotations.ReturnType;
-import edu.emory.mathcs.backport.java.util.Arrays;
-import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.cobbzilla.util.io.Tarball;
-import org.cobbzilla.util.io.TempDir;
-import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
-import org.cobbzilla.wizard.validation.SimpleViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rooty.toots.chef.ChefSolo;
@@ -36,16 +29,11 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpStatusCodes.UNPROCESSABLE_ENTITY;
-import static org.cobbzilla.util.io.FileUtil.abs;
-import static org.cobbzilla.util.io.FileUtil.listFiles;
-import static org.cobbzilla.util.system.CommandShell.chmod;
 import static org.cobbzilla.wizard.resources.ResourceUtil.*;
 
 @Consumes(MediaType.APPLICATION_JSON)
@@ -136,6 +124,9 @@ public class CloudOsResource {
 
         // region names vary across cloud vendors. validate here
         if (!request.getRegion().isValid()) return invalid("{err.cloudos.create.region.invalid}");
+
+        // not all clouds support all editions, ensure this one is ok
+        if (!request.getEdition().isValid(request.getRegion().getCloudVendor())) return invalid("{err.cloudos.create.edition.invalid}");
 
         ctx.cloudOs = new CloudOs();
         ctx.cloudOs.populate(ctx.admin, request);
@@ -356,82 +347,10 @@ public class CloudOsResource {
         return configMap;
     }
 
-    public static final List<String> DATA_FILES = Arrays.asList(new String[] { "geoip" });
-
     public boolean prepChefStagingDir(CloudOs cloudOs) {
-
-        try {
-            final File stagingDir = cloudOs.initStagingDir(configuration.getCloudConfig().getChefStagingDir());
-            final Map<AppLevel, List<String>> appsByLevel = new HashMap<>();
-            for (String app : cloudOs.getAllApps()) {
-                // get the latest version from app store
-                @Cleanup("delete") final File bundleTarball = configuration.getLatestAppBundle(app);
-                if (bundleTarball == null) {
-                    throw new SimpleViolationException("err.cloudos.app.invalid", "no bundle could be located for app: "+app, app);
-                }
-
-                // unroll it, we'll rsync it to the target host later
-                @Cleanup final TempDir tempDir = Tarball.unroll(bundleTarball);
-
-                // for now, rsync it to our staging directory
-                CommandShell.execScript("rsync -avc " + abs(tempDir) + "/chef/* " + abs(stagingDir) + "/");
-
-                // peek in the manifest to see what precedence this app should take in the run list
-                final AppManifest manifest = AppManifest.load(tempDir);
-                List<String> apps = appsByLevel.get(manifest.getLevel());
-                if (apps == null) {
-                    apps = new ArrayList<>(); appsByLevel.put(manifest.getLevel(), apps);
-                }
-                apps.add(app);
-            }
-
-            // Copy master files
-            final File chefMaster = configuration.getCloudConfig().getChefMaster();
-            for (File f : listFiles(chefMaster)) {
-                FileUtils.copyFileToDirectory(f, stagingDir);
-                if (f.canExecute()) chmod(new File(stagingDir, f.getName()), "a+rx");
-            }
-
-            // create data_files dir and copy files, if any
-            final File masterDatafiles  = new File(chefMaster, ChefSolo.DATAFILES_DIR);
-            final File stagingDatafiles = new File(stagingDir, ChefSolo.DATAFILES_DIR);
-            for (String path : DATA_FILES) {
-                CommandShell.exec("rsync -avzc "+abs(masterDatafiles)+"/"+path+" "+abs(stagingDatafiles));
-            }
-
-            // Order apps by level
-            final List<String> allApps = new ArrayList<>(appsByLevel.size());
-            for (AppLevel level : AppLevel.values()) {
-                final List<String> apps = appsByLevel.get(level);
-                if (apps != null) allApps.addAll(apps);
-            }
-
-            // Build chef solo.json using cookbooks in order of priority
-            final ChefSolo soloJson = new ChefSolo();
-            for (String app : allApps) {
-                if (ChefSolo.recipeExists(stagingDir, app, "lib")) soloJson.add("recipe["+app+"::lib]");
-            }
-            for (String app : allApps) {
-                if (ChefSolo.recipeExists(stagingDir, app, "default")) {
-                    soloJson.add("recipe[" + app + "]");
-                } else {
-                    log.warn("No default recipe found for app: "+app);
-                }
-            }
-            for (String app : allApps) {
-                if (ChefSolo.recipeExists(stagingDir, app, "validate")) soloJson.add("recipe["+app+"::validate]");
-            }
-            soloJson.write(stagingDir);
-
-        } catch (SimpleViolationException e) {
-            // rethrow so caller gets a 422 instead of 500
-            throw e;
-
-        } catch (Exception e) {
-            log.error("prepChefStagingDir: Error preparing chef staging dir: "+e);
-            return false;
-        }
-        return true;
+        final File stagingDir = cloudOs.initStagingDir(configuration.getCloudConfig().getChefStagingDir());
+        final File chefMaster = configuration.getCloudConfig().getChefMaster();
+        return CloudOsChefDeployer.prepChefStagingDir(stagingDir, chefMaster, cloudOs.getAllApps(), configuration);
     }
 
     private class CloudOsContext {

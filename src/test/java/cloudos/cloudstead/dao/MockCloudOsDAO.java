@@ -12,6 +12,6 @@ public class MockCloudOsDAO extends CloudOsDAO {
         final String salt = salt(cloudConfig);
         final String hostname = cloudOs.getName();
 
-        return CloudOs.getIAMuser(admin, hostname, salt);
+        return cloudOs.getIAMuser(admin, hostname, salt);
     }
 }

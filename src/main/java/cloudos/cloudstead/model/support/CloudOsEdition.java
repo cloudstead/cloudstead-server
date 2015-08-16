@@ -63,4 +63,8 @@ public enum CloudOsEdition {
         if (type != null) return type.getName();
         return die("Vendor " + cloudVendor.getName() + " not supported on edition " + this);
     }
+
+    public boolean isValid(CsCloudType<? extends CsCloud> cloudType) {
+        return instanceTypes.containsKey(cloudType);
+    }
 }
