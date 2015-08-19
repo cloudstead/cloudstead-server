@@ -75,7 +75,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         if (admin == null) die("preCreate: admin does not exist: "+cloudOs.getAdminUuid());
 
         final CloudConfiguration cloudConfig = configuration.getCloudConfig();
-        cloudOs.setName(cloudOs.getName().toLowerCase());
+        cloudOs.setName(cloudOs.getName());
 
         final String ucid = cloudOs.getUcid();
 
@@ -139,9 +139,9 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         return super.preCreate(cloudOs);
     }
 
-    @Override public Object preUpdate(@Valid CloudOs entity) {
-        entity.setName(entity.getName().toLowerCase());
-        return super.preUpdate(entity);
+    @Override public Object preUpdate(@Valid CloudOs cloudOs) {
+        cloudOs.setName(cloudOs.getName());
+        return super.preUpdate(cloudOs);
     }
 
     @Override
@@ -267,7 +267,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
 
             // cloudos can call back to dnsServer to define more names if needed (after installing apps),
             // we generate an API key here for the dnsServer
-            final String dnsApiKey = dnsClient.createOrUpdateUser(hostname);
+            final String dnsApiKey = dnsClient.createOrUpdateUser(hostname, configuration.getCloudConfig().getDomain());
 
             final File stagingDir = cloudOs.getStagingDirFile();
             final File initJson = new File(abs(stagingDir) + "/data_bags/cloudos/init.json");
