@@ -11,8 +11,8 @@ import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.CloudOsLaunchManager;
-import cloudos.cloudstead.service.CloudOsStatus;
 import cloudos.cloudstead.service.CloudsteadConfigValidationResolver;
+import cloudos.cloudstead.service.CloudsteadTaskResult;
 import cloudos.dao.CloudOsEventDAO;
 import cloudos.deploy.CloudOsChefDeployer;
 import cloudos.model.instance.CloudOsEvent;
@@ -259,12 +259,12 @@ public class CloudOsResource {
      * Launch an instance.
      * @param apiKey The session ID
      * @param name The name of the instance
-     * @return A CloudOsStatus object showing the status of the launch
+     * @return A CloudsteadTaskResult object showing the status of the launch
      * @statuscode 422 If there were configuration errors that prevented the launch
      */
     @POST
     @Path("/{name}/launch")
-    @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
+    @ReturnType("cloudos.cloudstead.service.CloudsteadTaskResult")
     public Response launch (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name) {
         final CloudOsContext ctx = new CloudOsContext(apiKey, name);
@@ -279,32 +279,32 @@ public class CloudOsResource {
         if (!violations.isEmpty()) return invalidConfig(configMap);
 
         // this should return quickly with a status of pending
-        final CloudOsStatus status = launchManager.launch(ctx.admin, ctx.cloudOs);
+        final CloudsteadTaskResult result = launchManager.launch(ctx.admin, ctx.cloudOs);
 
-        return ok(status);
+        return ok(result);
     }
 
     /**
      * View history for a CloudOs
      * @param apiKey The session ID
      * @param name The name of the instance
-     * @return an updated CloudOsStatus object
+     * @return an updated CloudsteadTaskResult object
      * @statuscode 403 instance is owned by another user
      * @statuscode 404 instance not found
      */
     @GET
     @Path("/{name}/status")
-    @ReturnType("cloudos.cloudstead.service.cloudos.CloudOsStatus")
+    @ReturnType("cloudos.cloudstead.service.CloudsteadTaskResult")
     public Response viewHistory(@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                                 @PathParam("name") String name) {
         final CloudOsContext ctx = new CloudOsContext(apiKey, name);
         if (ctx.response != null) return ctx.response;
 
         final List<CloudOsEvent> events = eventDAO.findByCloudOs(ctx.cloudOs.getUuid());
-        CloudOsStatus status = new CloudOsStatus(ctx.admin, ctx.cloudOs);
-        status.setHistory(events);
+        CloudsteadTaskResult result = new CloudsteadTaskResult(ctx.admin, ctx.cloudOs);
+        result.addAll(events);
 
-        return ok(status);
+        return ok(result);
     }
 
     /**

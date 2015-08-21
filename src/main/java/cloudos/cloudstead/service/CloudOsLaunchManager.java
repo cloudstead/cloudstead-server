@@ -19,29 +19,18 @@ public class CloudOsLaunchManager {
     @Autowired protected CloudsteadConfiguration configuration;
     @Autowired protected TaskService taskService;
 
-    public CloudOsStatus launch(Admin admin, CloudOs cloudOs) {
+    public CloudsteadTaskResult launch(Admin admin, CloudOs cloudOs) {
 
         // relookup to ensure we get the full representation (password hash included)
         final Admin found = adminDAO.findByUuid(admin.getUuid());
         if (found == null) throw new IllegalArgumentException("Invalid admin: "+admin.getUuid());
 
-        final CloudOsStatus status = new CloudOsStatus(found, cloudOs, eventDAO);
-        return launch(status);
-
-    }
-
-    protected CloudOsStatus launch(CloudOsStatus status) {
-        taskService.execute(new CloudOsLaunchTask(status, configuration, cloudOsDAO));
-        return status;
+        final CloudOsLaunchTask launcher = new CloudOsLaunchTask(found, cloudOs, configuration, cloudOsDAO, eventDAO);
+        taskService.execute(launcher);
+        return launcher.getResult();
     }
 
     public void teardown(Admin admin, CloudOs cloudOs) {
-        final CloudOsStatus status = new CloudOsStatus(admin, cloudOs, eventDAO);
-        teardown(status);
-    }
-
-    protected void teardown(CloudOsStatus status) {
-        final CloudOsDestroyTask destroyer = new CloudOsDestroyTask(status, configuration, cloudOsDAO);
-        taskService.execute(destroyer);
+        taskService.execute(new CloudOsDestroyTask(admin, cloudOs, configuration, cloudOsDAO, eventDAO));
     }
 }

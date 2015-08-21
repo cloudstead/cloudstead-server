@@ -1,7 +1,7 @@
 package cloudos.cloudstead.main;
 
 import cloudos.appstore.model.app.config.AppConfigurationMap;
-import cloudos.cloudstead.service.CloudOsStatus;
+import cloudos.cloudstead.service.CloudsteadTaskResult;
 import org.cobbzilla.util.json.JsonUtil;
 import org.cobbzilla.util.system.Sleep;
 import org.cobbzilla.wizard.client.ApiClientBase;
@@ -20,7 +20,7 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
 
         final ApiClientBase api = getApiClient();
         final CloudOsMainOptions options = getOptions();
-        CloudOsStatus status;
+        CloudsteadTaskResult result;
         RestResponse response;
 
         final boolean hasName = options.hasName();
@@ -51,7 +51,7 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                 if (!options.hasRegion()) die(OPT_REGION+"/"+LONGOPT_REGION+" required for operation "+options.getOperation());
                 response = api.doPut(uri, toJson(options.getCloudOsRequest()));
                 out(response.json);
-                if (!response.isSuccess()) die("Error creating CloudOs, response status was "+response.status);
+                if (!response.isSuccess()) die("Error creating CloudOs, response result was "+response.status);
                 break;
 
             case update:
@@ -59,7 +59,7 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                 if (!options.hasRegion()) die(OPT_REGION+"/"+LONGOPT_REGION+" required for operation "+options.getOperation());
                 response = api.doPost(uri, toJson(options.getCloudOsRequest()));
                 out(response.json);
-                if (!response.isSuccess()) die("Error creating CloudOs, response status was "+response.status);
+                if (!response.isSuccess()) die("Error creating CloudOs, response result was "+response.status);
                 break;
 
             case config:
@@ -71,7 +71,7 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                     }
                     response = api.doPost(uri + "/config", options.getConfig());
                     out(response.json);
-                    if (!response.isSuccess()) die("Error updating config, response status was "+response.status);
+                    if (!response.isSuccess()) die("Error updating config, response result was "+response.status);
 
                 } else {
                     out(api.get(uri + "/config").json);
@@ -79,13 +79,13 @@ public class CloudOsMain extends CloudsteadMainBase<CloudOsMainOptions> {
                 break;
 
             case launch:
-                status = fromJson(api.post(uri + "/launch", null).json, CloudOsStatus.class);
-                while (!status.isCompleted()) {
-                    out("awaiting completion, status="+toJson(status));
+                result = fromJson(api.post(uri + "/launch", null).json, CloudsteadTaskResult.class);
+                while (!result.isComplete()) {
+                    out("awaiting completion, result="+toJson(result));
                     Sleep.sleep(5000);
-                    status = fromJson(api.get(uri+"/status").json, CloudOsStatus.class);
+                    result = fromJson(api.get(uri+"/status").json, CloudsteadTaskResult.class);
                 }
-                out("completed: "+toJson(status));
+                out("completed: "+toJson(result));
                 break;
 
             case destroy:

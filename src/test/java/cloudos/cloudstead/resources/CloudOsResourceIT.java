@@ -5,9 +5,9 @@ import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.AdminResponse;
 import cloudos.cloudstead.model.support.CloudOsRequest;
+import cloudos.cloudstead.service.CloudsteadTaskResult;
 import cloudos.cslib.compute.digitalocean.DigitalOceanCloudType;
 import cloudos.model.instance.CloudOsState;
-import cloudos.cloudstead.service.CloudOsStatus;
 import cloudos.cslib.compute.CsCloud;
 import cloudos.cslib.compute.instance.CsInstance;
 import cloudos.cslib.compute.meta.CsCloudType;
@@ -158,17 +158,17 @@ public class CloudOsResourceIT extends ApiResourceITBase {
         // Ensure databags exist
         assertTrue(new File(abs(stagingDir) + "/data_bags/base/admin.json").exists());
 
-        CloudOsStatus status = fromJson(response.json, CloudOsStatus.class);
-        while (!status.isCompleted() && !status.getCloudOs().isRunning()) {
+        CloudsteadTaskResult status = fromJson(response.json, CloudsteadTaskResult.class);
+        while (!status.isComplete() && !status.getCloudOs().isRunning()) {
             Sleep.sleep(SECONDS.toMillis(3));
             apiDocs.addNote("check status of cloudos launch");
-            status = fromJson(get(uri+"/status").json, CloudOsStatus.class);
+            status = fromJson(get(uri+"/status").json, CloudsteadTaskResult.class);
         }
 
         assertEquals(name.toLowerCase(), status.getCloudOs().getName().toLowerCase());
-        assertFalse(status.isError());
+        assertFalse(status.hasError());
         assertTrue(status.isSuccess());
-        assertTrue(status.getHistory().size() > 0);
+        assertTrue(status.getEvents().size() > 0);
         assertTrue(status.getCloudOs().isRunning());
     }
 

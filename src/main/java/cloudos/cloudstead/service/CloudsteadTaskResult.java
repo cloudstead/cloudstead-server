@@ -1,11 +1,21 @@
 package cloudos.cloudstead.service;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.cobbzilla.wizard.task.TaskResult;
+import cloudos.cloudstead.model.Admin;
+import cloudos.cloudstead.model.CloudOs;
+import cloudos.model.instance.CloudOsEvent;
+import cloudos.model.instance.CloudOsTaskResultBase;
+import lombok.NoArgsConstructor;
+import org.cobbzilla.wizard.dao.DAO;
 
-public class CloudsteadTaskResult extends TaskResult {
+@NoArgsConstructor
+public class CloudsteadTaskResult extends CloudOsTaskResultBase<Admin, CloudOs> {
 
-    @Getter @Setter private CloudOsStatus status;
+    public CloudsteadTaskResult(Admin admin, CloudOs cloudOs) {
+        super(admin, cloudOs);
+    }
+
+    public CloudsteadTaskResult(Admin admin, CloudOs cloudOs, DAO<CloudOsEvent> eventDAO) {
+        super(admin, cloudOs, eventDAO);
+    }
 
 }

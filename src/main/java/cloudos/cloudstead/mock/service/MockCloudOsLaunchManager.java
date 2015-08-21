@@ -1,33 +1,26 @@
 package cloudos.cloudstead.mock.service;
 
+import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.cloudstead.service.*;
+import cloudos.cloudstead.service.CloudOsLaunchManager;
+import cloudos.cloudstead.service.CloudsteadTaskResult;
 import cloudos.model.instance.CloudOsState;
+import org.cobbzilla.wizard.task.TaskBase;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.system.Sleep.sleep;
 
 public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
 
-    @Override protected CloudOsStatus launch(CloudOsStatus status) {
-        final MockCloudOsLauncher launcher = new MockCloudOsLauncher(status);
-        taskService.execute(new CloudOsLaunchTask(status, null, null) {
-            @Override public CloudsteadTaskResult call() throws Exception {
-                launcher.run();
-                return result;
-            }
-        });
-        return status;
+    @Override public CloudsteadTaskResult launch(Admin admin, CloudOs cloudOs) {
+        final MockCloudOsLauncher launcher = new MockCloudOsLauncher();
+        taskService.execute(launcher);
+        return launcher.getResult();
     }
 
-    @Override protected void teardown(CloudOsStatus status) {
-        final MockCloudOsDestroyer destroyer = new MockCloudOsDestroyer(status);
-        taskService.execute(new CloudOsDestroyTask(status, null, null) {
-            @Override public CloudsteadTaskResult call() throws Exception {
-                destroyer.run();
-                return result;
-            }
-        });
+    @Override public void teardown(Admin admin, CloudOs cloudOs) {
+        final MockCloudOsDestroyer destroyer = new MockCloudOsDestroyer();
+        taskService.execute(destroyer);
     }
 
     protected void updateState(CloudOs cloudOs, CloudOsState state) {
@@ -35,57 +28,53 @@ public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
         cloudOsDAO.update(cloudOs);
     }
 
-    public class MockCloudOsLauncher implements Runnable {
+    public class MockCloudOsLauncher extends TaskBase<CloudsteadTaskResult> {
 
-        private CloudOsStatus status;
-        public MockCloudOsLauncher(CloudOsStatus status) { this.status = status; }
-
-        @Override public void run() {
-            CloudOs cloudOs = cloudOsDAO.findByName(status.getCloudOs().getName());
+        @Override public CloudsteadTaskResult call() {
+            CloudOs cloudOs = cloudOsDAO.findByName(result.getCloudOs().getName());
             if (cloudOs == null) {
                 cloudOs = new CloudOs();
-                cloudOs.setAdminUuid(status.getAdmin().getUuid());
-                cloudOs.setName(status.getCloudOs().getName());
+                cloudOs.setAdminUuid(result.getAdmin().getUuid());
+                cloudOs.setName(result.getCloudOs().getName());
                 try { cloudOs = cloudOsDAO.create(cloudOs); } catch (Exception e) {
-                    status.error("{setup.creatingCloudOs.error}", "Error saving new CloudOs to DB");
+                    result.error("{setup.creatingCloudOs.error}", "Error saving new CloudOs to DB");
                     die("error saving new cloudos to DB: " + e, e);
                 }
-                status.setCloudOs(cloudOs);
+                result.setCloudOs(cloudOs);
             }
 
-            status.update("{setup.creatingCloudAdminAccount}");
-            sleep(); status.update("{setup.savingCloudAdminAccount}");
+            result.update("{setup.creatingCloudAdminAccount}");
+            sleep(); result.update("{setup.savingCloudAdminAccount}");
             updateState(cloudOs, CloudOsState.starting);
-            sleep(); status.update("{setup.startingMasterInstance}");
+            sleep(); result.update("{setup.startingMasterInstance}");
             updateState(cloudOs, CloudOsState.started);
-            sleep(); status.update("{setup.updatingCloudOsToMarkAsRunning}");
-            sleep(); status.update("{setup.creatingDnsRecord}");
-            sleep(); status.update("{setup.generatingSendgridCredentials}");
-            sleep(); status.update("{setup.buildingInitializationFile}");
+            sleep(); result.update("{setup.updatingCloudOsToMarkAsRunning}");
+            sleep(); result.update("{setup.creatingDnsRecord}");
+            sleep(); result.update("{setup.generatingSendgridCredentials}");
+            sleep(); result.update("{setup.buildingInitializationFile}");
             updateState(cloudOs, CloudOsState.cheffing);
-            sleep(); status.update("{setup.cheffing}");
+            sleep(); result.update("{setup.cheffing}");
             updateState(cloudOs, CloudOsState.cheffed);
-            sleep(); status.completed();
-            status.success("{setup.success}");
+            sleep(); result.success("{setup.success}");
             updateState(cloudOs, CloudOsState.live);
+            return result;
         }
     }
 
-    public class MockCloudOsDestroyer implements Runnable {
-        private CloudOsStatus status;
-        public MockCloudOsDestroyer(CloudOsStatus status) { this.status = status; }
+    public class MockCloudOsDestroyer extends TaskBase<CloudsteadTaskResult> {
 
-        @Override public void run() {
-            updateState(status.getCloudOs(), CloudOsState.destroying);
-            sleep(); status.update("{destroy.tearingDownInstance}");
-            updateState(status.getCloudOs(), CloudOsState.destroyed);
+        @Override public CloudsteadTaskResult call() {
+            updateState(result.getCloudOs(), CloudOsState.destroying);
+            sleep(); result.update("{destroy.tearingDownInstance}");
+            updateState(result.getCloudOs(), CloudOsState.destroyed);
 
-            sleep(); status.update("{destroy.removingDnsRecords}");
-            sleep(); status.update("{destroy.deletingFromDB}");
+            sleep(); result.update("{destroy.removingDnsRecords}");
+            sleep(); result.update("{destroy.deletingFromDB}");
 
-            updateState(status.getCloudOs(), CloudOsState.deleting);
-            cloudOsDAO.delete(status.getCloudOs().getUuid());
-            sleep(); status.success("{destroy.success}");
+            updateState(result.getCloudOs(), CloudOsState.deleting);
+            cloudOsDAO.delete(result.getCloudOs().getUuid());
+            sleep(); result.success("{destroy.success}");
+            return result;
         }
     }
 }
