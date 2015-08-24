@@ -88,7 +88,7 @@ public class CloudConfiguration implements AWSCredentials {
         cloudConfig.setAccountSecret(provider.getAccountSecret());
         cloudConfig.setRegion(region.getName());
         cloudConfig.setInstanceSize(instanceType);
-        cloudConfig.setImage(region.getImage(CsPlatform.ubuntu_14_lts));
+        cloudConfig.setImage(region.getImage(instanceType, CsPlatform.ubuntu_14_lts));
         cloudConfig.setGroupPrefix(groupPrefix);
         cloudConfig.setUser(name);
         cloudConfig.setDomain(domain);

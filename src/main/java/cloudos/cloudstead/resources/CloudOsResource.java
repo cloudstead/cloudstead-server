@@ -344,7 +344,7 @@ public class CloudOsResource {
     public boolean prepChefStagingDir(CloudOs cloudOs) {
         final File stagingDir = cloudOs.initStagingDir(configuration.getCloudConfig().getChefStagingDir());
         final File chefMaster = configuration.getCloudConfig().getChefMaster();
-        return CloudOsChefDeployer.prepChefStagingDir(stagingDir, chefMaster, cloudOs.getAllApps(), configuration);
+        return CloudOsChefDeployer.prepChefRepo(stagingDir, chefMaster, cloudOs.getAllApps(), configuration);
     }
 
     private class CloudOsContext {
