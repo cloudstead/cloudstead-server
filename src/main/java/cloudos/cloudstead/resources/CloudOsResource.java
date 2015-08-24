@@ -19,6 +19,7 @@ import cloudos.model.instance.CloudOsEvent;
 import cloudos.model.instance.CloudOsState;
 import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.wizard.task.TaskId;
 import org.cobbzilla.wizard.validation.ConstraintViolationBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -279,9 +280,9 @@ public class CloudOsResource {
         if (!violations.isEmpty()) return invalidConfig(configMap);
 
         // this should return quickly with a status of pending
-        final CloudsteadTaskResult result = launchManager.launch(ctx.admin, ctx.cloudOs);
+        final TaskId taskId = launchManager.launch(ctx.admin, ctx.cloudOs);
 
-        return ok(result);
+        return ok(launchManager.getResult(taskId));
     }
 
     /**
@@ -311,13 +312,13 @@ public class CloudOsResource {
      * Destroy a CloudOs instance
      * @param apiKey The session ID
      * @param name the name of the instance
-     * @return "true" if the teardown request was successfully started
+     * @return the state of the instance, which will be 'destroyed' if it was successfully destroyed
      * @statuscode 403 instance is owned by another user
      * @statuscode 404 instance not found
      */
     @DELETE
     @Path("/{name}")
-    @ReturnType("java.lang.Boolean")
+    @ReturnType("cloudos.model.instance.CloudOsState")
     public Response delete (@HeaderParam(ApiConstants.H_API_KEY) String apiKey,
                             @PathParam("name") String name) {
         final CloudOsContext ctx = new CloudOsContext(apiKey, name);
@@ -330,14 +331,7 @@ public class CloudOsResource {
             return ok(Boolean.TRUE);
         }
 
-        // todo: check cloudos.state -- can we delete from *any* state? or only certain ones?
-
-        ctx.cloudOs.setState(CloudOsState.deleting);
-        cloudOsDAO.update(ctx.cloudOs);
-
-        launchManager.teardown(ctx.admin, ctx.cloudOs);
-
-        return ok(Boolean.TRUE);
+        return ok(launchManager.destroy(ctx.admin, ctx.cloudOs));
     }
 
     public AppConfigurationMap getAppConfiguration(CloudOs cloudOs, String locale) {

@@ -10,7 +10,7 @@ import cloudos.cloudstead.model.support.CloudOsEdition;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.CsCloud;
-import cloudos.deploy.CloudOsLauncherBase;
+import cloudos.deploy.CloudOsLaunchTaskBase;
 import cloudos.model.CsGeoRegion;
 import cloudos.model.auth.ApiToken;
 import cloudos.model.instance.CloudOsEvent;
@@ -26,7 +26,7 @@ import static org.cobbzilla.util.json.JsonUtil.toJson;
 
 @Slf4j
 public class CloudOsLaunchTask
-        extends CloudOsLauncherBase<Admin, CloudOs, CloudsteadTaskResult>
+        extends CloudOsLaunchTaskBase<Admin, CloudOs, CloudsteadTaskResult>
         implements ITask<CloudsteadTaskResult> {
 
     private final CloudsteadConfiguration configuration;
