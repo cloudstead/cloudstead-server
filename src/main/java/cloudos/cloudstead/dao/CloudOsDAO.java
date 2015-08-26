@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static cloudos.appstore.model.app.config.AppConfiguration.getShasum;
+import static org.cobbzilla.util.http.HttpUtil.DEFAULT_CERT_NAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
@@ -54,7 +55,6 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         return list(criteria().add(and(eq("adminUuid", uuid), not(in("state", CloudOsState.INACTIVE)))));
     }
 
-    public static final String CLOUDOS_CERT_NAME = "ssl-https";
     public static final String[] INIT_CONFIGS = {
             "aws_access_key", "aws_secret_key", "aws_iam_user", "s3_bucket", "authy.user"
     };
@@ -85,8 +85,8 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final String stagingDir = cloudOs.getStagingDir();
         final File cloudOsCertDir = FileUtil.mkdirOrDie(new File(abs(stagingDir) + "/certs/cloudos"));
         try {
-            Files.copy(new File(cloudConfig.getSslPem()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME + ".pem"));
-            Files.copy(new File(cloudConfig.getSslKey()), new File(cloudOsCertDir, CLOUDOS_CERT_NAME + ".key"));
+            Files.copy(new File(cloudConfig.getSslPem()), new File(cloudOsCertDir, DEFAULT_CERT_NAME + ".pem"));
+            Files.copy(new File(cloudConfig.getSslKey()), new File(cloudOsCertDir, DEFAULT_CERT_NAME + ".key"));
         } catch (IOException e) {
             die("preCreate: error writing certificate files: "+e, e);
         }
@@ -98,7 +98,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final BaseDatabag baseDatabag = new BaseDatabag()
                 .setHostname(cloudOs.getName())
                 .setParent_domain(cloudConfig.getDomain())
-                .setSsl_cert_name(CLOUDOS_CERT_NAME);
+                .setSsl_cert_name(BaseDatabag.DEFAULT_CERT_NAME);
 
         // we can fill out most of this now.
         // we have to wait until after we have launched (and an IP address) to set DNS and SMTP configuration
