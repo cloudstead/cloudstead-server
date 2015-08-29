@@ -18,6 +18,7 @@ import org.cobbzilla.sendgrid.SendGridUser;
 import org.cobbzilla.util.dns.DnsRecord;
 import org.cobbzilla.util.dns.DnsRecordMatch;
 import org.cobbzilla.util.dns.DnsType;
+import org.cobbzilla.util.http.HttpUtil;
 import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.security.ShaUtil;
 import org.cobbzilla.util.system.ConnectionInfo;
@@ -98,7 +99,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         final BaseDatabag baseDatabag = new BaseDatabag()
                 .setHostname(cloudOs.getName())
                 .setParent_domain(cloudConfig.getDomain())
-                .setSsl_cert_name(BaseDatabag.DEFAULT_CERT_NAME);
+                .setSsl_cert_name(HttpUtil.DEFAULT_CERT_NAME);
 
         // we can fill out most of this now.
         // we have to wait until after we have launched (and an IP address) to set DNS and SMTP configuration
