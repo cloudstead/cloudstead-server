@@ -7,56 +7,47 @@ import cloudos.cloudstead.dao.CloudOsDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.CloudOsEdition;
-import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cslib.compute.CsCloud;
+import cloudos.dao.CloudOsEventDAO;
 import cloudos.deploy.CloudOsLaunchTaskBase;
 import cloudos.model.CsGeoRegion;
 import cloudos.model.auth.ApiToken;
-import cloudos.model.instance.CloudOsEvent;
 import cloudos.model.instance.CloudOsState;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.http.ApiConnectionInfo;
-import org.cobbzilla.wizard.dao.DAO;
 import org.cobbzilla.wizard.task.ITask;
 import org.cobbzilla.wizard.util.RestResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
 
-@Slf4j
+@Slf4j @NoArgsConstructor
 public class CloudOsLaunchTask
         extends CloudOsLaunchTaskBase<Admin, CloudOs, CloudsteadTaskResult>
         implements ITask<CloudsteadTaskResult> {
 
-    private final CloudsteadConfiguration configuration;
-    private final CloudConfiguration cloudConfig;
-
-    public CloudOsLaunchTask(Admin admin,
-                             CloudOs cloudOs,
-                             CloudsteadConfiguration configuration,
-                             CloudOsDAO cloudOsDAO,
-                             DAO<CloudOsEvent> eventDAO) {
-        this.configuration = configuration;
-        this.cloudConfig = configuration.getCloudConfig();
-        init(admin, cloudOs, cloudOsDAO, eventDAO);
-    }
+    @Autowired private CloudsteadConfiguration configuration;
+    @Autowired @Getter(AccessLevel.PROTECTED) private CloudOsDAO cloudOsDAO;
+    @Autowired @Getter(AccessLevel.PROTECTED) private CloudOsEventDAO eventDAO;
 
     @Override protected CsCloud buildCloud() {
         final CloudOs cloudOs = result.getCloudOs();
         final String name = cloudOs.getName();
         final CloudOsEdition edition = cloudOs.getEdition();
         final CsGeoRegion region = cloudOs.getCsRegion();
-        return cloudConfig.buildHostedCloud(result.getAdmin().getUuid(), name, edition, region);
+        return configuration.getCloudConfig().buildHostedCloud(result.getAdmin().getUuid(), name, edition, region);
     }
 
-    @Override protected int getMaxLaunchTries() {
-        return configuration.getCloudConfig().getMaxLaunchTries();
-    }
+    @Override protected int getMaxLaunchTries() { return configuration.getCloudConfig().getMaxLaunchTries(); }
 
     @Override protected boolean preLaunch() {
         try {
-            ((CloudOsDAO) cloudOsDAO).writeAdminDatabag(admin(), cloudOs());
+            cloudOsDAO.writeAdminDatabag(admin(), cloudOs());
             return true;
 
         } catch (Exception e) {
@@ -71,7 +62,7 @@ public class CloudOsLaunchTask
         result.update("{setup.creatingDnsRecord}");
         final String publicIp = instance.getPublicIp();
         final String hostname = cloudOs().getName();
-        final String dnsApiKey = ((CloudOsDAO) cloudOsDAO).setupDns(publicIp, hostname, getFqdn(), cloudOs());
+        final String dnsApiKey = cloudOsDAO.setupDns(publicIp, hostname, getFqdn(), cloudOs());
         if (dnsApiKey == null) {
             result.error("{setup.error.creatingDnsRecord.serverError}", "Error updating DNS entry");
             return false;
@@ -83,7 +74,7 @@ public class CloudOsLaunchTask
         // generate sendgrid credentials
         result.update("{setup.generatingSendgridCredentials}");
         try {
-            ((CloudOsDAO) cloudOsDAO).setupSendGrid(admin(), cloudOs());
+            cloudOsDAO.setupSendGrid(admin(), cloudOs());
             return true;
 
         } catch (Exception e) {

@@ -10,12 +10,9 @@ import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
 import cloudos.cloudstead.model.support.CloudOsRequest;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
-import cloudos.cloudstead.service.CloudOsLaunchManager;
-import cloudos.cloudstead.service.CloudsteadConfigValidationResolver;
-import cloudos.cloudstead.service.CloudsteadTaskResult;
+import cloudos.cloudstead.service.*;
 import cloudos.dao.CloudOsEventDAO;
 import cloudos.deploy.CloudOsChefDeployer;
-import cloudos.model.instance.CloudOsEvent;
 import cloudos.model.instance.CloudOsState;
 import com.qmino.miredot.annotations.ReturnType;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +55,7 @@ public class CloudOsResource {
     @Autowired private CloudOsLaunchManager launchManager;
     @Autowired private CloudOsEventDAO eventDAO;
     @Autowired private CloudsteadConfiguration configuration;
+    @Autowired private TaskService taskService;
 
     /**
      * List your CloudOs instances
@@ -280,6 +278,8 @@ public class CloudOsResource {
         if (!violations.isEmpty()) return invalidConfig(configMap);
 
         // this should return quickly with a status of pending
+        if (launchManager.isRunning(ctx.cloudOs)) return invalid("{err.cloudos.launch.alreadyRunning}");
+
         final TaskId taskId = launchManager.launch(ctx.admin, ctx.cloudOs);
 
         return ok(launchManager.getResult(taskId));
@@ -301,11 +301,10 @@ public class CloudOsResource {
         final CloudOsContext ctx = new CloudOsContext(apiKey, name);
         if (ctx.response != null) return ctx.response;
 
-        final List<CloudOsEvent> events = eventDAO.findByCloudOs(ctx.cloudOs.getUuid());
-        CloudsteadTaskResult result = new CloudsteadTaskResult(ctx.admin, ctx.cloudOs);
-        result.addAll(events);
+        final CloudOsLaunchTask task = taskService.getTask(ctx.cloudOs.getUuid());
+        if (task == null) return notFound(name);
 
-        return ok(result);
+        return ok(task.getResult());
     }
 
     /**

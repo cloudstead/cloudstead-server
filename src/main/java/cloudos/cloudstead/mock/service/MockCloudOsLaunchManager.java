@@ -2,31 +2,27 @@ package cloudos.cloudstead.mock.service;
 
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
+import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.cloudstead.service.CloudOsLaunchManager;
 import cloudos.cloudstead.service.CloudOsLaunchTask;
 import cloudos.cloudstead.service.CloudsteadTaskResult;
 import cloudos.model.instance.CloudOsState;
 import org.cobbzilla.wizard.task.TaskId;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.cobbzilla.util.system.Sleep.sleep;
 
 public class MockCloudOsLaunchManager extends CloudOsLaunchManager {
 
+    @Autowired private CloudsteadConfiguration configuration;
+
     @Override public TaskId launch(Admin admin, CloudOs cloudOs) {
-        final MockCloudOsLauncher launcher = new MockCloudOsLauncher(admin, cloudOs);
+        final MockCloudOsLauncher launcher = configuration.autowire(new MockCloudOsLauncher());
+        launcher.init(admin, cloudOs);
         return taskService.execute(launcher);
     }
 
-    protected void updateState(CloudOs cloudOs, CloudOsState state) {
-        cloudOs.updateState(state);
-        cloudOsDAO.update(cloudOs);
-    }
-
     public class MockCloudOsLauncher extends CloudOsLaunchTask {
-
-        public MockCloudOsLauncher(Admin admin, CloudOs cloudOs) {
-            super(admin, cloudOs, configuration, null, null);
-        }
 
         @Override public CloudsteadTaskResult call() {
             result.update("{setup.creatingCloudAdminAccount}");

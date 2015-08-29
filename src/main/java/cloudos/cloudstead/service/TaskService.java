@@ -1,6 +1,8 @@
 package cloudos.cloudstead.service;
 
-import org.cobbzilla.wizard.task.TaskServiceBase;
+import cloudos.cloudstead.model.Admin;
+import cloudos.cloudstead.model.CloudOs;
+import cloudos.deploy.CloudOsTaskService;
 import org.springframework.stereotype.Service;
 
-@Service public class TaskService extends TaskServiceBase<CloudOsLaunchTask, CloudsteadTaskResult> {}
+@Service public class TaskService extends CloudOsTaskService<Admin, CloudOs, CloudOsLaunchTask, CloudsteadTaskResult> {}
