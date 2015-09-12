@@ -23,26 +23,19 @@
     // for cloudos-dns and cloudstead
     "recipe[java]",
 
-    // appstore. install this first so cloudstead can populate it
-    "recipe[cloudos-appstore]",
+    // blog/site. install this first to enable default site, required for appstore to work properly
+    "recipe[wordpress]", "recipe[wordpress::validate]",
+
+    // appstore. install this before cloudstead so app population works
+    "recipe[cloudos-appstore]", "recipe[cloudos-appstore::validate]",
 
     // the cloudstead webapp
-    "recipe[cloudstead]",
+    "recipe[cloudstead]", "recipe[cloudstead::validate]",
 
     // DNS
-    "recipe[cloudos-dns]",
+    "recipe[cloudos-dns]", "recipe[cloudos-dns::validate]",
 
     // web analytics
-    "recipe[piwik]",
-
-    // blog/site
-    "recipe[wordpress]",
-
-    // instrument apps with analytics
-    "recipe[piwik::validate]",
-
-    // validate other apps
-    "recipe[cloudstead::validate]", "recipe[cloudos-dns::validate]",
-    "recipe[cloudos-appstore::validate]", "recipe[wordpress::validate]"
+    "recipe[piwik]", "recipe[piwik::validate]"
   ]
 }
