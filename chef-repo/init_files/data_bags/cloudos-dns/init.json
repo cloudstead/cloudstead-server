@@ -1,12 +1,16 @@
 {
     "id": "init",
+    "server_tarball": "http://cloudstead.io/downloads/cloudos-dns-server.tar.gz",
+    "server_shasum": "shasum-of-dns-server-tarball",
     "admin": {
         "name": "initial-superuser",
         "password": "bcrypted-superuser-password"
     },
-    "dyndns": {
-        "account": "your-dyndns-account",
-        "user": "a-dyndns-user-account",
+    "server_type": "dyn",
+    "dyn": {
+        "mode": "dyn",
+        "account": "dyn-account",
+        "user": "dyn-user-account",
         "password": "password",
         "zone": "example.com"
     }
