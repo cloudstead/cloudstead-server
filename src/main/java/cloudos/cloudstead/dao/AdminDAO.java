@@ -26,6 +26,11 @@ public class AdminDAO extends AccountBaseDAO<Admin> {
         return admin;
     }
 
+    @Override public Admin findByName(String name) {
+        final Admin found = super.findByName(name);
+        return found != null ? found : findByUniqueField("email", name);
+    }
+
     @Override
     protected Map<String, UniqueValidatorDaoHelper.Finder<Admin>> getUniqueHelpers() {
 
