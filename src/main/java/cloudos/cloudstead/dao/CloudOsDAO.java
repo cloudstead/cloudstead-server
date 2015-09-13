@@ -128,7 +128,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
         }
 
         try {
-            toFile(new File(abs(stagingDir) + "/data_bags/cloudos/base.json"), toJson(baseDatabag));
+            toFile(new File(abs(stagingDir) + "/data_bags/base/base.json"), toJson(baseDatabag));
             toFile(new File(abs(stagingDir) + "/data_bags/cloudos/init.json"), toJson(cloudOsDatabag));
             toFile(new File(abs(stagingDir) + "/data_bags/cloudos/ports.json"), toJson(new PortsDatabag(3001)));
             writeAdminDatabag(admin, cloudOs);
