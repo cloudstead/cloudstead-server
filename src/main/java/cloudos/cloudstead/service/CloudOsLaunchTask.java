@@ -35,6 +35,8 @@ public class CloudOsLaunchTask
     @Autowired @Getter(AccessLevel.PROTECTED) private CloudOsDAO cloudOsDAO;
     @Autowired @Getter(AccessLevel.PROTECTED) private CloudOsEventDAO eventDAO;
 
+    @Override public Mode getMode() { return Mode.inline; }
+
     @Override protected CsCloud buildCloud() {
         final CloudOs cloudOs = result.getCloudOs();
         final String name = cloudOs.getName();
