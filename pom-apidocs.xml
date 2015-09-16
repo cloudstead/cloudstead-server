@@ -42,7 +42,6 @@ All rights reserved.
     </distributionManagement>
 
     <dependencies>
-    <dependencies>
         <dependency>
             <groupId>cloudstead</groupId>
             <artifactId>appstore-common</artifactId>
