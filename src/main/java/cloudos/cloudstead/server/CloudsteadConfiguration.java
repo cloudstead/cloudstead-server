@@ -2,7 +2,7 @@ package cloudos.cloudstead.server;
 
 import cloudos.deploy.AppBundleResolver;
 import cloudos.appstore.client.AppStoreApiClient;
-import cloudos.model.auth.ApiToken;
+import org.cobbzilla.wizard.model.ApiToken;
 import cloudos.cloudstead.resources.ApiConstants;
 import cloudos.cloudstead.resources.AuthResource;
 import cloudos.dns.DnsClient;

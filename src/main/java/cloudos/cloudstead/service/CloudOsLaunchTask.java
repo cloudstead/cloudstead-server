@@ -12,7 +12,7 @@ import cloudos.cslib.compute.CsCloud;
 import cloudos.dao.CloudOsEventDAO;
 import cloudos.deploy.CloudOsLaunchTaskBase;
 import cloudos.model.CsGeoRegion;
-import cloudos.model.auth.ApiToken;
+import org.cobbzilla.wizard.model.ApiToken;
 import cloudos.model.instance.CloudOsState;
 import lombok.AccessLevel;
 import lombok.Getter;
