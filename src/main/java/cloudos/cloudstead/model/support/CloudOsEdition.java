@@ -32,12 +32,12 @@ public enum CloudOsEdition {
     business   ((Map) ImmutableMap.of(
                     EC2, EC2.type("r3.large"),
                     DO, DO.type("8gb"),
-                    RS, RS.type("compute1-4"))),
+                    RS, RS.type("general1-4"))),
 
     king       ((Map) ImmutableMap.of(
                     EC2, EC2.type("r3.xlarge"),
                     DO, DO.type("16gb"),
-                    RS, RS.type("compute1-8"))),
+                    RS, RS.type("general1-8"))),
 
     emperor    ((Map) ImmutableMap.of(
                     EC2, EC2.type("r3.2xlarge"),
