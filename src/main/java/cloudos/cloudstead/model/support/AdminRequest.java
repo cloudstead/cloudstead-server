@@ -4,18 +4,19 @@ import cloudos.cloudstead.model.Admin;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-import org.cobbzilla.util.daemon.ZillaRuntime;
+import lombok.experimental.Accessors;
 import org.cobbzilla.wizard.validation.HasValue;
 import org.cobbzilla.wizard.validation.IsUnique;
 
 import javax.validation.constraints.Size;
 
-import static org.cobbzilla.util.daemon.ZillaRuntime.*;
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 @IsUnique.List({
         @IsUnique(unique="email",       daoBean="adminDAO", message="{err.email.notUnique}"),
         @IsUnique(unique="mobilePhone", daoBean="adminDAO", message="{err.mobilePhone.notUnique}")
 })
+@Accessors(chain=true)
 public class AdminRequest extends Admin {
 
     // optional, if no password set, then one will be generated and user will be instructed to login and change it

@@ -15,6 +15,7 @@ import org.cobbzilla.mail.TemplatedMail;
 import org.cobbzilla.mail.sender.mock.MockTemplatedMailSender;
 import org.cobbzilla.mail.sender.mock.MockTemplatedMailService;
 import org.cobbzilla.sendgrid.mock.MockSendGrid;
+import org.cobbzilla.util.collection.SingletonList;
 import org.cobbzilla.util.http.HttpStatusCodes;
 import org.cobbzilla.util.system.CommandShell;
 import org.cobbzilla.wizard.cache.redis.ActivationCodeService;
@@ -48,7 +49,7 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
     @Getter private final Map<String, String> serverEnvironment = CommandShell.loadShellExportsOrDie(TEST_ENV_FILE);
 
     @Override protected List<ConfigurationSource> getConfigurations() {
-        return StreamConfigurationSource.fromResources(getClass(), "cloudstead-config-test.yml");
+        return new SingletonList<ConfigurationSource>(new StreamConfigurationSource("cloudstead-config-test.yml"));
     }
 
     protected File chefStagingDir;
@@ -80,8 +81,6 @@ public class ApiResourceITBase extends ApiDocsResourceIT<CloudsteadConfiguration
         // define activation code with virtually unlimited usage
         getBean(ActivationCodeService.class).define(ACTIVATION_CODE, 1_000_000, TimeUnit.DAYS.toMillis(1));
     }
-
-    @Override protected Class<? extends CloudsteadServer> getRestServerClass() { return CloudsteadServer.class; }
 
     @Override protected String getTokenHeader() { return ApiConstants.H_API_KEY; }
 

@@ -107,8 +107,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
         return login(loginRequest);
     }
 
-    @Test
-    public void testCreateAccountWith2FactorAuth () throws Exception {
+    @Test public void testCreateAccountWith2FactorAuth () throws Exception {
         apiDocs.startRecording(DOC_TARGET, "create a account with 2-factor authentication and login");
         final String accountName = randomEmail();
         final String password = randomAlphanumeric(10);
@@ -136,8 +135,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
         assertEquals(AuthResponse.TWO_FACTOR_SID, fromJson(login.json, CloudsteadAuthResponse.class).getSessionId());
     }
 
-    @Test
-    public void testSuccessfulRegistrationAndEmailActivation() throws Exception {
+    @Test public void testSuccessfulRegistrationAndEmailActivation() throws Exception {
 
         RestResponse response;
         apiDocs.startRecording(DOC_TARGET, "register a new admin account and hit the verification URL in the welcome email");
@@ -173,8 +171,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
         assertEquals(email, admin.getEmail());
     }
 
-    @Test
-    public void testDuplicateRegistration () throws Exception {
+    @Test public void testDuplicateRegistration () throws Exception {
 
         RestResponse response;
         apiDocs.startRecording(DOC_TARGET, "register a new admin account, then try to register another account with the same info");
@@ -192,8 +189,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
         assertExpectedViolations(response, new String[] { "{err.email.notUnique}", "{err.mobilePhone.notUnique}" } );
     }
 
-    @Test
-    public void testAdminCrud () throws Exception {
+    @Test public void testAdminCrud () throws Exception {
 
         RestResponse response;
         apiDocs.startRecording(DOC_TARGET, "register a new admin account, update it, then delete it");
@@ -232,8 +228,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
         assertEquals(HttpStatusCodes.NOT_FOUND, response.status);
     }
 
-    @Test
-    public void testChangePassword () throws Exception {
+    @Test public void testChangePassword () throws Exception {
 
         apiDocs.startRecording(DOC_TARGET, "exercise the change-password workflow");
 
@@ -258,8 +253,7 @@ public class AdminsResourceTest extends ApiResourceITBase {
         fullLogin(email, newPassword, null);
     }
 
-    @Test
-    public void testForgotPassword () throws Exception {
+    @Test public void testForgotPassword () throws Exception {
 
         apiDocs.startRecording(DOC_TARGET, "exercise the forgot-password workflow");
 

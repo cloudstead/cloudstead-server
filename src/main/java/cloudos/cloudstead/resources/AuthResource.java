@@ -1,8 +1,8 @@
 package cloudos.cloudstead.resources;
 
+import cloudos.cloudstead.dao.AdminDAO;
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
-import cloudos.dao.AccountBaseDAO;
 import cloudos.resources.AuthResourceBase;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,7 +23,7 @@ import javax.ws.rs.core.MediaType;
 @Service @Slf4j
 public class AuthResource extends AuthResourceBase<Admin> {
 
-    @Autowired @Getter(value=AccessLevel.PROTECTED) protected AccountBaseDAO<Admin> accountBaseDAO;
+    @Autowired @Getter(value=AccessLevel.PROTECTED) protected AdminDAO accountDAO;
     @Autowired @Getter(value=AccessLevel.PROTECTED) protected TemplatedMailService templatedMailService;
 
     @Autowired private CloudsteadConfiguration configuration;

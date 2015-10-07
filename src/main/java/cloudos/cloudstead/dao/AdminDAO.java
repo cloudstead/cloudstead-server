@@ -1,19 +1,33 @@
 package cloudos.cloudstead.dao;
 
 import cloudos.cloudstead.model.Admin;
-import cloudos.dao.AccountBaseDAO;
+import cloudos.dao.BasicAccountDAO;
 import cloudos.model.auth.AuthenticationException;
 import cloudos.model.auth.LoginRequest;
 import org.cobbzilla.util.collection.MapBuilder;
+import org.cobbzilla.wizard.dao.UniquelyNamedEntityDAO;
 import org.cobbzilla.wizard.validation.UniqueValidatorDaoHelper;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 
 @Repository
-public class AdminDAO extends AccountBaseDAO<Admin> {
+public class AdminDAO extends UniquelyNamedEntityDAO<Admin> implements BasicAccountDAO<Admin> {
 
-    @Override public Admin authenticate(LoginRequest loginRequest) throws AuthenticationException {
+    public Admin findByActivationKey(String key) { return findByUniqueField("emailVerificationCode", key); }
+
+    public Admin findByResetPasswordToken(String key) { return findByUniqueField("hashedPassword.resetToken", key); }
+
+    public void setPassword(Admin account, String newPassword) {
+        account.getHashedPassword().setPassword(newPassword);
+        account.getHashedPassword().setResetToken(null);
+        update(account);
+    }
+
+    public List<Admin> findAdmins() { return findByField("admin", true); }
+
+    public Admin authenticate(LoginRequest loginRequest) throws AuthenticationException {
 
         final String accountName = loginRequest.getName();
         final String password = loginRequest.getPassword();

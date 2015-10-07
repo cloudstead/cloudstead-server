@@ -21,8 +21,7 @@ public class Admin extends AccountBase {
 
     @Override public void beforeCreate() { if (!hasUuid()) die("no uuid assigned"); }
 
-    @Override
-    public AccountBase setEmail(String email) {
+    @Override public AccountBase setEmail(String email) {
         super.setName(email);
         return super.setEmail(email);
     }
