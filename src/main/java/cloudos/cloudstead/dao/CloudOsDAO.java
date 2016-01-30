@@ -2,11 +2,11 @@ package cloudos.cloudstead.dao;
 
 import cloudos.cloudstead.model.Admin;
 import cloudos.cloudstead.model.CloudOs;
-import cloudos.model.instance.CloudOsState;
 import cloudos.cloudstead.server.CloudConfiguration;
 import cloudos.cloudstead.server.CloudsteadConfiguration;
 import cloudos.databag.*;
 import cloudos.dns.DnsClient;
+import cloudos.model.instance.CloudOsState;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.google.common.io.Files;
@@ -23,7 +23,6 @@ import org.cobbzilla.util.io.FileUtil;
 import org.cobbzilla.util.security.ShaUtil;
 import org.cobbzilla.util.system.ConnectionInfo;
 import org.cobbzilla.wizard.dao.UniquelyNamedEntityDAO;
-import org.cobbzilla.wizard.validation.SimpleViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import rooty.toots.vendor.VendorDatabag;
@@ -37,13 +36,15 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static cloudos.appstore.model.app.config.AppConfiguration.getShasum;
-import static org.cobbzilla.util.http.HttpUtil.DEFAULT_CERT_NAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.cobbzilla.util.daemon.ZillaRuntime.die;
-import static org.cobbzilla.util.io.FileUtil.*;
+import static org.cobbzilla.util.http.HttpUtil.DEFAULT_CERT_NAME;
+import static org.cobbzilla.util.io.FileUtil.abs;
+import static org.cobbzilla.util.io.FileUtil.toFile;
 import static org.cobbzilla.util.json.JsonUtil.fromJson;
 import static org.cobbzilla.util.json.JsonUtil.toJson;
+import static org.cobbzilla.wizard.resources.ResourceUtil.invalidEx;
 import static org.hibernate.criterion.Restrictions.*;
 
 @Repository @Slf4j
@@ -186,7 +187,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
                     // the user exists and that path indicates that a different admin created it, so it's an error
                     final String msg = "Duplicate account error";
                     log.error(msg);
-                    throw new SimpleViolationException("{err.cloudos.init.creatingCloudAdminAccount.notUnique}", msg);
+                    throw invalidEx("{err.cloudos.init.creatingCloudAdminAccount.notUnique}", msg);
                 }
             }
         } catch (NoSuchEntityException e) {
@@ -196,7 +197,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
             // any other problem is fatal
             final String msg = "Error looking up IAM user";
             log.error(msg, e);
-            throw new SimpleViolationException("{err.cloudos.init.creatingCloudAdminAccount.checkingExistenceOfIAMuser}", msg);
+            throw invalidEx("{err.cloudos.init.creatingCloudAdminAccount.checkingExistenceOfIAMuser}", msg);
         }
 
         final CreateAccessKeyResult accessKey;
@@ -209,7 +210,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
             } catch (Exception e) {
                 final String msg = "Error adding IAM user";
                 log.error(msg, e);
-                throw new SimpleViolationException("{setup.error.creatingCloudAdminAccount.iamAdd.serverError}", msg);
+                throw invalidEx("{setup.error.creatingCloudAdminAccount.iamAdd.serverError}", msg);
             }
 
         } else {
@@ -223,7 +224,7 @@ public class CloudOsDAO extends UniquelyNamedEntityDAO<CloudOs> {
             } catch (Exception e) {
                 final String msg = "Error creating new IAM key";
                 log.error(msg, e);
-                throw new SimpleViolationException("{setup.error.creatingCloudAdminAccount.iamKey.serverError}", msg);
+                throw invalidEx("{setup.error.creatingCloudAdminAccount.iamKey.serverError}", msg);
             }
         }
 
